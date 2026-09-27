@@ -55,6 +55,28 @@ test('欠けている項目は初期値で補完され、未知の項目は残�
   assert.deepEqual(s.futureField, { x: 1 });
 });
 
+test('JSONとして読めても型が壊れたセーブは安全な既定値へ修復する', () => {
+  const broken = {
+    saveVersion: 1,
+    units: { mon_001: 'broken' },
+    party: 'broken',
+    inventory: { items: [], equipment: null, currencies: 'broken' },
+    exploration: { discoveredNodes: {}, time: [], weather: null },
+    flags: [],
+    dungeonRun: 'broken',
+  };
+  const s = normalizeSave(broken);
+  assert.deepEqual(s.party, [null, null, null, null]);
+  assert.deepEqual(s.inventory, { items: {}, equipment: {}, currencies: {} });
+  assert.deepEqual(s.exploration.discoveredNodes, []);
+  assert.deepEqual(s.exploration.time, { day: 1, period: 'morning', tick: 0 });
+  assert.deepEqual(s.exploration.weather, {});
+  assert.deepEqual(s.flags, {});
+  assert.equal(s.dungeonRun, null);
+  assert.equal(s.units.mon_001.defId, 'mon_001');
+  assert.deepEqual(s.units.mon_001.equippedSkills, []);
+});
+
 test('マイグレーションは順番に適用される', () => {
   const migrations = [
     { from: 1, to: 2, migrate: (s) => ({ ...s, gold: s.money, money: undefined }) },
