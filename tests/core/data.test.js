@@ -25,6 +25,30 @@ test('すべてのモンスターに加入設定がある（全種類を仲間�
   }
 });
 
+test('ゲームの固定上限を超えるユニットデータを拒否する', async () => {
+  const data = await loadModifiedData((raw) => {
+    raw.characters[0].learnset = Array.from({ length: 11 }, () => ({ skillId: 'skill_001', level: 1 }));
+    raw.characters[0].passives = ['passive_001', 'passive_002', 'passive_003'];
+  });
+  const { errors } = data.validate();
+  assert.ok(errors.some((e) => e.includes('習得特技が 11 個')));
+  assert.ok(errors.some((e) => e.includes('固有パッシブが 3 個')));
+});
+
+test('4体編成・特技5枠・装備2枠・品質5段階の固定値を検証する', async () => {
+  const data = await loadModifiedData((raw) => {
+    raw.balance.party.size = 5;
+    raw.balance.skills.maxEquipped = 6;
+    raw.balance.equipment.slots = 3;
+    raw.balance.qualities.pop();
+  });
+  const { errors } = data.validate();
+  assert.ok(errors.some((e) => e.includes('party.size は4')));
+  assert.ok(errors.some((e) => e.includes('skills.maxEquipped は5')));
+  assert.ok(errors.some((e) => e.includes('equipment.slots は2')));
+  assert.ok(errors.some((e) => e.includes('qualities は5段階')));
+});
+
 test('IDの重複を検出する', async () => {
   const data = await loadModifiedData((raw) => {
     raw.monsters.push({ ...raw.monsters[0] });
