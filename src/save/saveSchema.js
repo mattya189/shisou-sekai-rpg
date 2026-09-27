@@ -95,8 +95,12 @@ export function fillDefaults(target, defaults) {
   for (const [k, dv] of Object.entries(defaults)) {
     if (out[k] === undefined) {
       out[k] = structuredClone(dv);
-    } else if (isPlainObject(dv) && isPlainObject(out[k]) && Object.keys(dv).length > 0) {
-      out[k] = fillDefaults(out[k], dv);
+    } else if (isPlainObject(dv)) {
+      // JSONとして読めても、入れ子のオブジェクトが文字列や配列に壊れている
+      // セーブがある。既定値と同じ型へ戻し、後続画面での例外を防ぐ。
+      out[k] = isPlainObject(out[k]) ? fillDefaults(out[k], dv) : structuredClone(dv);
+    } else if (Array.isArray(dv) && !Array.isArray(out[k])) {
+      out[k] = structuredClone(dv);
     }
   }
   return out;
@@ -111,6 +115,12 @@ export function normalizeSave(save) {
   const unitDefaults = createUnitDefaults();
   for (const [id, unit] of Object.entries(out.units)) {
     out.units[id] = fillDefaults(unit, { ...unitDefaults, defId: id });
+  }
+  // dungeonRun は通常 null のため fillDefaults だけでは型を判定できない。
+  // 壊れた途中経過は破棄するが、ほかの進行状況は維持する。
+  if (out.dungeonRun !== null && !isPlainObject(out.dungeonRun)) out.dungeonRun = null;
+  if (isPlainObject(out.dungeonRun)) {
+    out.dungeonRun = fillDefaults(out.dungeonRun, { dungeonId: null, stage: 0, mp: {} });
   }
   return out;
 }
