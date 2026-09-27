@@ -1,0 +1,29 @@
+name: zipを展開
+on:
+  push:
+    paths:
+      - '*.zip'
+      - '.github/workflows/unzip.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: zipを展開してリポジトリに反映
+        run: |
+          set -e
+          ZIP=$(ls *.zip 2>/dev/null | head -n 1 || true)
+          if [ -z "$ZIP" ]; then echo "zipがないので何もしません"; exit 0; fi
+          rm -rf /tmp/up
+          unzip -q "$ZIP" -d /tmp/up
+          rm -rf /tmp/up/shisou-sekai-rpg/.git
+          rm -f "$ZIP" README.md
+          cp -a /tmp/up/shisou-sekai-rpg/. ./
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "zipを展開: 思想世界RPG v0.1"
+          git push
