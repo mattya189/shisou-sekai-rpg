@@ -59,10 +59,10 @@ function checkUnit(entry, ctx) {
   }
   if (!Array.isArray(entry.learnset)) return;
   if (balance && entry.learnset.length > balance.skills.maxLearned) {
-    ctx.warn(`習得特技が ${entry.learnset.length} 個あります（上限の目安 ${balance.skills.maxLearned}）`);
+    ctx.error(`習得特技が ${entry.learnset.length} 個あります（上限 ${balance.skills.maxLearned}）`);
   }
   if (balance && (entry.passives?.length ?? 0) > balance.passives.maxPerUnit) {
-    ctx.warn(`固有パッシブが ${entry.passives.length} 個あります（目安 ${balance.passives.maxPerUnit}）`);
+    ctx.error(`固有パッシブが ${entry.passives.length} 個あります（上限 ${balance.passives.maxPerUnit}）`);
   }
   for (const l of entry.learnset) {
     if (!Number.isInteger(l.level) || l.level < 1 || (balance && l.level > balance.levelCap)) {
@@ -382,6 +382,12 @@ function validateBalance(raw, exists) {
   };
   need(Array.isArray(b.ranks) && b.ranks.length > 0 && b.ranks[0].rank === 1, 'ranks は rank 1 から始めてください');
   need(Array.isArray(b.qualities) && b.qualities.length > 0, 'qualities がありません');
+  need(b.party?.size === 4, 'party.size は4にしてください');
+  need(b.skills?.maxLearned === 10, 'skills.maxLearned は10にしてください');
+  need(b.skills?.maxEquipped === 5, 'skills.maxEquipped は5にしてください');
+  need(b.passives?.maxPerUnit === 2, 'passives.maxPerUnit は2にしてください');
+  need(b.equipment?.slots === 2, 'equipment.slots は2にしてください');
+  need(b.qualities?.length === 5, 'qualities は5段階にしてください');
   const bt = b.battle ?? {};
   need(bt.defenseConstant > 0, 'battle.defenseConstant は正の数にしてください');
   need(bt.damageVariance >= 0 && bt.damageVariance < 1, 'battle.damageVariance は0以上1未満にしてください');
