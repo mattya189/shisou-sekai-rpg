@@ -64,7 +64,7 @@
 2. `migrateSave`: `saveVersion` を見て、現在のバージョンまで順番に変換
    - `saveVersion` が無いセーブは v0 扱い
    - ゲームより新しいバージョンのセーブは読み込まない（古いゲームで上書きして壊さないため）
-3. `normalizeSave`: 欠けている項目を `createEmptySave()` の初期値で補う。**知らない項目は消さずに残す**
+3. `normalizeSave`: 欠けている項目を `createEmptySave()` の初期値で補い、配列・オブジェクトの型が壊れた既知項目を安全な既定値へ戻す。**知らない項目は消さずに残す**
 
 退避したセーブはキー `shisou-sekai-rpg/save/broken-backup` に残ります。
 
