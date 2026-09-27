@@ -43,6 +43,7 @@ export default {
         { class: 'unit-head-text' },
         h('h1', { class: 'unit-name' }, def.name),
         h('div', { class: 'unit-row-meta' }, kindBadge(kind, def), element ? h('span', {}, `属性 ${element.name}`) : null),
+        def.species?.length ? h('p', { class: 'muted small' }, `種族 ${def.species.join('・')}`) : null,
         h('p', { class: 'unit-level' }, `Lv.${unit.level}`, h('span', { class: 'muted' }, ` / ${data.balance.levelCap}`), `　ランク${unit.rank}`),
         h(
           'div',
@@ -61,6 +62,8 @@ export default {
         ['MP', stats.mp],
         ['攻撃', stats.atk],
         ['防御', stats.def],
+        ...(stats.matk != null ? [['魔法攻撃', stats.matk]] : []),
+        ...(stats.mdef != null ? [['魔法防御', stats.mdef]] : []),
         ['攻撃間隔', seconds(stats.attackIntervalMs)],
       ].map(([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, v))),
     );
@@ -122,7 +125,7 @@ export default {
           { class: 'skill-list locked' },
           upcoming.map((l) => {
             const skill = data.get('skills', l.skillId);
-            return h('li', { class: 'skill-item' }, h('span', { class: 'lock-level' }, `Lv.${l.level}`), skillBody(data, skill));
+            return h('li', { class: 'skill-item' }, h('span', { class: 'lock-level' }, `☆${l.rank ?? 1} Lv.${l.level}`), skillBody(data, skill));
           }),
         )
       : null;

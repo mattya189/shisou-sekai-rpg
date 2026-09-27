@@ -37,6 +37,7 @@
   {
     "id": "skill_003",
     "name": "（仮）手当て",
+    "countsAsAttack": false,
     "mpCost": 10,
     "description": "回復特技のサンプル。HPが一番低い味方を回復。",
     "trigger": {
@@ -152,6 +153,7 @@
   {
     "id": "skill_009",
     "name": "（仮）みんなで一息",
+    "countsAsAttack": false,
     "mpCost": 18,
     "description": "「○回ごと」条件と全体回復のサンプル。",
     "trigger": {
@@ -203,6 +205,7 @@
   {
     "id": "skill_012",
     "name": "（仮）身構える",
+    "countsAsAttack": false,
     "mpCost": 12,
     "description": "敵の大技準備中に味方全体の防御を上げる。",
     "trigger": {
@@ -248,6 +251,128 @@
         "power": 1.0,
         "breakPower": 4
       }
+    ]
+  },
+  {
+    "id": "skill_015",
+    "name": "侵色弾",
+    "mpCost": 8,
+    "description": "敵1体へ魔法攻撃。威力は80%＋対象の侵色1ごとに5%。",
+    "trigger": { "type": "attackCountMultiple", "n": 3 },
+    "effects": [
+      { "type": "markerScaledDamage", "target": "enemySingle", "basePower": 0.8, "markerId": "marker_001", "powerPerStack": 0.05, "damageType": "magic" }
+    ]
+  },
+  {
+    "id": "skill_016",
+    "name": "インク飛ばし",
+    "mpCost": 10,
+    "description": "敵1体へ侵色+5と攻撃速度-5%を付与する。速度低下は対象の2行動後に終了。",
+    "trigger": { "type": "attackCountMultiple", "n": 5 },
+    "effects": [
+      { "type": "addMarker", "target": "enemySingle", "markerId": "marker_001", "amount": 5 },
+      { "type": "applyStatus", "target": "enemySingle", "statusId": "status_005" }
+    ]
+  },
+  {
+    "id": "skill_017",
+    "name": "侵色支配",
+    "mpCost": 16,
+    "description": "侵色100へ最初に到達した敵1体を、2ターンの侵色支配状態にする。",
+    "trigger": { "type": "enemyMarkerAtLeast", "markerId": "marker_001", "stacks": 100 },
+    "targetSelector": { "type": "enemyMarkerOldest", "markerId": "marker_001", "stacks": 100 },
+    "effects": [
+      { "type": "applyStatus", "target": "enemySingle", "statusId": "status_006" }
+    ]
+  },
+  {
+    "id": "skill_018",
+    "name": "回避の構え",
+    "countsAsAttack": false,
+    "mpCost": 10,
+    "description": "自身の回避率+20。自身が2回行動すると終了。",
+    "trigger": { "type": "selfMissingStatus", "statusId": "status_009" },
+    "effects": [
+      { "type": "applyStatus", "target": "self", "statusId": "status_009" }
+    ]
+  },
+  {
+    "id": "skill_019",
+    "name": "お絵描き",
+    "countsAsAttack": false,
+    "mpCost": 0,
+    "description": "10%でその行動の攻撃をやめて絵を描く。次の行動開始時に全戦闘能力+5%を3ターン付与し、通常の行動を続ける。",
+    "trigger": { "type": "randomChance", "chance": 0.1 },
+    "effects": [
+      {
+        "type": "scheduleEffects",
+        "afterTurns": 1,
+        "effects": [
+          { "type": "applyStatus", "target": "self", "statusId": "status_007" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "skill_020",
+    "name": "（仮）氷結弾",
+    "mpCost": 14,
+    "description": "敵1体へ氷属性の中級魔法攻撃。",
+    "element": "elem_005",
+    "trigger": { "type": "attackCountMultiple", "n": 4 },
+    "effects": [
+      { "type": "damage", "target": "enemySingle", "power": 1.6, "damageType": "magic" }
+    ]
+  },
+  {
+    "id": "skill_021",
+    "name": "魔法のお絵描き",
+    "mpCost": 0,
+    "description": "お絵描き完成時、3ターンの間、通常攻撃前に敵全体へ魔法攻撃140%と侵色+1を追加するコンボ特技。",
+    "comboFrom": "skill_019",
+    "trigger": { "type": "always" },
+    "effects": [],
+    "completionEffects": [
+      { "type": "applyStatus", "target": "self", "statusId": "status_008" }
+    ]
+  },
+  {
+    "id": "skill_022",
+    "name": "インクを撒き散らす",
+    "mpCost": 18,
+    "description": "敵全体へ、それぞれ個別に侵色を1～5付与する。",
+    "trigger": { "type": "attackCountMultiple", "n": 6 },
+    "effects": [
+      { "type": "addMarker", "target": "enemyAll", "markerId": "marker_001", "min": 1, "max": 5 }
+    ]
+  },
+  {
+    "id": "skill_023",
+    "name": "奥義：ソメソメスラッシュ",
+    "mpCost": 30,
+    "oncePerBattle": true,
+    "description": "敵全体へ魔法攻撃120%。侵色合計30以上かつ偶数回目の攻撃で、1戦闘に1回だけ使用し、侵色を最多の敵へ最大100まで集約する。",
+    "trigger": {
+      "type": "all",
+      "of": [
+        { "type": "enemyMarkerTotalAtLeast", "markerId": "marker_001", "stacks": 30 },
+        { "type": "attackCountMultiple", "n": 2 }
+      ]
+    },
+    "effects": [
+      { "type": "damage", "target": "enemyAll", "power": 1.2, "damageType": "magic" },
+      { "type": "collectMarker", "markerId": "marker_001" }
+    ]
+  },
+  {
+    "id": "skill_024",
+    "name": "（仮）氷獄弾",
+    "mpCost": 28,
+    "description": "敵1体へ強力な氷属性の上級魔法攻撃。",
+    "element": "elem_005",
+    "trigger": { "type": "attackCountMultiple", "n": 8 },
+    "effects": [
+      { "type": "damage", "target": "enemySingle", "power": 2.8, "damageType": "magic" }
     ]
   }
 ]

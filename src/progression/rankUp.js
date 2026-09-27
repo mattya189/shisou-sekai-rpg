@@ -5,6 +5,7 @@
 import { GameError } from '../core/errors.js';
 import { getOwnedUnit } from './units.js';
 import { countItem, removeItem, spendCurrency, getCurrency } from './inventory.js';
+import { autoFillSkills } from './skillLoadout.js';
 
 /** 次のランクと費用。最大ランクなら null */
 export function nextRankCost(save, data, unitId) {
@@ -24,5 +25,6 @@ export function rankUp(save, data, unitId) {
   for (const c of cost.items) removeItem(save, data, c.itemId, c.qty);
   if (cost.gold) spendCurrency(save, data, data.balance.goldCurrencyId, cost.gold);
   save.units[unitId].rank = cost.rank;
+  autoFillSkills(data, save.units[unitId]);
   return cost.rank;
 }

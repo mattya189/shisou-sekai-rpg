@@ -58,8 +58,12 @@ export default {
 
     // ---- 部品を作る ----
     const cards = new Map();
-    const statusChips = (u) =>
-      u.statuses.map((s) => h('span', { class: 'status-chip' }, data.find('statuses', s.statusId)?.name.replace(/^（仮）/, '') ?? s.statusId));
+    const statusChips = (u) => [
+      ...u.statuses.map((s) => h('span', { class: 'status-chip' }, data.find('statuses', s.statusId)?.name.replace(/^（仮）/, '') ?? s.statusId)),
+      ...Object.entries(u.markers ?? {})
+        .filter(([, state]) => state.stacks > 0)
+        .map(([markerId, state]) => h('span', { class: 'status-chip' }, `${data.find('markers', markerId)?.name ?? markerId} ${state.stacks}`)),
+    ];
 
     const enemyCard = (u) => {
       const hp = bar('hp');

@@ -18,9 +18,9 @@ import { ITEM_USES } from '../progression/consumables.js';
 import { EVENT_EFFECTS } from '../events/events.js';
 import { BOSS_RECRUIT_CONDITIONS } from '../game/battleOutcome.js';
 
-import { ID_PATTERN, ITEM_CATEGORIES, UNIT_STAT_KEYS, EQUIPMENT_STAT_KEYS, FLAG_PATTERN } from './constants.js';
+import { ID_PATTERN, ITEM_CATEGORIES, UNIT_STAT_KEYS, OPTIONAL_UNIT_STAT_KEYS, EQUIPMENT_STAT_KEYS, FLAG_PATTERN } from './constants.js';
 
-export { ID_PATTERN, ITEM_CATEGORIES, UNIT_STAT_KEYS, EQUIPMENT_STAT_KEYS, FLAG_PATTERN };
+export { ID_PATTERN, ITEM_CATEGORIES, UNIT_STAT_KEYS, OPTIONAL_UNIT_STAT_KEYS, EQUIPMENT_STAT_KEYS, FLAG_PATTERN };
 
 /** 図鑑で段階的に開く情報の種類（src/ui/screens/monsterEntry.js で表示） */
 export const CODEX_REVEALS = ['basic', 'habitat', 'stats', 'drops', 'skills', 'passives', 'recruit', 'description'];
@@ -57,6 +57,10 @@ function checkUnit(entry, ctx) {
   for (const k of [...UNIT_STAT_KEYS, 'attackIntervalMs']) {
     if (typeof entry.baseStats?.[k] !== 'number') ctx.error(`baseStats.${k} は数値で指定してください`);
   }
+  for (const k of OPTIONAL_UNIT_STAT_KEYS) {
+    if (entry.baseStats?.[k] != null && typeof entry.baseStats[k] !== 'number') ctx.error(`baseStats.${k} は数値で指定してください`);
+    if (entry.growth?.[k] != null && typeof entry.growth[k] !== 'number') ctx.error(`growth.${k} は数値で指定してください`);
+  }
   if (!Array.isArray(entry.learnset)) return;
   if (balance && entry.learnset.length > balance.skills.maxLearned) {
     ctx.error(`習得特技が ${entry.learnset.length} 個あります（上限 ${balance.skills.maxLearned}）`);
@@ -68,14 +72,24 @@ function checkUnit(entry, ctx) {
     if (!Number.isInteger(l.level) || l.level < 1 || (balance && l.level > balance.levelCap)) {
       ctx.error(`learnset の ${l.skillId} の習得レベル ${l.level} が範囲外です`);
     }
+    if (!Number.isInteger(l.rank ?? 1) || (l.rank ?? 1) < 1 || (l.rank ?? 1) > (balance?.ranks?.length ?? 5)) {
+      ctx.error(`learnset の ${l.skillId} の習得ランク ${l.rank} が範囲外です`);
+    }
   }
 }
 
 export const CATEGORY_SCHEMAS = {
   elements: { prefix: 'elem_', required: ['id', 'name'] },
+  markers: {
+    prefix: 'marker_', required: ['id', 'name', 'maxStacks'],
+    check(entry, ctx) {
+      if (!Number.isInteger(entry.maxStacks) || entry.maxStacks < 1) ctx.error('maxStacks は正の整数にしてください');
+    },
+  },
   statuses: {
     prefix: 'status_',
-    required: ['id', 'name', 'kind', 'durationMs'],
+    required: ['id', 'name', 'kind'],
+    refs: [['params.markerId', 'markers']],
     check(entry, ctx) {
       validateStatusDef(entry).forEach((m) => ctx.error(m));
     },
@@ -180,19 +194,35 @@ export const CATEGORY_SCHEMAS = {
     refs: [
       ['element', 'elements'],
       ['effects[].statusId', 'statuses'],
+      ['effects[].markerId', 'markers'],
+      ['effects[].effects[].statusId', 'statuses'],
+      ['effects[].effects[].markerId', 'markers'],
+      ['completionEffects[].statusId', 'statuses'],
+      ['completionEffects[].markerId', 'markers'],
       ['trigger.statusId', 'statuses'],
+      ['trigger.markerId', 'markers'],
       ['trigger.of[].statusId', 'statuses'],
+      ['trigger.of[].markerId', 'markers'],
+      ['comboFrom', 'skills'],
+      ['targetSelector.markerId', 'markers'],
     ],
     check(entry, ctx) {
+      if (entry.countsAsAttack != null && typeof entry.countsAsAttack !== 'boolean') {
+        ctx.error('countsAsAttack は true または false で指定してください');
+      }
       validateCondition(entry.trigger).forEach((m) => ctx.error(m));
-      if (!Array.isArray(entry.effects) || entry.effects.length === 0) ctx.error('effects を1つ以上指定してください');
+      if (!Array.isArray(entry.effects) || (!entry.comboFrom && entry.effects.length === 0)) ctx.error('effects を1つ以上指定してください');
       (entry.effects ?? []).forEach((e, i) => validateEffect(e, `effects[${i}]`).forEach((m) => ctx.error(m)));
+      (entry.completionEffects ?? []).forEach((e, i) => validateEffect(e, `completionEffects[${i}]`).forEach((m) => ctx.error(m)));
+      if (entry.comboFrom && !(entry.completionEffects?.length > 0)) ctx.error('コンボ特技には completionEffects が必要です');
+      if (entry.oncePerBattle != null && typeof entry.oncePerBattle !== 'boolean') ctx.error('oncePerBattle は真偽値で指定してください');
+      if (entry.targetSelector && entry.targetSelector.type !== 'enemyMarkerOldest') ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
     },
   },
   passives: {
     prefix: 'passive_',
     required: ['id', 'name', 'description', 'effects'],
-    refs: [['effects[].statusId', 'statuses']],
+    refs: [['effects[].statusId', 'statuses'], ['effects[].markerId', 'markers']],
     check(entry, ctx) {
       (entry.effects ?? []).forEach((e, i) => validatePassiveEffect(e, `effects[${i}]`).forEach((m) => ctx.error(m)));
     },

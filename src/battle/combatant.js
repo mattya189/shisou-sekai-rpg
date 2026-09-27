@@ -57,6 +57,12 @@ export function createCombatant(data, spec, { id, side }) {
     passives,
     passiveState: {},
     statuses: [],
+    /** ユニットごとに独立した蓄積マーカー。markerId -> { stacks, reachedMaxAt } */
+    markers: {},
+    /** 次回以降の行動開始時に解決する予約効果 */
+    pendingActionEffects: [],
+    /** 戦闘中1回制限の使用済み特技 */
+    usedSkills: [],
     /** 戦闘中ずっと続く能力増減（%）。ボスのフェーズ・ギミック・部位破壊などで変わる */
     buffs: {},
     /** かからない状態異常 */
@@ -65,7 +71,12 @@ export function createCombatant(data, spec, { id, side }) {
     boss: null,
     /** 部位なら true。partOfUnit は本体 */
     isPart: false,
+    /** このユニットが行動した回数。攻撃しない行動も含む */
+    turnCount: 0,
+    /** 実際に攻撃として成立した回数。特技の発動条件はこちらを参照する */
     attackCount: 0,
+    /** 非攻撃特技が同じ攻撃回数候補で連続発動するのを防ぐ */
+    nonAttackSkillUses: {},
     nextAttackAt: stats.attackIntervalMs,
     alive: hp > 0,
     /** ボス用（Phase 7）: BREAK中・大技準備中 */
@@ -82,18 +93,26 @@ function clamp(v, min, max) {
 
 /** 状態異常とパッシブを反映した能力値（小数のまま） */
 export function effectiveStat(unit, stat) {
+  const fallback = stat === 'matk' ? 'atk' : stat === 'mdef' ? 'def' : null;
+  const base = unit.stats[stat] ?? (fallback ? unit.stats[fallback] : 0);
+  let flat = 0;
   let pct = 0;
-  for (const s of unit.statuses) pct += STATUS_KINDS[s.kind]?.statPct?.(s, stat) ?? 0;
+  for (const s of unit.statuses) {
+    flat += STATUS_KINDS[s.kind]?.statFlat?.(s, stat) ?? 0;
+    pct += STATUS_KINDS[s.kind]?.statPct?.(s, stat) ?? 0;
+  }
   for (const p of unit.passives) pct += PASSIVE_EFFECTS[p.effect.type]?.statPct?.(p.effect, unit, p.key, stat) ?? 0;
   pct += unit.buffs?.[stat] ?? 0;
-  return Math.max(0, unit.stats[stat] * (1 + pct / 100));
+  return Math.max(0, (base + flat) * (1 + pct / 100));
 }
 
 /** 状態異常を反映した攻撃間隔 */
 export function effectiveInterval(unit) {
   let ms = unit.stats.attackIntervalMs;
   for (const s of unit.statuses) ms += STATUS_KINDS[s.kind]?.intervalBonusMs?.(s) ?? 0;
-  return ms;
+  let pct = 0;
+  for (const s of unit.statuses) pct += STATUS_KINDS[s.kind]?.intervalPct?.(s) ?? 0;
+  return Math.max(1, Math.round(ms * (1 + pct / 100)));
 }
 
 /** 能力増減（%）を加える */
@@ -149,7 +168,7 @@ function createPartBase() {
   return {
     id: '', side: 'enemy', unitId: null, image: null, element: null, elementMultipliers: {},
     maxMp: 0, mp: 0, usesMp: false, skills: [], passives: [], passiveState: {}, statuses: [], buffs: {},
-    statusImmune: [], boss: null, isPart: true, attackCount: 0, nextAttackAt: Infinity, alive: true,
+    statusImmune: [], boss: null, isPart: true, turnCount: 0, attackCount: 0, nonAttackSkillUses: {}, nextAttackAt: Infinity, alive: true,
     broken: false, charging: false, lastAction: null,
   };
 }

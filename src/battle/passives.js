@@ -4,11 +4,11 @@
  * 新しい効果を追加するときは、ここに1件追加する。使えるフック（すべて任意）:
  *   params                      : 必須パラメータ名
  *   static                      : true なら戦闘外の能力値計算にも反映（src/progression/stats.js）
- *   onActionStart(e, unit, key) : 攻撃回数が増えた直後
+ *   onAttackStart(e, unit, key) : 攻撃回数が増えた直後（非攻撃行動では呼ばれない）
  *   statPct(e, unit, key, stat) : 戦闘中の能力値の増減（%）
  *   damagePct(e, attacker, target) : 与えるダメージの増減（%）
  *   normalAttackMpPct(e)        : 通常攻撃で回復するMPの追加（最大MPの%）
- *   afterAction(e, unit, key, api) : 行動の後
+ *   afterAction(e, unit, key, api, ctx) : 行動の後。ctx.attacked で攻撃成立を判定できる
  *
  * key はパッシブ効果ごとの識別子。unit.passiveState[key] に累積値などを保存できる。
  */
@@ -17,7 +17,7 @@ import { hasStatus } from './unitState.js';
 export const PASSIVE_EFFECTS = {
   statPerAttackCount: {
     params: ['stat', 'pctPerStack', 'maxStacks'],
-    onActionStart(e, unit, key) {
+    onAttackStart(e, unit, key) {
       unit.passiveState[key] = Math.min(e.maxStacks, (unit.passiveState[key] ?? 0) + 1);
     },
     statPct(e, unit, key, stat) {
@@ -32,8 +32,8 @@ export const PASSIVE_EFFECTS = {
   },
   healEveryNAttacks: {
     params: ['n', 'pctOfMaxHp'],
-    afterAction(e, unit, key, api) {
-      if (unit.attackCount % e.n === 0) {
+    afterAction(e, unit, key, api, ctx) {
+      if (ctx.attacked && unit.attackCount % e.n === 0) {
         api.heal(unit, Math.max(1, Math.floor((unit.maxHp * e.pctOfMaxHp) / 100)), 'passive');
       }
     },
@@ -47,6 +47,12 @@ export const PASSIVE_EFFECTS = {
   flatStatPct: {
     params: ['stat', 'pct'],
     static: true,
+  },
+  normalAttackMarker: {
+    params: ['markerId', 'amount'],
+    afterNormalAttackHit(e, unit, target, api) {
+      api.addMarker(target, e.markerId, e.amount);
+    },
   },
 };
 

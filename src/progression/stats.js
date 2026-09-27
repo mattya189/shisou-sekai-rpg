@@ -9,7 +9,7 @@
  *   5. 小数切り捨て
  * 攻撃間隔は 基礎攻撃間隔 ×（1 - 装備の intervalPct 合計 / 100）、下限 balance.minAttackIntervalMs
  */
-import { UNIT_STAT_KEYS } from '../core/constants.js';
+import { UNIT_STAT_KEYS, OPTIONAL_UNIT_STAT_KEYS } from '../core/constants.js';
 import { equipmentInstancesOf } from './equipment.js';
 
 export function computeStats(data, unit, equipmentInstances = []) {
@@ -18,7 +18,8 @@ export function computeStats(data, unit, equipmentInstances = []) {
   const rank = balance.ranks.find((r) => r.rank === unit.rank) ?? balance.ranks[0];
 
   const stats = {};
-  for (const k of UNIT_STAT_KEYS) {
+  const statKeys = [...UNIT_STAT_KEYS, ...OPTIONAL_UNIT_STAT_KEYS.filter((k) => def.baseStats[k] != null || def.growth?.[k] != null)];
+  for (const k of statKeys) {
     stats[k] = ((def.baseStats[k] ?? 0) + (def.growth?.[k] ?? 0) * (unit.level - 1)) * rank.statMultiplier;
   }
 
@@ -44,7 +45,7 @@ export function computeStats(data, unit, equipmentInstances = []) {
     }
   }
 
-  for (const k of UNIT_STAT_KEYS) stats[k] = Math.floor(stats[k]);
+  for (const k of statKeys) stats[k] = Math.floor(stats[k]);
   stats.attackIntervalMs = Math.max(
     balance.minAttackIntervalMs,
     Math.round(def.baseStats.attackIntervalMs * (1 - intervalPct / 100)),

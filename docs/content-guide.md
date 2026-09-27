@@ -26,6 +26,7 @@
 | 装備 | `equipment.json` | `equip_` |
 | 通貨 | `currencies.json` | `cur_` |
 | 属性 | `elements.json` | `elem_` |
+| 蓄積マーカー | `markers.json` | `marker_` |
 | 状態異常 | `statuses.json` | `status_` |
 | 天候 | `weathers.json` | `weather_` |
 | 地域 | `regions.json` | `region_` |
@@ -83,7 +84,7 @@
 | `baseStats` | Lv1・ランク1の能力値。`attackIntervalMs` は攻撃間隔（ミリ秒） |
 | `growth` | 1レベルごとの上昇量（小数可。表示時に切り捨て） |
 | `elementMultipliers` | 受けるダメージの属性倍率。`{ "elem_002": 1.5 }` なら火に弱い |
-| `learnset` | 習得する特技と習得レベル。**10個程度まで**（`balance.skills.maxLearned`） |
+| `learnset` | 習得する特技と習得条件。`rank`（省略時1）と `level` の両方を満たすと習得。**最大10個**（`balance.skills.maxLearned`） |
 | `passives` | 固有パッシブ。**1〜2個** |
 | `duplicateTo` | 所持済みで再入手したときに変換される素材（任意） |
 
@@ -137,6 +138,7 @@
   "id": "skill_011",
   "name": "（仮）新しい特技",
   "mpCost": 10,
+  "countsAsAttack": true,
   "description": "説明文。",
   "element": "elem_002",
   "trigger": { "type": "attackCountMultiple", "n": 2 },
@@ -154,6 +156,15 @@
 
 使える `trigger` と `effects` の一覧は [battle-system.md](battle-system.md)。
 複合条件: `{ "type": "all", "of": [ { "type": "attackCountMultiple", "n": 2 }, { "type": "enemyHpBelow", "pct": 50 } ] }`
+
+`countsAsAttack` は、その行動で攻撃回数を進めるかを表す。省略時は `true`。回復・防御・構え・チャージ・
+お絵描き・待機など、攻撃しない特技には `false` を明記する。どちらでもターン数は1進む。
+`attackCountMultiple` / `attackCountEvery` はターン数ではなく攻撃回数だけを参照する。
+
+予約完成を使う特技は `scheduleEffects`、その完成に連動するコンボ特技は `comboFrom` と
+`completionEffects` を使う。コンボ特技も5枠のセット対象で、直接の発動候補にはならない。
+戦闘中1回だけの特技には `oncePerBattle: true` を付ける。蓄積値は `markers.json` に上限つきで定義し、
+`addMarker` / `markerScaledDamage` / マーカー条件からID参照する。
 
 **新しい種類の条件**が必要なら `src/battle/conditions.js` の `CONDITIONS` に登録します。
 **新しい種類の効果**は `src/battle/effects.js` の `EFFECTS` に登録します。
@@ -173,6 +184,10 @@
 
 `kind` は `damageOverTime` / `attackDelay` / `statModifier`（詳細は [battle-system.md](battle-system.md)）。
 新しい種類は `src/battle/statusEffects.js` に登録します。
+
+継続期間は `durationMs`（経過時間）または `durationTurns`（対象自身の行動回数）のどちらか一方を指定します。
+ターン基準では `"turnTiming": "actionStart"` または `"actionEnd"`（省略時）も指定できます。
+「2ターン」は、対象ユニットが2回行動した後に終了するという意味です。
 
 ## 固有パッシブを追加する（`passives.json`）
 

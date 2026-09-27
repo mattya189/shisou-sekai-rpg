@@ -4,6 +4,9 @@
     "elements": [
       "elements.json"
     ],
+    "markers": [
+      "markers.json"
+    ],
     "statuses": [
       "statuses.json"
     ],

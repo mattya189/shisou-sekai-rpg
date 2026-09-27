@@ -21,6 +21,7 @@ const types = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
   '.md': 'text/plain; charset=utf-8',
 };
@@ -47,7 +48,13 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(port, '0.0.0.0', () => {
   console.log(`思想世界RPG: http://localhost:${port}`);
-  for (const list of Object.values(networkInterfaces())) {
+  let interfaces = {};
+  try {
+    interfaces = networkInterfaces();
+  } catch {
+    // 一部のコンテナではLAN情報を取得できない。localhostでの配信は継続する。
+  }
+  for (const list of Object.values(interfaces)) {
     for (const a of list ?? []) {
       if (a.family === 'IPv4' && !a.internal) console.log(`  スマホから: http://${a.address}:${port}`);
     }

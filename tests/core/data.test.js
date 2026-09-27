@@ -92,6 +92,27 @@ test('発動条件の必須パラメータ不足を検出する', async () => {
   assert.ok(data.validate().errors.some((e) => e.includes('パラメータ n')));
 });
 
+test('状態異常は時間または対象の行動回数を継続基準にできる', async () => {
+  const data = await loadModifiedData((raw) => {
+    const status = raw.statuses[0];
+    delete status.durationMs;
+    delete status.params.tickMs;
+    status.durationTurns = 2;
+    status.turnTiming = 'actionStart';
+  });
+  assert.deepEqual(data.validate().errors, []);
+});
+
+test('状態異常の継続基準重複と特技の不正な攻撃扱い設定を拒否する', async () => {
+  const data = await loadModifiedData((raw) => {
+    raw.statuses[0].durationTurns = 2;
+    raw.skills[0].countsAsAttack = 'no';
+  });
+  const { errors } = data.validate();
+  assert.ok(errors.some((e) => e.includes('durationMs または durationTurns')));
+  assert.ok(errors.some((e) => e.includes('countsAsAttack')));
+});
+
 test('get は存在しないIDで例外、find は null', async () => {
   const data = await loadRealData();
   assert.throws(() => data.get('monsters', 'mon_999'));

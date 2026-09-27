@@ -52,4 +52,7 @@ export function setRank(save, data, unitId, rank) {
     throw new GameError('invalid_rank', `ランク${r}は存在しません（1〜${maxRank(data.balance)}）`);
   }
   unit.rank = r;
+  const learned = learnedSkillIds(data, unit);
+  unit.equippedSkills = unit.equippedSkills.filter((id) => learned.includes(id));
+  autoFillSkills(data, unit);
 }

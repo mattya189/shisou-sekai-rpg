@@ -2,5 +2,6 @@
   { "id": "elem_001", "name": "無", "description": "属性なし。" },
   { "id": "elem_002", "name": "（仮）火", "description": "仮の属性。属性体系は未確定。" },
   { "id": "elem_003", "name": "（仮）水", "description": "仮の属性。属性体系は未確定。" },
-  { "id": "elem_004", "name": "（仮）風", "description": "仮の属性。属性体系は未確定。" }
+  { "id": "elem_004", "name": "（仮）風", "description": "仮の属性。属性体系は未確定。" },
+  { "id": "elem_005", "name": "氷", "description": "氷の属性。相性倍率は各ユニットのデータで調整する。" }
 ]

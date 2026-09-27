@@ -12,7 +12,8 @@
  *   時刻の早い順に1つずつ処理する。advance に渡す時間の刻み方に結果は左右されない。
  *   そのため ×1 / ×2 / ×3 の速度変更は「実時間あたりに進める量」を変えるだけで、結果は同じになる。
  *
- * 同時刻の出来事の順番: 継続ダメージ → 効果切れ → 攻撃。同じ種類なら味方（並び順）→ 敵（並び順）。
+ * ターンは「そのユニットが1回行動すること」。turnCount は全行動、attackCount は攻撃成立時だけ増える。
+ * 同時刻の出来事の順番: 時間基準の継続ダメージ → 効果切れ → 行動。同じ種類なら味方（並び順）→ 敵（並び順）。
  *
  * 乱数: battle.rng だけを使う。seed が同じなら結果は完全に同じ。
  */
@@ -152,6 +153,7 @@ function nextEvent(battle) {
       }
     };
     for (const s of unit.statuses) {
+      if (s.expiresAt == null) continue;
       if (s.nextTickAt != null && s.nextTickAt <= s.expiresAt) consider(s.nextTickAt, 0, 'tick', s);
       consider(s.expiresAt, 1, 'expire', s);
     }
@@ -222,13 +224,19 @@ function makeApi(battle, data) {
           return [];
       }
     },
-    dealDamage(attacker, target, power, element, results, breakPower = 1) {
-      const amount = computeDamage({ attacker, target, power, element, rng: battle.rng, balance: data.balance });
+    dealDamage(attacker, target, power, element, results, breakPower = 1, damageType = 'physical') {
+      const evasion = effectiveStat(target, 'evasion');
+      if (evasion > 0 && battle.rng.chance(Math.min(0.95, evasion / 100))) {
+        results.push({ kind: 'miss', targetId: target.id });
+        return false;
+      }
+      const amount = computeDamage({ attacker, target, power, element, rng: battle.rng, balance: data.balance, damageType });
       applyDamage(battle, target, amount, results, { element });
       if (target.alive && target.boss) {
         reduceBreak(battle, target, breakPower, results);
         checkPhase(target, results);
       }
+      return true;
     },
     heal(target, amount, source, results) {
       if (!target.alive) return;
@@ -249,14 +257,66 @@ function makeApi(battle, data) {
       }
       const existing = target.statuses.find((s) => s.statusId === statusId);
       if (existing) {
-        existing.expiresAt = t() + def.durationMs;
+        if (def.durationTurns != null) existing.remainingTurns = def.durationTurns;
+        else existing.expiresAt = t() + def.durationMs;
         results.push({ kind: 'statusRefreshed', targetId: target.id, statusId });
         return;
       }
-      const inst = { statusId, kind: def.kind, params: { ...def.params }, expiresAt: t() + def.durationMs, nextTickAt: null };
+      const inst = {
+        statusId,
+        kind: def.kind,
+        params: { ...def.params },
+        expiresAt: def.durationMs != null ? t() + def.durationMs : null,
+        nextTickAt: null,
+        remainingTurns: def.durationTurns ?? null,
+        turnTiming: def.turnTiming ?? 'actionEnd',
+      };
       target.statuses.push(inst);
       STATUS_KINDS[def.kind]?.onApply?.(inst, target, t());
       results.push({ kind: 'statusApplied', targetId: target.id, statusId });
+    },
+    markerStacks(target, markerId) {
+      return target.markers?.[markerId]?.stacks ?? 0;
+    },
+    randomInt(min, max) {
+      return battle.rng.int(min, max);
+    },
+    addMarker(target, markerId, amount, results = []) {
+      if (!target.alive) return 0;
+      const def = data.get('markers', markerId);
+      const state = target.markers[markerId] ?? { stacks: 0, reachedMaxAt: null };
+      const before = state.stacks;
+      state.stacks = Math.min(def.maxStacks, Math.max(0, before + amount));
+      if (before < def.maxStacks && state.stacks === def.maxStacks) state.reachedMaxAt = battle.timeMs;
+      target.markers[markerId] = state;
+      const actual = state.stacks - before;
+      results.push({ kind: 'markerChanged', targetId: target.id, markerId, amount: actual, value: state.stacks });
+      return actual;
+    },
+    collectMarker(targets, markerId, results = []) {
+      if (!targets.length) return;
+      let chosen = targets[0];
+      for (const target of targets) {
+        if ((target.markers[markerId]?.stacks ?? 0) > (chosen.markers[markerId]?.stacks ?? 0)) chosen = target;
+      }
+      const total = targets.reduce((n, target) => n + (target.markers[markerId]?.stacks ?? 0), 0);
+      const max = data.get('markers', markerId).maxStacks;
+      for (const target of targets) {
+        const before = target.markers[markerId]?.stacks ?? 0;
+        if (before > 0) target.markers[markerId] = { stacks: 0, reachedMaxAt: null };
+      }
+      const value = Math.min(max, total);
+      chosen.markers[markerId] = { stacks: value, reachedMaxAt: value === max ? battle.timeMs : null };
+      results.push({ kind: 'markerCollected', targetId: chosen.id, markerId, value, lost: Math.max(0, total - max) });
+    },
+    scheduleEffects(actor, afterTurns, effects, sourceSkill, results = []) {
+      const completionEffects = [...effects];
+      for (const skillId of actor.skills) {
+        const combo = data.find('skills', skillId);
+        if (combo?.comboFrom === sourceSkill?.id) completionEffects.push(...(combo.completionEffects ?? []));
+      }
+      actor.pendingActionEffects.push({ turnsLeft: afterTurns, effects: completionEffects, sourceSkillId: sourceSkill?.id ?? null });
+      results.push({ kind: 'effectsScheduled', targetId: actor.id, afterTurns, sourceSkillId: sourceSkill?.id ?? null });
     },
   };
   return api;
@@ -320,17 +380,43 @@ function checkPhase(target, results) {
   }
 }
 
-/** 1回の攻撃（攻撃回数+1 → 特技判定 → 特技 or 通常攻撃） */
+/**
+ * 1回の行動機会。
+ * turnCount は必ず1増える。attackCount は通常攻撃または countsAsAttack !== false の特技だけ1増える。
+ * 攻撃回数条件は attackCount だけで判定し、turnCount は参照しない。
+ */
 function act(battle, data, actor) {
   const api = makeApi(battle, data);
-  actor.attackCount += 1;
-  for (const p of actor.passives) PASSIVE_EFFECTS[p.effect.type]?.onActionStart?.(p.effect, actor, p.key);
+  actor.turnCount += 1;
+  const actionStartStatuses = [...actor.statuses];
+  processTurnStatuses(battle, actor, 'actionStart', actionStartStatuses);
+  if (!actor.alive) {
+    battle.log.push({
+      t: battle.timeMs, type: 'action', actorId: actor.id, turnCount: actor.turnCount,
+      attackCount: actor.attackCount, countsAsAttack: false, kind: 'interrupted', skillId: null,
+      skippedForMp: [], charged: false, results: [],
+    });
+    return;
+  }
 
   const allies = aliveOf(battle, actor.side);
   const foes = aliveOf(battle, actor.side === 'ally' ? 'enemy' : 'ally');
   // 主な攻撃対象: 味方は先頭の敵を集中攻撃、敵は味方をランダムに狙う
-  const primaryTarget = actor.side === 'ally' ? foes[0] : battle.rng.pick(foes);
-  const condCtx = { self: actor, allies, enemies: foes, target: primaryTarget, attackCount: actor.attackCount };
+  let primaryTarget = actor.side === 'ally' ? foes[0] : battle.rng.pick(foes);
+  const results = [];
+
+  // 前回以前の行動で予約された完成処理。ここで付いた強化は今回の通常処理に反映される。
+  for (const pending of [...actor.pendingActionEffects]) {
+    pending.turnsLeft -= 1;
+    if (pending.turnsLeft > 0) continue;
+    const pendingCtx = { actor, primaryTarget, skill: null, results };
+    for (const effect of pending.effects) EFFECTS[effect.type]?.apply(effect, api, pendingCtx);
+    actor.pendingActionEffects = actor.pendingActionEffects.filter((p) => p !== pending);
+    results.push({ kind: 'scheduledEffectsCompleted', targetId: actor.id, sourceSkillId: pending.sourceSkillId });
+  }
+  const statusesAtTurnStart = [...actor.statuses];
+  const nextAttackCount = actor.attackCount + 1;
+  const condCtx = { self: actor, allies, enemies: foes, target: primaryTarget, rng: battle.rng };
 
   // ボスの大技: 決まった回数ごとに力をため（予兆）、ため終わったら必ず放つ
   let forced = null;
@@ -339,11 +425,15 @@ function act(battle, data, actor) {
     if (actor.charging) {
       actor.charging = false;
       forced = data.get('skills', charge.skillId);
-    } else if (actor.attackCount % charge.everyNAttacks === 0) {
+    } else if (nextAttackCount % charge.everyNAttacks === 0) {
       actor.charging = true;
       actor.nextAttackAt = battle.timeMs + charge.chargeMs;
       actor.lastAction = { t: battle.timeMs, kind: 'charge', skillId: charge.skillId };
-      battle.log.push({ t: battle.timeMs, type: 'chargeStart', actorId: actor.id, skillId: charge.skillId, message: charge.message ?? null });
+      battle.log.push({
+        t: battle.timeMs, type: 'chargeStart', actorId: actor.id, turnCount: actor.turnCount,
+        attackCount: actor.attackCount, skillId: charge.skillId, message: charge.message ?? null,
+      });
+      processTurnStatuses(battle, actor, 'actionEnd', statusesAtTurnStart);
       return;
     }
   }
@@ -353,7 +443,12 @@ function act(battle, data, actor) {
   for (const skillId of forced ? [] : actor.skills) {
     const skill = data.find('skills', skillId);
     if (!skill) continue;
-    if (!checkCondition(skill.trigger, condCtx)) continue;
+    if (skill.comboFrom) continue;
+    if (skill.oncePerBattle && actor.usedSkills.includes(skill.id)) continue;
+    // 攻撃特技は「今回成立する攻撃回数」、非攻撃特技は「成立済みの攻撃回数」で条件判定する。
+    const conditionAttackCount = skill.countsAsAttack === false ? actor.attackCount : nextAttackCount;
+    if (!checkCondition(skill.trigger, { ...condCtx, attackCount: conditionAttackCount })) continue;
+    if (skill.countsAsAttack === false && actor.nonAttackSkillUses[skillId] === actor.attackCount) continue;
     if (actor.usesMp && actor.mp < skill.mpCost) {
       skippedForMp.push(skillId);
       continue;
@@ -362,12 +457,30 @@ function act(battle, data, actor) {
     break;
   }
 
-  const results = [];
+  if (used?.targetSelector?.type === 'enemyMarkerOldest') {
+    const markerId = used.targetSelector.markerId;
+    const min = used.targetSelector.stacks ?? 1;
+    primaryTarget = foes
+      .filter((u) => (u.markers[markerId]?.stacks ?? 0) >= min)
+      .sort((a, b) => (a.markers[markerId]?.reachedMaxAt ?? Infinity) - (b.markers[markerId]?.reachedMaxAt ?? Infinity) || battle.units.indexOf(a) - battle.units.indexOf(b))[0] ?? primaryTarget;
+  }
+
+  const countsAsAttack = !used || used.countsAsAttack !== false;
+  if (countsAsAttack) {
+    actor.attackCount = nextAttackCount;
+    for (const p of actor.passives) PASSIVE_EFFECTS[p.effect.type]?.onAttackStart?.(p.effect, actor, p.key);
+  } else {
+    actor.nonAttackSkillUses[used.id] = actor.attackCount;
+  }
+  if (used?.oncePerBattle) actor.usedSkills.push(used.id);
+
   const event = {
     t: battle.timeMs,
     type: 'action',
     actorId: actor.id,
+    turnCount: actor.turnCount,
     attackCount: actor.attackCount,
+    countsAsAttack,
     kind: used ? 'skill' : 'normal',
     skillId: used?.id ?? null,
     skippedForMp,
@@ -380,7 +493,20 @@ function act(battle, data, actor) {
     if (actor.usesMp && !forced) actor.mp -= used.mpCost;
     for (const effect of used.effects) EFFECTS[effect.type]?.apply(effect, api, actCtx);
   } else if (primaryTarget) {
-    api.dealDamage(actor, primaryTarget, data.balance.normalAttack.power, null, results, 1);
+    // 追加攻撃は同じ行動内のため attackCount を増やさない。
+    for (const status of actor.statuses) {
+      if (status.kind !== 'additionalNormalAttack') continue;
+      const extraAct = { actor, primaryTarget, skill: null, results };
+      for (const target of api.targets(status.params.target, extraAct)) {
+        const hit = api.dealDamage(actor, target, status.params.power, status.params.element ?? null, results, 1, status.params.damageType);
+        if (hit && status.params.markerId) api.addMarker(target, status.params.markerId, status.params.markerAmount ?? 1, results);
+      }
+    }
+    const hit = api.dealDamage(actor, primaryTarget, data.balance.normalAttack.power, null, results, 1);
+    if (hit) {
+      const passiveApi = { addMarker: (target, markerId, amount) => api.addMarker(target, markerId, amount, results) };
+      for (const p of actor.passives) PASSIVE_EFFECTS[p.effect.type]?.afterNormalAttackHit?.(p.effect, actor, primaryTarget, passiveApi);
+    }
     if (actor.usesMp && actor.maxMp > 0) {
       let pct = data.balance.normalAttack.mpRecoverPctOfMax;
       for (const p of actor.passives) pct += PASSIVE_EFFECTS[p.effect.type]?.normalAttackMpPct?.(p.effect) ?? 0;
@@ -393,12 +519,30 @@ function act(battle, data, actor) {
 
   if (actor.alive) {
     const passiveApi = { heal: (target, amount, source) => api.heal(target, amount, source, results) };
-    for (const p of actor.passives) PASSIVE_EFFECTS[p.effect.type]?.afterAction?.(p.effect, actor, p.key, passiveApi);
+    const passiveCtx = { attacked: countsAsAttack, turnCount: actor.turnCount, attackCount: actor.attackCount };
+    for (const p of actor.passives) PASSIVE_EFFECTS[p.effect.type]?.afterAction?.(p.effect, actor, p.key, passiveApi, passiveCtx);
   }
 
   actor.lastAction = { t: battle.timeMs, kind: event.kind, skillId: event.skillId };
   battle.log.push(event);
+  processTurnStatuses(battle, actor, 'actionEnd', statusesAtTurnStart);
   actor.nextAttackAt += effectiveInterval(actor);
+}
+
+/** 対象ユニットの行動開始/終了を基準にする状態効果を1ターンぶん処理する。 */
+function processTurnStatuses(battle, unit, timing, statusesAtTurnStart) {
+  for (const status of statusesAtTurnStart) {
+    if (!unit.statuses.includes(status) || status.remainingTurns == null || status.turnTiming !== timing) continue;
+    const results = [];
+    const kind = STATUS_KINDS[status.kind];
+    if (kind?.ticks && unit.alive) {
+      applyDamage(battle, unit, kind.tickDamage(status, unit), results);
+      battle.log.push({ t: battle.timeMs, type: 'statusTick', targetId: unit.id, statusId: status.statusId, results });
+    }
+    status.remainingTurns -= 1;
+    if (status.remainingTurns <= 0) statusExpire(battle, unit, status);
+    if (!unit.alive) break;
+  }
 }
 
 function statusTick(battle, unit, status) {

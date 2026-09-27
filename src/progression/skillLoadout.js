@@ -15,7 +15,7 @@ function getUnit(save, unitId) {
 /** 現在のレベルで習得済みの特技ID（習得順） */
 export function learnedSkillIds(data, unit) {
   const { def } = data.getUnitDef(unit.defId);
-  const ids = def.learnset.filter((l) => l.level <= unit.level).map((l) => l.skillId);
+  const ids = def.learnset.filter((l) => l.level <= unit.level && (l.rank ?? 1) <= unit.rank).map((l) => l.skillId);
   for (const id of unit.extraSkills ?? []) if (!ids.includes(id)) ids.push(id);
   return ids;
 }
@@ -23,7 +23,7 @@ export function learnedSkillIds(data, unit) {
 /** まだ習得していない特技と習得レベル */
 export function upcomingSkills(data, unit) {
   const { def } = data.getUnitDef(unit.defId);
-  return def.learnset.filter((l) => l.level > unit.level);
+  return def.learnset.filter((l) => l.level > unit.level || (l.rank ?? 1) > unit.rank);
 }
 
 export function setEquippedSkills(save, data, unitId, skillIds) {

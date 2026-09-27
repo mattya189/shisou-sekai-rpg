@@ -18,6 +18,7 @@ export function describeEvent(ev, battle, data) {
     return u ? displayName(battle, u) : id;
   };
   const statusName = (id) => data.find('statuses', id)?.name ?? id;
+  const markerName = (id) => data.find('markers', id)?.name ?? id;
 
   switch (ev.type) {
     case 'start': {
@@ -40,13 +41,13 @@ export function describeEvent(ev, battle, data) {
       return `${name(ev.targetId)}は${statusName(ev.statusId)}で${dmg?.amount ?? 0}ダメージ${down ? '、倒れた' : ''}`;
     }
     case 'action':
-      return describeAction(ev, battle, data, name, statusName);
+      return describeAction(ev, battle, data, name, statusName, markerName);
     default:
       return null;
   }
 }
 
-function describeAction(ev, battle, data, name, statusName) {
+function describeAction(ev, battle, data, name, statusName, markerName) {
   const actor = battle.units.find((u) => u.id === ev.actorId);
   const skillName = data.find('skills', ev.skillId)?.name ?? ev.skillId;
   const head = ev.charged ? `${name(actor.id)}の大技、${skillName}！` : ev.kind === 'skill' ? `${name(actor.id)}の${skillName}！` : `${name(actor.id)}の攻撃`;
@@ -64,6 +65,9 @@ function describeAction(ev, battle, data, name, statusName) {
     else if (r.kind === 'statusApplied') parts.push(`${name(r.targetId)}は${statusName(r.statusId)}になった`);
     else if (r.kind === 'statusRefreshed') parts.push(`${name(r.targetId)}の${statusName(r.statusId)}がのびた`);
     else if (r.kind === 'statusResisted') parts.push(r.immune ? `${name(r.targetId)}には${statusName(r.statusId)}が効かない` : `${name(r.targetId)}に${statusName(r.statusId)}は効かなかった`);
+    else if (r.kind === 'markerChanged' && r.amount !== 0) parts.push(`${name(r.targetId)}の${markerName(r.markerId)} ${r.amount > 0 ? '+' : ''}${r.amount}（${r.value}）`);
+    else if (r.kind === 'markerCollected') parts.push(`${markerName(r.markerId)}を${name(r.targetId)}へ集約（${r.value}）`);
+    else if (r.kind === 'miss') parts.push(`${name(r.targetId)}は回避した`);
     else if (r.kind === 'break') parts.push(`${name(r.targetId)}をBREAKさせた！`);
     else if (r.kind === 'chargeCanceled') parts.push(`${name(r.targetId)}の大技を止めた！`);
     else if (r.kind === 'phase' || r.kind === 'partBroken') parts.push(r.message ?? `${name(r.targetId)}の様子が変わった`);

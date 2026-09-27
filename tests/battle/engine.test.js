@@ -27,6 +27,38 @@ test('攻撃間隔2秒・「2の倍数」特技: 2秒通常、4秒特技、6秒�
   assert.equal(b.units[0].attackCount, 4);
 });
 
+test('1回行動するたびに、そのユニットのターンが1進む', async () => {
+  const data = await loadBattleData();
+  const b = createBattle(data, { allies: [tester({ skills: [] })], enemies: [sandbag()] });
+  advance(b, data, 6000);
+  assert.equal(b.units[0].turnCount, 3);
+  assert.deepEqual(b.log.filter((e) => e.actorId === 'a1').map((e) => e.turnCount), [1, 2, 3]);
+});
+
+test('攻撃行動ではターン数と攻撃回数がそれぞれ1進む', async () => {
+  const data = await loadBattleData();
+  const b = createBattle(data, { allies: [tester({ skills: [] })], enemies: [sandbag()] });
+  advance(b, data, 2000);
+  assert.equal(b.units[0].turnCount, 1);
+  assert.equal(b.units[0].attackCount, 1);
+  assert.equal(b.log.find((e) => e.actorId === 'a1').countsAsAttack, true);
+});
+
+test('非攻撃行動ではターン数だけが進み、次の行動機会には通常攻撃できる', async () => {
+  const data = await loadBattleData((raw) => {
+    raw.skills.push({
+      id: 'skill_903', name: '待機', countsAsAttack: false, mpCost: 0,
+      trigger: { type: 'always' }, effects: [{ type: 'heal', target: 'self', power: 0 }],
+    });
+  });
+  const b = createBattle(data, { allies: [tester({ skills: ['skill_903'] })], enemies: [sandbag()] });
+  advance(b, data, 2000);
+  assert.deepEqual([b.units[0].turnCount, b.units[0].attackCount], [1, 0]);
+  advance(b, data, 2000);
+  assert.deepEqual([b.units[0].turnCount, b.units[0].attackCount], [2, 1]);
+  assert.deepEqual(actionsOf(b, 'a1').map((a) => a[1]), ['skill', 'normal']);
+});
+
 test('条件を満たす特技が複数あるときは優先順位の高いほうを1つだけ使う', async () => {
   const data = await loadBattleData();
   const run = (skills) => {
@@ -143,6 +175,55 @@ test('敵が毒状態のときだけ「追い打ち」', async () => {
 });
 
 // ---------------------------------------------------------------- 状態異常
+
+test('2ターン状態異常は、対象ユニットが2回行動した後に終了する', async () => {
+  const data = await loadBattleData((raw) => {
+    raw.statuses.push({
+      id: 'status_900', name: '2ターン効果', kind: 'statModifier', durationTurns: 2,
+      turnTiming: 'actionEnd', params: { stat: 'atk', pct: -10 },
+    });
+    raw.skills.push({
+      id: 'skill_904', name: '2ターン付与', mpCost: 0,
+      trigger: { type: 'attackCountEvery', n: 1000, start: 1 },
+      effects: [{ type: 'applyStatus', target: 'enemySingle', statusId: 'status_900' }],
+    });
+  });
+  const b = createBattle(data, {
+    allies: [tester({ skills: ['skill_904'], hp: 100000 })],
+    enemies: [{ defId: 'mon_901', skills: [] }],
+  });
+  advance(b, data, 2000);
+  assert.equal(b.units[1].turnCount, 2);
+  assert.equal(b.units[1].statuses[0].remainingTurns, 1);
+  advance(b, data, 1000);
+  assert.equal(b.units[1].turnCount, 3);
+  assert.equal(b.units[1].statuses.length, 0);
+  assert.equal(b.log.find((e) => e.type === 'statusEnd' && e.statusId === 'status_900').t, 3000);
+});
+
+test('攻撃間隔が短いユニットほど同じ時間内に多くターンを消費する', async () => {
+  const data = await loadBattleData();
+  const b = createBattle(data, {
+    allies: [tester({ skills: [], hp: 100000 })],
+    enemies: [{ defId: 'mon_901', skills: [] }],
+  });
+  advance(b, data, 4000);
+  assert.equal(b.units[0].turnCount, 2);
+  assert.equal(b.units[1].turnCount, 4);
+});
+
+test('攻撃回数条件は非攻撃ターンを数えず、攻撃回数だけを参照する', async () => {
+  const data = await loadBattleData((raw) => {
+    raw.skills.push({
+      id: 'skill_903', name: '待機', countsAsAttack: false, mpCost: 0,
+      trigger: { type: 'always' }, effects: [{ type: 'heal', target: 'self', power: 0 }],
+    });
+  });
+  const b = createBattle(data, { allies: [tester({ skills: ['skill_903', 'skill_001'] })], enemies: [sandbag()] });
+  advance(b, data, 8000);
+  assert.deepEqual(actionsOf(b, 'a1').map((a) => a[2]), ['skill_903', null, 'skill_903', 'skill_001']);
+  assert.deepEqual([b.units[0].turnCount, b.units[0].attackCount], [4, 2]);
+});
 
 test('毒: 一定間隔で最大HPの4%ダメージ、時間で治る', async () => {
   const data = await loadBattleData();
@@ -305,12 +386,14 @@ test('編成画面の優先順位がそのまま戦闘に使われる', async ()
 
 test('データで使われている効果・状態異常・パッシブはすべて処理が登録されている', async () => {
   const data = await loadRealData();
-  for (const s of data.list('skills')) for (const e of s.effects) assert.ok(EFFECTS[e.type]?.apply, e.type);
+  for (const s of data.list('skills')) {
+    for (const e of [...s.effects, ...(s.completionEffects ?? [])]) assert.ok(EFFECTS[e.type]?.apply, e.type);
+  }
   for (const s of data.list('statuses')) assert.ok(STATUS_KINDS[s.kind], s.kind);
   for (const p of data.list('passives')) {
     for (const e of p.effects) {
       const def = PASSIVE_EFFECTS[e.type];
-      const hasHook = def.static || def.onActionStart || def.statPct || def.damagePct || def.normalAttackMpPct || def.afterAction;
+      const hasHook = def.static || def.onAttackStart || def.statPct || def.damagePct || def.normalAttackMpPct || def.afterAction || def.afterNormalAttackHit;
       assert.ok(hasHook, `${e.type} に処理がない`);
     }
   }

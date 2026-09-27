@@ -25,7 +25,7 @@ export const EFFECTS = {
       for (const t of api.targets(e.target, act)) {
         const hits = e.hits ?? 1;
         for (let i = 0; i < hits && t.alive; i++) {
-          api.dealDamage(act.actor, t, e.power, act.skill?.element ?? null, act.results, e.breakPower ?? 1);
+          api.dealDamage(act.actor, t, e.power, act.skill?.element ?? null, act.results, e.breakPower ?? 1, e.damageType ?? 'physical');
         }
       }
     },
@@ -43,6 +43,36 @@ export const EFFECTS = {
       for (const t of api.targets(e.target, act)) api.applyStatus(t, e.statusId, e.chance ?? 1, act.results);
     },
   },
+  markerScaledDamage: {
+    params: ['target', 'basePower', 'markerId', 'powerPerStack'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) {
+        const power = e.basePower + api.markerStacks(t, e.markerId) * e.powerPerStack;
+        api.dealDamage(act.actor, t, power, act.skill?.element ?? null, act.results, e.breakPower ?? 1, e.damageType ?? 'physical');
+      }
+    },
+  },
+  addMarker: {
+    params: ['target', 'markerId'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) {
+        const amount = e.amount ?? api.randomInt(e.min, e.max);
+        api.addMarker(t, e.markerId, amount, act.results);
+      }
+    },
+  },
+  collectMarker: {
+    params: ['markerId'],
+    apply(e, api, act) {
+      api.collectMarker(api.targets('enemyAll', act), e.markerId, act.results);
+    },
+  },
+  scheduleEffects: {
+    params: ['afterTurns', 'effects'],
+    apply(e, api, act) {
+      api.scheduleEffects(act.actor, e.afterTurns, e.effects, act.skill, act.results);
+    },
+  },
 };
 
 export function validateEffect(effect, where) {
@@ -55,6 +85,12 @@ export function validateEffect(effect, where) {
   }
   if (effect.target !== undefined && !TARGETS.includes(effect.target)) {
     errors.push(`${where}: target "${effect.target}" は未登録です（${TARGETS.join(', ')}）`);
+  }
+  if (effect.type === 'scheduleEffects' && Array.isArray(effect.effects)) {
+    effect.effects.forEach((e, i) => errors.push(...validateEffect(e, `${where}.effects[${i}]`)));
+  }
+  if (effect.type === 'addMarker' && effect.amount == null && !(Number.isInteger(effect.min) && Number.isInteger(effect.max) && effect.min <= effect.max)) {
+    errors.push(`${where}: addMarker は amount または整数の min / max が必要です`);
   }
   return errors;
 }

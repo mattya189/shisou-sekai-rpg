@@ -41,5 +41,59 @@
       "pct": 50
     },
     "description": "防御力が50%上がる。"
+  },
+  {
+    "id": "status_005",
+    "name": "インク鈍化",
+    "kind": "intervalPctModifier",
+    "durationTurns": 2,
+    "turnTiming": "actionEnd",
+    "params": { "pct": 5 },
+    "description": "対象自身が2回行動するまで攻撃間隔が5%長くなる。"
+  },
+  {
+    "id": "status_006",
+    "name": "侵色支配",
+    "kind": "damageOverTime",
+    "durationTurns": 2,
+    "turnTiming": "actionEnd",
+    "params": { "pctOfMaxHp": 10 },
+    "description": "対象の行動終了時に最大HPの10%を失う。対象が2回行動すると終了。"
+  },
+  {
+    "id": "status_007",
+    "name": "お絵描き完成",
+    "kind": "multiStatModifier",
+    "durationTurns": 3,
+    "turnTiming": "actionEnd",
+    "params": {
+      "statPct": { "atk": 5, "def": 5, "matk": 5, "mdef": 5 },
+      "intervalPct": -5
+    },
+    "description": "攻撃・防御・魔法攻撃・魔法防御と行動速度が5%上がる。自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_008",
+    "name": "魔法のお絵描き",
+    "kind": "additionalNormalAttack",
+    "durationTurns": 3,
+    "turnTiming": "actionEnd",
+    "params": {
+      "target": "enemyAll",
+      "power": 1.4,
+      "damageType": "magic",
+      "markerId": "marker_001",
+      "markerAmount": 1
+    },
+    "description": "通常攻撃前に敵全体へ魔法攻撃140%を行い、命中した敵へ侵色+1。追加攻撃は攻撃回数を増やさない。"
+  },
+  {
+    "id": "status_009",
+    "name": "回避の構え",
+    "kind": "flatStatModifier",
+    "durationTurns": 2,
+    "turnTiming": "actionEnd",
+    "params": { "stat": "evasion", "amount": 20 },
+    "description": "回避率が20ポイント上がる。自身が2回行動すると終了。"
   }
 ]

@@ -18,6 +18,10 @@
  */
 import { hpPct, hasStatus } from './unitState.js';
 
+function markerStacks(unit, markerId) {
+  return unit?.markers?.[markerId]?.stacks ?? 0;
+}
+
 /**
  * @typedef {{ params: string[], describe: (p: any, data?: any) => string, check: (p: any, ctx: any) => boolean }} ConditionDef
  */
@@ -61,6 +65,26 @@ export const CONDITIONS = {
     params: ['statusId'],
     describe: (p, data) => `敵が${nameOf(data, 'statuses', p.statusId)}状態`,
     check: (p, c) => Boolean(c.target) && hasStatus(c.target, p.statusId),
+  },
+  selfMissingStatus: {
+    params: ['statusId'],
+    describe: (p, data) => `自分が${nameOf(data, 'statuses', p.statusId)}状態ではない`,
+    check: (p, c) => !hasStatus(c.self, p.statusId),
+  },
+  randomChance: {
+    params: ['chance'],
+    describe: (p) => `${Math.round(p.chance * 100)}%の確率`,
+    check: (p, c) => c.rng.chance(p.chance),
+  },
+  enemyMarkerAtLeast: {
+    params: ['markerId', 'stacks'],
+    describe: (p, data) => `敵の${nameOf(data, 'markers', p.markerId)}が${p.stacks}以上`,
+    check: (p, c) => c.enemies.some((e) => markerStacks(e, p.markerId) >= p.stacks),
+  },
+  enemyMarkerTotalAtLeast: {
+    params: ['markerId', 'stacks'],
+    describe: (p, data) => `敵全体の${nameOf(data, 'markers', p.markerId)}合計が${p.stacks}以上`,
+    check: (p, c) => c.enemies.reduce((n, e) => n + markerStacks(e, p.markerId), 0) >= p.stacks,
   },
   enemyBreak: {
     params: [],
@@ -114,6 +138,9 @@ export function validateCondition(condition, where = 'trigger') {
   }
   if ((condition.type === 'all' || condition.type === 'any') && Array.isArray(condition.of)) {
     condition.of.forEach((c, i) => errors.push(...validateCondition(c, `${where}.of[${i}]`)));
+  }
+  if (condition.type === 'randomChance' && !(condition.chance >= 0 && condition.chance <= 1)) {
+    errors.push(`${where}: chance は0〜1で指定してください`);
   }
   return errors;
 }

@@ -6,6 +6,8 @@ export const ID_PATTERN = /^[a-z]+_\d{3,}$/;
 
 export const ITEM_CATEGORIES = ['consumable', 'material', 'growth', 'key'];
 export const UNIT_STAT_KEYS = ['hp', 'mp', 'atk', 'def'];
-export const EQUIPMENT_STAT_KEYS = ['hp', 'mp', 'atk', 'def', 'intervalPct'];
+/** 既存ユニットでは省略できる拡張能力。省略時は戦闘側で互換値へフォールバックする。 */
+export const OPTIONAL_UNIT_STAT_KEYS = ['matk', 'mdef', 'evasion'];
+export const EQUIPMENT_STAT_KEYS = [...UNIT_STAT_KEYS, ...OPTIONAL_UNIT_STAT_KEYS, 'intervalPct'];
 /** フラグ名の形式（イベント・隠し要素の進行管理に使う） */
 export const FLAG_PATTERN = /^flag_\d{3,}$/;

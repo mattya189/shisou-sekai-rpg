@@ -295,7 +295,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------- ユニット ---------- */
 
-.portrait { display: block; flex: none; border-radius: var(--radius-sm); background: var(--raised); object-fit: cover; }
+.portrait { display: block; flex: none; border-radius: var(--radius-sm); background: var(--raised); object-fit: contain; }
 .portrait-sm { width: 44px; height: 44px; }
 .portrait-md { width: 56px; height: 56px; }
 .portrait-lg { width: 96px; height: 96px; border-radius: var(--radius-md); }

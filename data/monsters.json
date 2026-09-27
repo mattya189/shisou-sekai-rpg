@@ -386,5 +386,66 @@
     },
     "exp": 60,
     "gold": 50
+  },
+  {
+    "id": "mon_007",
+    "name": "ソメイム",
+    "description": "青いインクを操り、相手を少しずつ自分の色へ侵食する色命族のスライム。長期戦では蓄積した侵色を利用して力を発揮する。",
+    "image": "img/monsters/mon_007.jpeg",
+    "worldId": "world_001",
+    "rarity": "normal",
+    "strength": 1,
+    "battleType": "高速型",
+    "species": ["色命族", "スライム"],
+    "element": "elem_005",
+    "baseStats": {
+      "hp": 82,
+      "mp": 54,
+      "atk": 10,
+      "def": 7,
+      "matk": 19,
+      "mdef": 11,
+      "evasion": 0,
+      "attackIntervalMs": 1450
+    },
+    "growth": {
+      "hp": 8,
+      "mp": 4,
+      "atk": 0.8,
+      "def": 0.6,
+      "matk": 1.9,
+      "mdef": 1.0,
+      "evasion": 0
+    },
+    "elementMultipliers": {
+      "elem_002": 1.5,
+      "elem_005": 0.5
+    },
+    "learnset": [
+      { "skillId": "skill_015", "rank": 1, "level": 1 },
+      { "skillId": "skill_019", "rank": 1, "level": 1 },
+      { "skillId": "skill_016", "rank": 1, "level": 10 },
+      { "skillId": "skill_017", "rank": 2, "level": 1 },
+      { "skillId": "skill_018", "rank": 2, "level": 5 },
+      { "skillId": "skill_020", "rank": 3, "level": 1 },
+      { "skillId": "skill_021", "rank": 3, "level": 20 },
+      { "skillId": "skill_022", "rank": 4, "level": 30 },
+      { "skillId": "skill_023", "rank": 5, "level": 1 },
+      { "skillId": "skill_024", "rank": 5, "level": 40 }
+    ],
+    "passives": ["passive_006"],
+    "drops": [
+      { "itemId": "item_003", "rate": 0.55, "qty": [1, 2] }
+    ],
+    "recruit": {
+      "baseRate": 0.3,
+      "failBonus": 0.05,
+      "guaranteeAfter": 5,
+      "duplicateTo": [
+        { "itemId": "item_009", "qty": 3 }
+      ]
+    },
+    "exp": 10,
+    "gold": 7
   }
 ]

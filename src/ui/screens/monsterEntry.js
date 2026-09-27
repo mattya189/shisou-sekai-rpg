@@ -72,6 +72,8 @@ export default {
             ['MP', m.baseStats.mp],
             ['攻撃', m.baseStats.atk],
             ['防御', m.baseStats.def],
+            ...(m.baseStats.matk != null ? [['魔法攻撃', m.baseStats.matk]] : []),
+            ...(m.baseStats.mdef != null ? [['魔法防御', m.baseStats.mdef]] : []),
             ['攻撃間隔', seconds(m.baseStats.attackIntervalMs)],
             ['属性', el?.name ?? '―'],
           ].map(([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, v))),
@@ -97,7 +99,7 @@ export default {
           { class: 'plain-list' },
           m.learnset.map((l) => {
             const sk = data.get('skills', l.skillId);
-            return h('li', {}, `Lv.${l.level} ${sk.name}`, h('span', { class: 'muted' }, `　${describeCondition(sk.trigger, data)}`));
+            return h('li', {}, `☆${l.rank ?? 1} Lv.${l.level} ${sk.name}`, h('span', { class: 'muted' }, `　${describeCondition(sk.trigger, data)}`));
           }),
         ),
       );
@@ -133,6 +135,7 @@ export default {
           { class: 'unit-head-text' },
           h('h1', { class: 'unit-name' }, m.name),
           h('div', { class: 'unit-row-meta' }, kindBadge('monster', m), h('span', {}, data.find('worlds', m.worldId)?.name ?? '')),
+          m.species?.length ? h('p', { class: 'muted small' }, `種族 ${m.species.join('・')}`) : null,
           h('p', { class: 'muted small' }, `倒した数 ${rec?.counts?.defeated ?? 0}${rec?.flags?.recruited ? '　仲間にした' : ''}`),
         ),
       ),

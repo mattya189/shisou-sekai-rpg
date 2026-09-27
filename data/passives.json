@@ -23,5 +23,10 @@
     "id": "passive_005", "name": "（仮）頑丈",
     "description": "防御力+10%。",
     "effects": [ { "type": "flatStatPct", "stat": "def", "pct": 10 } ]
+  },
+  {
+    "id": "passive_006", "name": "染色本能",
+    "description": "通常攻撃が命中した対象へ侵色+1（最大100）。",
+    "effects": [ { "type": "normalAttackMarker", "markerId": "marker_001", "amount": 1 } ]
   }
 ]
