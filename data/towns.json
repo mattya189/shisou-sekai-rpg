@@ -1,0 +1,54 @@
+[
+  {
+    "id": "town_001",
+    "worldId": "world_001",
+    "name": "（仮）はじまりの街",
+    "description": "（仮）テキスト。",
+    "background": null,
+    "facilities": [
+      {
+        "id": "fac_001",
+        "type": "inn",
+        "name": "宿屋"
+      },
+      {
+        "id": "fac_002",
+        "type": "shop",
+        "name": "ショップ",
+        "shopId": "shop_001"
+      },
+      {
+        "id": "fac_003",
+        "type": "workshop",
+        "name": "工房"
+      },
+      {
+        "id": "fac_004",
+        "type": "tavern",
+        "name": "酒場"
+      },
+      {
+        "id": "fac_005",
+        "type": "residents",
+        "name": "住民と話す"
+      },
+      {
+        "id": "fac_006",
+        "type": "townExplore",
+        "name": "街を探索する"
+      },
+      {
+        "id": "fac_007",
+        "type": "exit",
+        "name": "街の外へ"
+      }
+    ],
+    "connections": [
+      {
+        "to": "loc_001",
+        "distance": 1
+      }
+    ],
+    "region": "region_001"
+  }
+]

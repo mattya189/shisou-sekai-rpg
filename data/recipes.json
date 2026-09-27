@@ -1,0 +1,54 @@
+[
+  {
+    "id": "recipe_001",
+    "name": "（仮）小さな護符",
+    "output": {
+      "equipmentId": "equip_003"
+    },
+    "inputs": [
+      {
+        "itemId": "item_005",
+        "qty": 3
+      },
+      {
+        "itemId": "item_001",
+        "qty": 2,
+        "minQuality": "q2"
+      }
+    ],
+    "gold": 50
+  },
+  {
+    "id": "recipe_002",
+    "name": "（仮）軽い靴",
+    "output": {
+      "equipmentId": "equip_004"
+    },
+    "inputs": [
+      {
+        "itemId": "item_004",
+        "qty": 4
+      },
+      {
+        "itemId": "item_006",
+        "qty": 2
+      }
+    ],
+    "gold": 80
+  },
+  {
+    "id": "recipe_003",
+    "name": "（仮）強化石",
+    "output": {
+      "itemId": "item_008",
+      "qty": 1
+    },
+    "inputs": [
+      {
+        "itemId": "item_006",
+        "qty": 3
+      }
+    ],
+    "gold": 10
+  }
+]

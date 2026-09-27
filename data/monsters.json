@@ -1,0 +1,390 @@
+[
+  {
+    "id": "mon_001",
+    "name": "（仮）ためいきスライム",
+    "description": "（仮）通常モンスターのサンプル。",
+    "image": null,
+    "worldId": "world_001",
+    "rarity": "normal",
+    "element": "elem_003",
+    "baseStats": {
+      "hp": 110,
+      "mp": 30,
+      "atk": 16,
+      "def": 10,
+      "attackIntervalMs": 2200
+    },
+    "growth": {
+      "hp": 12,
+      "mp": 2,
+      "atk": 1.6,
+      "def": 1.2
+    },
+    "elementMultipliers": {
+      "elem_002": 1.5,
+      "elem_003": 0.5
+    },
+    "learnset": [
+      {
+        "skillId": "skill_001",
+        "level": 1
+      },
+      {
+        "skillId": "skill_004",
+        "level": 6
+      }
+    ],
+    "passives": [
+      "passive_003"
+    ],
+    "drops": [
+      {
+        "itemId": "item_003",
+        "rate": 0.7,
+        "qty": [
+          1,
+          2
+        ]
+      },
+      {
+        "itemId": "item_001",
+        "rate": 0.2,
+        "qty": [
+          1,
+          1
+        ]
+      }
+    ],
+    "recruit": {
+      "baseRate": 0.25,
+      "failBonus": 0.05,
+      "guaranteeAfter": 6,
+      "duplicateTo": [
+        {
+          "itemId": "item_009",
+          "qty": 3
+        }
+      ]
+    },
+    "exp": 12,
+    "gold": 8
+  },
+  {
+    "id": "mon_002",
+    "name": "（仮）うつむきガラス",
+    "description": "（仮）攻撃間隔が短いモンスターのサンプル。",
+    "image": null,
+    "worldId": "world_001",
+    "rarity": "normal",
+    "element": "elem_004",
+    "baseStats": {
+      "hp": 90,
+      "mp": 36,
+      "atk": 15,
+      "def": 8,
+      "attackIntervalMs": 1600
+    },
+    "growth": {
+      "hp": 9,
+      "mp": 3,
+      "atk": 1.5,
+      "def": 0.8
+    },
+    "elementMultipliers": {
+      "elem_004": 0.5
+    },
+    "learnset": [
+      {
+        "skillId": "skill_002",
+        "level": 1
+      },
+      {
+        "skillId": "skill_008",
+        "level": 7
+      }
+    ],
+    "passives": [],
+    "drops": [
+      {
+        "itemId": "item_004",
+        "rate": 0.6,
+        "qty": [
+          1,
+          2
+        ]
+      }
+    ],
+    "recruit": {
+      "baseRate": 0.2,
+      "failBonus": 0.05,
+      "guaranteeAfter": 7,
+      "duplicateTo": [
+        {
+          "itemId": "item_009",
+          "qty": 3
+        }
+      ]
+    },
+    "exp": 14,
+    "gold": 10
+  },
+  {
+    "id": "mon_003",
+    "name": "（仮）空拍手ゴースト",
+    "description": "（仮）状態異常を使うモンスターのサンプル。",
+    "image": null,
+    "worldId": "world_001",
+    "rarity": "normal",
+    "element": "elem_001",
+    "baseStats": {
+      "hp": 100,
+      "mp": 44,
+      "atk": 14,
+      "def": 9,
+      "attackIntervalMs": 2000
+    },
+    "growth": {
+      "hp": 10,
+      "mp": 4,
+      "atk": 1.4,
+      "def": 0.9
+    },
+    "elementMultipliers": {},
+    "learnset": [
+      {
+        "skillId": "skill_004",
+        "level": 1
+      },
+      {
+        "skillId": "skill_006",
+        "level": 5
+      }
+    ],
+    "passives": [
+      "passive_004"
+    ],
+    "drops": [
+      {
+        "itemId": "item_005",
+        "rate": 0.6,
+        "qty": [
+          1,
+          1
+        ]
+      }
+    ],
+    "recruit": {
+      "baseRate": 0.2,
+      "failBonus": 0.04,
+      "guaranteeAfter": 8,
+      "duplicateTo": [
+        {
+          "itemId": "item_009",
+          "qty": 3
+        }
+      ]
+    },
+    "exp": 15,
+    "gold": 12
+  },
+  {
+    "id": "mon_004",
+    "name": "（仮）ほこりトロフィー",
+    "description": "（仮）遅いが硬いモンスターのサンプル。",
+    "image": null,
+    "worldId": "world_001",
+    "rarity": "normal",
+    "element": "elem_002",
+    "baseStats": {
+      "hp": 150,
+      "mp": 30,
+      "atk": 20,
+      "def": 16,
+      "attackIntervalMs": 2800
+    },
+    "growth": {
+      "hp": 15,
+      "mp": 2,
+      "atk": 2.0,
+      "def": 1.8
+    },
+    "elementMultipliers": {
+      "elem_003": 1.5,
+      "elem_002": 0.5
+    },
+    "learnset": [
+      {
+        "skillId": "skill_005",
+        "level": 1
+      },
+      {
+        "skillId": "skill_001",
+        "level": 4
+      }
+    ],
+    "passives": [
+      "passive_005"
+    ],
+    "drops": [
+      {
+        "itemId": "item_006",
+        "rate": 0.6,
+        "qty": [
+          1,
+          2
+        ]
+      }
+    ],
+    "recruit": {
+      "baseRate": 0.15,
+      "failBonus": 0.05,
+      "guaranteeAfter": 8,
+      "duplicateTo": [
+        {
+          "itemId": "item_009",
+          "qty": 4
+        }
+      ]
+    },
+    "exp": 20,
+    "gold": 15
+  },
+  {
+    "id": "mon_005",
+    "name": "（仮）ためいきスライム・変異種",
+    "description": "（仮）変異種のサンプル。元モンスターとは別IDで管理する。",
+    "image": null,
+    "worldId": "world_001",
+    "rarity": "variant",
+    "variantOf": "mon_001",
+    "element": "elem_002",
+    "baseStats": {
+      "hp": 140,
+      "mp": 40,
+      "atk": 20,
+      "def": 12,
+      "attackIntervalMs": 2000
+    },
+    "growth": {
+      "hp": 14,
+      "mp": 3,
+      "atk": 2.0,
+      "def": 1.4
+    },
+    "elementMultipliers": {
+      "elem_003": 1.5,
+      "elem_002": 0.5
+    },
+    "learnset": [
+      {
+        "skillId": "skill_005",
+        "level": 1
+      },
+      {
+        "skillId": "skill_004",
+        "level": 1
+      },
+      {
+        "skillId": "skill_010",
+        "level": 12
+      }
+    ],
+    "passives": [
+      "passive_003",
+      "passive_001"
+    ],
+    "drops": [
+      {
+        "itemId": "item_003",
+        "rate": 1.0,
+        "qty": [
+          2,
+          3
+        ]
+      },
+      {
+        "itemId": "item_007",
+        "rate": 0.3,
+        "qty": [
+          1,
+          1
+        ]
+      }
+    ],
+    "recruit": {
+      "baseRate": 0.1,
+      "failBonus": 0.03,
+      "guaranteeAfter": 10,
+      "duplicateTo": [
+        {
+          "itemId": "item_009",
+          "qty": 8
+        }
+      ]
+    },
+    "exp": 40,
+    "gold": 30
+  },
+  {
+    "id": "mon_006",
+    "name": "（仮）遺跡の番人",
+    "description": "（仮）ボスのサンプル。倒し方しだいで仲間になる。",
+    "image": null,
+    "worldId": "world_001",
+    "rarity": "boss",
+    "element": "elem_001",
+    "baseStats": {
+      "hp": 200,
+      "mp": 40,
+      "atk": 22,
+      "def": 16,
+      "attackIntervalMs": 2400
+    },
+    "growth": {
+      "hp": 18,
+      "mp": 3,
+      "atk": 2.2,
+      "def": 1.6
+    },
+    "elementMultipliers": {},
+    "learnset": [
+      {
+        "skillId": "skill_001",
+        "level": 1
+      },
+      {
+        "skillId": "skill_008",
+        "level": 1
+      },
+      {
+        "skillId": "skill_013",
+        "level": 10
+      }
+    ],
+    "passives": [
+      "passive_005"
+    ],
+    "drops": [
+      {
+        "itemId": "item_006",
+        "rate": 1.0,
+        "qty": [
+          2,
+          3
+        ]
+      }
+    ],
+    "recruit": {
+      "baseRate": 0,
+      "special": true,
+      "duplicateTo": [
+        {
+          "itemId": "item_009",
+          "qty": 20
+        }
+      ]
+    },
+    "exp": 60,
+    "gold": 50
+  }
+]

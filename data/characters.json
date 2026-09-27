@@ -1,0 +1,100 @@
+[
+  {
+    "id": "chr_001",
+    "name": "（仮）見習い剣士",
+    "description": "（仮）人間キャラクターのサンプル。攻撃寄り。設定は未確定。",
+    "image": null,
+    "element": "elem_001",
+    "baseStats": {
+      "hp": 160,
+      "mp": 40,
+      "atk": 24,
+      "def": 14,
+      "attackIntervalMs": 2000
+    },
+    "growth": {
+      "hp": 16,
+      "mp": 3,
+      "atk": 2.4,
+      "def": 1.4
+    },
+    "elementMultipliers": {},
+    "learnset": [
+      {
+        "skillId": "skill_001",
+        "level": 1
+      },
+      {
+        "skillId": "skill_002",
+        "level": 1
+      },
+      {
+        "skillId": "skill_014",
+        "level": 5
+      },
+      {
+        "skillId": "skill_007",
+        "level": 8
+      },
+      {
+        "skillId": "skill_011",
+        "level": 12
+      },
+      {
+        "skillId": "skill_010",
+        "level": 15
+      }
+    ],
+    "passives": [
+      "passive_001"
+    ],
+    "duplicateTo": []
+  },
+  {
+    "id": "chr_002",
+    "name": "（仮）見習い治療師",
+    "description": "（仮）人間キャラクターのサンプル。回復寄り。設定は未確定。",
+    "image": null,
+    "element": "elem_001",
+    "baseStats": {
+      "hp": 130,
+      "mp": 60,
+      "atk": 16,
+      "def": 11,
+      "attackIntervalMs": 2400
+    },
+    "growth": {
+      "hp": 13,
+      "mp": 5,
+      "atk": 1.6,
+      "def": 1.1
+    },
+    "elementMultipliers": {},
+    "learnset": [
+      {
+        "skillId": "skill_003",
+        "level": 1
+      },
+      {
+        "skillId": "skill_005",
+        "level": 1
+      },
+      {
+        "skillId": "skill_009",
+        "level": 5
+      },
+      {
+        "skillId": "skill_012",
+        "level": 7
+      },
+      {
+        "skillId": "skill_004",
+        "level": 10
+      }
+    ],
+    "passives": [
+      "passive_002"
+    ],
+    "duplicateTo": []
+  }
+]

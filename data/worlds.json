@@ -1,0 +1,10 @@
+[
+  {
+    "id": "world_001",
+    "name": "（仮）はじまりの思想世界",
+    "theme": "頑張ったのに誰にも褒めてもらえなかった悔しさ",
+    "description": "（仮）依頼書の例をテーマとして仮置きした世界。世界設定は未確定。",
+    "startTownId": "town_001",
+    "isPlaceholder": true
+  }
+]

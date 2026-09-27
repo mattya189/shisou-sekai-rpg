@@ -1,0 +1,336 @@
+{
+  "note": "調整用の数値はすべてここに集約する。値はすべて仮。",
+  "levelCap": 100,
+  "exp": {
+    "base": 20,
+    "exponent": 1.6
+  },
+  "ranks": [
+    {
+      "rank": 1,
+      "statMultiplier": 1.0
+    },
+    {
+      "rank": 2,
+      "statMultiplier": 1.08,
+      "cost": {
+        "gold": 100,
+        "items": [
+          {
+            "itemId": "item_007",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "rank": 3,
+      "statMultiplier": 1.18,
+      "cost": {
+        "gold": 300,
+        "items": [
+          {
+            "itemId": "item_007",
+            "qty": 3
+          }
+        ]
+      }
+    },
+    {
+      "rank": 4,
+      "statMultiplier": 1.32,
+      "cost": {
+        "gold": 800,
+        "items": [
+          {
+            "itemId": "item_007",
+            "qty": 6
+          },
+          {
+            "itemId": "item_009",
+            "qty": 5
+          }
+        ]
+      }
+    },
+    {
+      "rank": 5,
+      "statMultiplier": 1.5,
+      "cost": {
+        "gold": 2000,
+        "items": [
+          {
+            "itemId": "item_007",
+            "qty": 12
+          },
+          {
+            "itemId": "item_009",
+            "qty": 15
+          }
+        ]
+      }
+    }
+  ],
+  "party": {
+    "size": 4
+  },
+  "skills": {
+    "maxLearned": 10,
+    "maxEquipped": 5
+  },
+  "passives": {
+    "maxPerUnit": 2
+  },
+  "equipment": {
+    "slots": 2,
+    "maxPlus": 10
+  },
+  "minAttackIntervalMs": 500,
+  "normalAttack": {
+    "power": 1.0,
+    "mpRecoverPctOfMax": 5
+  },
+  "battle": {
+    "defenseConstant": 50,
+    "damageVariance": 0.05,
+    "timeLimitMs": 300000,
+    "maxEnemies": 3,
+    "speeds": [
+      1,
+      2,
+      3
+    ]
+  },
+  "qualities": [
+    {
+      "id": "q1",
+      "name": "普通",
+      "weight": 60,
+      "effectMultiplier": 1.0
+    },
+    {
+      "id": "q2",
+      "name": "良質",
+      "weight": 25,
+      "effectMultiplier": 1.1
+    },
+    {
+      "id": "q3",
+      "name": "上質",
+      "weight": 10,
+      "effectMultiplier": 1.2
+    },
+    {
+      "id": "q4",
+      "name": "極上",
+      "weight": 4,
+      "effectMultiplier": 1.35
+    },
+    {
+      "id": "q5",
+      "name": "最高品質",
+      "weight": 1,
+      "effectMultiplier": 1.5
+    }
+  ],
+  "actionPoints": {
+    "initial": 6,
+    "cap": 10
+  },
+  "exploration": {
+    "actions": {
+      "explore": {
+        "ap": 1,
+        "time": 1
+      },
+      "gather": {
+        "ap": 1,
+        "time": 1
+      },
+      "searchMonsters": {
+        "ap": 1,
+        "time": 1
+      },
+      "investigate": {
+        "ap": 2,
+        "time": 2
+      }
+    },
+    "exploreFindItemRate": 0.6
+  },
+  "inn": {
+    "cost": 10
+  },
+  "defeat": {
+    "hpAfterDefeat": 1
+  },
+  "rewards": {
+    "expLevelScale": 0.2,
+    "goldLevelScale": 0.1
+  },
+  "recruit": {
+    "maxPerBattle": 1
+  },
+  "time": {
+    "periods": [
+      {
+        "id": "morning",
+        "name": "朝"
+      },
+      {
+        "id": "noon",
+        "name": "昼"
+      },
+      {
+        "id": "evening",
+        "name": "夕方"
+      },
+      {
+        "id": "night",
+        "name": "夜"
+      }
+    ],
+    "startPeriod": "morning",
+    "ticksPerPeriod": 3
+  },
+  "goldCurrencyId": "cur_001",
+  "newGame": {
+    "worldId": "world_001",
+    "townId": "town_001",
+    "currencies": [
+      {
+        "currencyId": "cur_001",
+        "qty": 500
+      }
+    ],
+    "units": [
+      {
+        "defId": "chr_001",
+        "level": 3
+      },
+      {
+        "defId": "chr_002",
+        "level": 3
+      },
+      {
+        "defId": "mon_001",
+        "level": 3
+      }
+    ],
+    "party": [
+      "chr_001",
+      "chr_002",
+      "mon_001",
+      null
+    ],
+    "items": [
+      {
+        "itemId": "item_002",
+        "quality": "q1",
+        "qty": 5
+      },
+      {
+        "itemId": "item_001",
+        "quality": "q1",
+        "qty": 3
+      },
+      {
+        "itemId": "item_001",
+        "quality": "q2",
+        "qty": 1
+      }
+    ],
+    "equipment": [
+      {
+        "defId": "equip_001",
+        "equipTo": "chr_001",
+        "slot": 0
+      },
+      {
+        "defId": "equip_002",
+        "equipTo": "chr_002",
+        "slot": 0
+      }
+    ]
+  },
+  "enhance": {
+    "costItemId": "item_008",
+    "itemsPerPlus": [
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      3,
+      3,
+      4,
+      5
+    ],
+    "goldBase": 40,
+    "goldPerPlus": 30
+  },
+  "dungeon": {
+    "enterAp": 2
+  },
+  "townExplore": {
+    "time": 1
+  },
+  "codex": {
+    "note": "モンスター図鑑の段階解放。上から順に、条件を満たした段階の reveals（表示する情報）が開く。",
+    "monsterStages": [
+      {
+        "id": "encounter",
+        "name": "遭遇",
+        "requires": {
+          "type": "codexFlag",
+          "flag": "encountered"
+        },
+        "reveals": [
+          "basic",
+          "habitat"
+        ]
+      },
+      {
+        "id": "defeat",
+        "name": "撃破",
+        "requires": {
+          "type": "codexFlag",
+          "flag": "defeated"
+        },
+        "reveals": [
+          "stats",
+          "drops"
+        ]
+      },
+      {
+        "id": "research",
+        "name": "調査",
+        "requires": {
+          "type": "counter",
+          "counter": "defeated",
+          "min": 5
+        },
+        "reveals": [
+          "skills",
+          "description"
+        ]
+      },
+      {
+        "id": "recruit",
+        "name": "加入",
+        "requires": {
+          "type": "codexFlag",
+          "flag": "recruited"
+        },
+        "reveals": [
+          "stats",
+          "skills",
+          "passives",
+          "recruit",
+          "description"
+        ]
+      }
+    ]
+  }
+}

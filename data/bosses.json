@@ -1,0 +1,94 @@
+[
+  {
+    "id": "boss_001",
+    "name": "（仮）遺跡の番人",
+    "monsterId": "mon_006",
+    "level": 10,
+    "statMultiplier": {
+      "hp": 4.0,
+      "atk": 1.3
+    },
+    "skills": [
+      "skill_008",
+      "skill_001"
+    ],
+    "statusImmune": [
+      "status_002"
+    ],
+    "charge": {
+      "skillId": "skill_013",
+      "everyNAttacks": 4,
+      "chargeMs": 3000,
+      "message": "（仮）番人が大きく腕を振りかぶった…"
+    },
+    "breakGauge": {
+      "max": 14,
+      "durationMs": 6000,
+      "damageTakenPct": 50
+    },
+    "phases": [
+      {
+        "hpBelowPct": 50,
+        "skills": [
+          "skill_004",
+          "skill_008",
+          "skill_001"
+        ],
+        "statPct": {
+          "atk": 20
+        },
+        "message": "（仮）番人の動きが激しくなった！"
+      }
+    ],
+    "gimmicks": [
+      {
+        "atMs": 90000,
+        "statPct": {
+          "atk": 50
+        },
+        "message": "（仮）番人が怒りだした！（攻撃力アップ）"
+      }
+    ],
+    "parts": [
+      {
+        "key": "arm",
+        "name": "（仮）番人の腕",
+        "hpPct": 30,
+        "def": 8,
+        "onDestroy": {
+          "removeSkills": [
+            "skill_008"
+          ],
+          "statPct": {
+            "atk": -20
+          },
+          "message": "（仮）番人の腕が壊れた！しびれ爪を使えなくなった"
+        }
+      }
+    ],
+    "recruit": {
+      "chance": 1.0,
+      "conditions": [
+        {
+          "type": "breakCount",
+          "min": 1
+        },
+        {
+          "type": "partsDestroyed",
+          "min": 1
+        }
+      ],
+      "hint": "（仮）BREAKさせ、腕を壊して倒すと…？"
+    },
+    "rewards": {
+      "gold": 300,
+      "items": [
+        {
+          "itemId": "item_007",
+          "qty": 3
+        }
+      ]
+    },
+    "defeatFlag": "flag_004"
+  }
+]

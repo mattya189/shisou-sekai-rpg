@@ -1,0 +1,27 @@
+[
+  {
+    "id": "passive_001", "name": "（仮）場慣れ",
+    "description": "攻撃するたびに攻撃力+2%（最大10回分）。",
+    "effects": [ { "type": "statPerAttackCount", "stat": "atk", "pctPerStack": 2, "maxStacks": 10 } ]
+  },
+  {
+    "id": "passive_002", "name": "（仮）深呼吸",
+    "description": "通常攻撃で回復するMPが最大MPの3%分増える。",
+    "effects": [ { "type": "normalAttackMpBonus", "pctOfMaxMp": 3 } ]
+  },
+  {
+    "id": "passive_003", "name": "（仮）ぷるぷる再生",
+    "description": "4回攻撃するごとに最大HPの5%を回復。",
+    "effects": [ { "type": "healEveryNAttacks", "n": 4, "pctOfMaxHp": 5 } ]
+  },
+  {
+    "id": "passive_004", "name": "（仮）弱みにつけこむ",
+    "description": "毒状態の敵へのダメージ+30%。",
+    "effects": [ { "type": "damageVsStatus", "statusId": "status_001", "pct": 30 } ]
+  },
+  {
+    "id": "passive_005", "name": "（仮）頑丈",
+    "description": "防御力+10%。",
+    "effects": [ { "type": "flatStatPct", "stat": "def", "pct": 10 } ]
+  }
+]

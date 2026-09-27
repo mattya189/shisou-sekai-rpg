@@ -1,0 +1,215 @@
+[
+  {
+    "id": "loc_001",
+    "worldId": "world_001",
+    "name": "（仮）草原入口",
+    "kind": "field",
+    "description": "（仮）テキスト。",
+    "connections": [
+      {
+        "to": "town_001",
+        "distance": 1
+      },
+      {
+        "to": "loc_002",
+        "distance": 1
+      }
+    ],
+    "region": "region_001",
+    "encounterTableId": "enc_001",
+    "encounterRate": 0.5,
+    "actions": [
+      "explore",
+      "gather",
+      "searchMonsters",
+      "investigate"
+    ],
+    "gathering": [
+      {
+        "itemId": "item_001",
+        "weight": 5,
+        "qty": [
+          1,
+          2
+        ]
+      },
+      {
+        "itemId": "item_002",
+        "weight": 3,
+        "qty": [
+          1,
+          1
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loc_002",
+    "worldId": "world_001",
+    "name": "（仮）川辺",
+    "kind": "field",
+    "description": "（仮）テキスト。",
+    "connections": [
+      {
+        "to": "loc_001",
+        "distance": 1
+      },
+      {
+        "to": "loc_003",
+        "distance": 2
+      }
+    ],
+    "region": "region_001",
+    "encounterTableId": "enc_002",
+    "encounterRate": 0.55,
+    "actions": [
+      "explore",
+      "gather",
+      "searchMonsters",
+      "investigate"
+    ],
+    "gathering": [
+      {
+        "itemId": "item_002",
+        "weight": 4,
+        "qty": [
+          1,
+          2
+        ]
+      },
+      {
+        "itemId": "item_001",
+        "weight": 4,
+        "qty": [
+          1,
+          3
+        ],
+        "when": {
+          "periods": [
+            "evening",
+            "night"
+          ]
+        }
+      }
+    ],
+    "secrets": [
+      {
+        "flag": "flag_001",
+        "chance": 1,
+        "message": "（仮）川底で光る石を見つけた。",
+        "rewards": {
+          "items": [
+            {
+              "itemId": "item_008",
+              "qty": 2
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "loc_003",
+    "worldId": "world_001",
+    "name": "（仮）丘",
+    "kind": "field",
+    "description": "（仮）テキスト。",
+    "connections": [
+      {
+        "to": "loc_002",
+        "distance": 2
+      },
+      {
+        "to": "loc_004",
+        "distance": 1,
+        "requires": {
+          "flags": [
+            "flag_002"
+          ]
+        },
+        "lockedHint": "丘を詳しく調べると、何か見つかるかもしれない"
+      }
+    ],
+    "region": "region_001",
+    "encounterTableId": "enc_003",
+    "encounterRate": 0.6,
+    "actions": [
+      "explore",
+      "gather",
+      "searchMonsters",
+      "investigate"
+    ],
+    "gathering": [
+      {
+        "itemId": "item_001",
+        "weight": 3,
+        "qty": [
+          1,
+          2
+        ]
+      },
+      {
+        "itemId": "item_006",
+        "weight": 2,
+        "qty": [
+          1,
+          1
+        ]
+      }
+    ],
+    "secrets": [
+      {
+        "flag": "flag_002",
+        "chance": 0.5,
+        "message": "（仮）丘の向こうに、古い遺跡へ続く道を見つけた。"
+      }
+    ]
+  },
+  {
+    "id": "loc_004",
+    "worldId": "world_001",
+    "name": "（仮）遺跡の入口",
+    "kind": "dungeonEntrance",
+    "description": "（仮）テキスト。奥に遺跡（ダンジョン）がある。",
+    "connections": [
+      {
+        "to": "loc_003",
+        "distance": 1
+      }
+    ],
+    "region": "region_001",
+    "encounterTableId": "enc_004",
+    "encounterRate": 0.7,
+    "actions": [
+      "explore",
+      "searchMonsters",
+      "investigate"
+    ],
+    "gathering": [
+      {
+        "itemId": "item_006",
+        "weight": 3,
+        "qty": [
+          1,
+          2
+        ]
+      }
+    ],
+    "secrets": [
+      {
+        "flag": "flag_003",
+        "chance": 0.6,
+        "message": "（仮）崩れた石の下から、古い鍵が出てきた。",
+        "rewards": {
+          "items": [
+            {
+              "itemId": "item_010",
+              "qty": 1
+            }
+          ]
+        }
+      }
+    ],
+    "dungeonId": "dgn_001"
+  }
+]

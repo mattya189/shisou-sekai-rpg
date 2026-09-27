@@ -1,0 +1,42 @@
+[
+  {
+    "id": "shop_001",
+    "name": "（仮）はじまりの街の道具屋",
+    "sellRate": 0.5,
+    "items": [
+      {
+        "itemId": "item_002",
+        "quality": "q1",
+        "price": 30
+      },
+      {
+        "itemId": "item_002",
+        "quality": "q2",
+        "price": 55
+      },
+      {
+        "itemId": "item_008",
+        "price": 80
+      }
+    ],
+    "equipment": [
+      {
+        "defId": "equip_001",
+        "price": 200
+      },
+      {
+        "defId": "equip_002",
+        "price": 180
+      },
+      {
+        "defId": "equip_003",
+        "price": 260,
+        "when": {
+          "flags": [
+            "flag_002"
+          ]
+        }
+      }
+    ]
+  }
+]

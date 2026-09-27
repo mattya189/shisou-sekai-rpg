@@ -1,0 +1,122 @@
+[
+  {
+    "id": "equip_001",
+    "name": "（仮）木の剣",
+    "description": "攻撃型装備のサンプル。",
+    "baseStats": {
+      "atk": 6
+    },
+    "enhancePerPlus": {
+      "atk": 1
+    },
+    "randomStats": {
+      "count": 1,
+      "pool": [
+        {
+          "stat": "atk",
+          "min": 1,
+          "max": 3
+        },
+        {
+          "stat": "hp",
+          "min": 5,
+          "max": 15
+        },
+        {
+          "stat": "mp",
+          "min": 2,
+          "max": 6
+        }
+      ]
+    },
+    "price": 200
+  },
+  {
+    "id": "equip_002",
+    "name": "（仮）布の服",
+    "description": "防御型装備のサンプル。",
+    "baseStats": {
+      "def": 4,
+      "hp": 20
+    },
+    "enhancePerPlus": {
+      "def": 1,
+      "hp": 4
+    },
+    "randomStats": {
+      "count": 1,
+      "pool": [
+        {
+          "stat": "def",
+          "min": 1,
+          "max": 3
+        },
+        {
+          "stat": "hp",
+          "min": 5,
+          "max": 20
+        }
+      ]
+    },
+    "price": 180
+  },
+  {
+    "id": "equip_003",
+    "name": "（仮）小さな護符",
+    "description": "MP型装備のサンプル。ランダム能力2つ。",
+    "baseStats": {
+      "mp": 10
+    },
+    "enhancePerPlus": {
+      "mp": 2
+    },
+    "randomStats": {
+      "count": 2,
+      "pool": [
+        {
+          "stat": "mp",
+          "min": 2,
+          "max": 8
+        },
+        {
+          "stat": "hp",
+          "min": 5,
+          "max": 15
+        },
+        {
+          "stat": "atk",
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    "price": 260
+  },
+  {
+    "id": "equip_004",
+    "name": "（仮）軽い靴",
+    "description": "攻撃間隔を短くする装備のサンプル。",
+    "baseStats": {
+      "intervalPct": 5
+    },
+    "enhancePerPlus": {
+      "intervalPct": 0.5
+    },
+    "randomStats": {
+      "count": 1,
+      "pool": [
+        {
+          "stat": "atk",
+          "min": 1,
+          "max": 2
+        },
+        {
+          "stat": "def",
+          "min": 1,
+          "max": 2
+        }
+      ]
+    },
+    "price": 320
+  }
+]

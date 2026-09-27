@@ -1,0 +1,85 @@
+[
+  {
+    "id": "item_001",
+    "name": "（仮）月光草",
+    "category": "material",
+    "hasQuality": true,
+    "description": "品質付き採取素材のサンプル。",
+    "price": 12
+  },
+  {
+    "id": "item_002",
+    "name": "（仮）薬草",
+    "category": "consumable",
+    "hasQuality": true,
+    "description": "品質付き消耗品のサンプル。",
+    "use": {
+      "type": "healPctOfMaxHp",
+      "pct": 30
+    },
+    "price": 20
+  },
+  {
+    "id": "item_003",
+    "name": "（仮）ためいきゼリー",
+    "category": "material",
+    "hasQuality": true,
+    "description": "モンスタードロップ素材。",
+    "price": 8
+  },
+  {
+    "id": "item_004",
+    "name": "（仮）くすんだ羽根",
+    "category": "material",
+    "hasQuality": true,
+    "description": "モンスタードロップ素材。",
+    "price": 10
+  },
+  {
+    "id": "item_005",
+    "name": "（仮）古い布切れ",
+    "category": "material",
+    "hasQuality": true,
+    "description": "モンスタードロップ素材。",
+    "price": 10
+  },
+  {
+    "id": "item_006",
+    "name": "（仮）焦げた金属片",
+    "category": "material",
+    "hasQuality": true,
+    "description": "モンスタードロップ素材。",
+    "price": 14
+  },
+  {
+    "id": "item_007",
+    "name": "（仮）成長の欠片",
+    "category": "growth",
+    "hasQuality": false,
+    "description": "ランクアップに使う育成アイテム。",
+    "price": 80
+  },
+  {
+    "id": "item_008",
+    "name": "（仮）強化石",
+    "category": "growth",
+    "hasQuality": false,
+    "description": "装備強化に使う育成アイテム。",
+    "price": 40
+  },
+  {
+    "id": "item_009",
+    "name": "（仮）魂の結晶",
+    "category": "growth",
+    "hasQuality": false,
+    "description": "所持済みモンスターが再加入したときに変換される共通育成素材。",
+    "price": 30
+  },
+  {
+    "id": "item_010",
+    "name": "（仮）遺跡の鍵",
+    "category": "key",
+    "hasQuality": false,
+    "description": "重要アイテムのサンプル。"
+  }
+]

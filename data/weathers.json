@@ -1,0 +1,8 @@
+[
+  { "id": "weather_001", "name": "晴れ", "encounterRate": 1.0, "qualityBonus": 0, "description": "（仮）普通の天気。" },
+  { "id": "weather_002", "name": "曇り", "encounterRate": 1.0, "qualityBonus": 0, "description": "（仮）普通の天気。" },
+  { "id": "weather_003", "name": "雨", "encounterRate": 0.9, "qualityBonus": 0.5, "description": "（仮）採取物の品質が上がりやすい。" },
+  { "id": "weather_004", "name": "霧", "encounterRate": 1.3, "qualityBonus": 0, "description": "（仮）モンスターに出会いやすい。" },
+  { "id": "weather_005", "name": "雷雨", "encounterRate": 1.2, "qualityBonus": 0.3, "description": "（仮）出会いやすく、品質もやや上がる。" },
+  { "id": "weather_006", "name": "雪", "encounterRate": 0.8, "qualityBonus": 0.2, "description": "（仮）現在の地域では降らない。" }
+]

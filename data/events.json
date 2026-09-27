@@ -1,0 +1,148 @@
+[
+  {
+    "id": "event_001",
+    "trigger": "residents",
+    "nodeId": "town_001",
+    "weight": 3,
+    "lines": [
+      "（仮）住民「今日もいい天気……だといいね」"
+    ]
+  },
+  {
+    "id": "event_002",
+    "trigger": "residents",
+    "nodeId": "town_001",
+    "weight": 5,
+    "once": true,
+    "lines": [
+      "（仮）住民「外に出るなら、これを持っていきな」"
+    ],
+    "effects": [
+      {
+        "type": "giveItem",
+        "itemId": "item_002",
+        "qty": 3,
+        "quality": "q2"
+      }
+    ]
+  },
+  {
+    "id": "event_003",
+    "trigger": "residents",
+    "nodeId": "town_001",
+    "weight": 4,
+    "when": {
+      "periods": [
+        "night"
+      ]
+    },
+    "lines": [
+      "（仮）住民「夜の雨の日は、見慣れないスライムが出るらしい」"
+    ]
+  },
+  {
+    "id": "event_004",
+    "trigger": "tavern",
+    "nodeId": "town_001",
+    "weight": 3,
+    "lines": [
+      "（仮）酒場の客「丘の上をよく調べると、何か見つかるって噂だ」"
+    ],
+    "when": {
+      "notFlags": [
+        "flag_002"
+      ]
+    }
+  },
+  {
+    "id": "event_005",
+    "trigger": "tavern",
+    "nodeId": "town_001",
+    "weight": 3,
+    "when": {
+      "flags": [
+        "flag_002"
+      ],
+      "notFlags": [
+        "flag_003"
+      ]
+    },
+    "lines": [
+      "（仮）酒場の客「遺跡の入口の石の下に、鍵が埋まってるって話だぞ」"
+    ]
+  },
+  {
+    "id": "event_006",
+    "trigger": "tavern",
+    "nodeId": "town_001",
+    "weight": 2,
+    "when": {
+      "flags": [
+        "flag_003"
+      ],
+      "notFlags": [
+        "flag_004"
+      ]
+    },
+    "lines": [
+      "（仮）酒場の客「遺跡の番人は、腕を壊してから倒すと……いや、なんでもない」"
+    ]
+  },
+  {
+    "id": "event_007",
+    "trigger": "tavern",
+    "nodeId": "town_001",
+    "weight": 1,
+    "lines": [
+      "（仮）酒場の主人「ゆっくりしていきな」"
+    ]
+  },
+  {
+    "id": "event_008",
+    "trigger": "townExplore",
+    "nodeId": "town_001",
+    "weight": 3,
+    "once": true,
+    "lines": [
+      "（仮）路地裏で小さな袋を拾った。"
+    ],
+    "effects": [
+      {
+        "type": "giveCurrency",
+        "currencyId": "cur_001",
+        "qty": 100
+      }
+    ]
+  },
+  {
+    "id": "event_009",
+    "trigger": "townExplore",
+    "nodeId": "town_001",
+    "weight": 4,
+    "lines": [
+      "（仮）街を歩いてみたが、特に変わったことはなかった。"
+    ]
+  },
+  {
+    "id": "event_010",
+    "trigger": "townExplore",
+    "nodeId": "town_001",
+    "weight": 2,
+    "when": {
+      "periods": [
+        "evening",
+        "night"
+      ]
+    },
+    "once": true,
+    "lines": [
+      "（仮）街はずれで、古い地図の切れ端を見つけた。丘のあたりに印がある。"
+    ],
+    "effects": [
+      {
+        "type": "setFlag",
+        "flag": "flag_005"
+      }
+    ]
+  }
+]

@@ -1,0 +1,253 @@
+[
+  {
+    "id": "skill_001",
+    "name": "（仮）強打",
+    "mpCost": 8,
+    "description": "通常特技のサンプル。敵1体に強めの攻撃。",
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 2
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 1.6
+      }
+    ]
+  },
+  {
+    "id": "skill_002",
+    "name": "（仮）三連撃",
+    "mpCost": 12,
+    "description": "多段攻撃のサンプル。",
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 3
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 0.7,
+        "hits": 3
+      }
+    ]
+  },
+  {
+    "id": "skill_003",
+    "name": "（仮）手当て",
+    "mpCost": 10,
+    "description": "回復特技のサンプル。HPが一番低い味方を回復。",
+    "trigger": {
+      "type": "allyHpBelow",
+      "pct": 50
+    },
+    "effects": [
+      {
+        "type": "heal",
+        "target": "allyLowestHp",
+        "power": 1.5
+      }
+    ]
+  },
+  {
+    "id": "skill_004",
+    "name": "（仮）毒の霧",
+    "mpCost": 10,
+    "description": "状態異常特技のサンプル。",
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 5
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 0.5
+      },
+      {
+        "type": "applyStatus",
+        "target": "enemySingle",
+        "statusId": "status_001",
+        "chance": 0.9
+      }
+    ]
+  },
+  {
+    "id": "skill_005",
+    "name": "（仮）火の粉",
+    "mpCost": 6,
+    "description": "属性攻撃のサンプル。",
+    "element": "elem_002",
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 2
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 1.3
+      }
+    ]
+  },
+  {
+    "id": "skill_006",
+    "name": "（仮）追い打ち",
+    "mpCost": 10,
+    "description": "敵の状態を条件にする特技のサンプル。",
+    "trigger": {
+      "type": "enemyHasStatus",
+      "statusId": "status_001"
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 2.0
+      }
+    ]
+  },
+  {
+    "id": "skill_007",
+    "name": "（仮）捨て身の一撃",
+    "mpCost": 15,
+    "description": "自分のHPを条件にする特技のサンプル。",
+    "trigger": {
+      "type": "selfHpBelow",
+      "pct": 30
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 2.6
+      }
+    ]
+  },
+  {
+    "id": "skill_008",
+    "name": "（仮）しびれ爪",
+    "mpCost": 10,
+    "description": "攻撃と状態異常を組み合わせたサンプル。",
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 3
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 0.8
+      },
+      {
+        "type": "applyStatus",
+        "target": "enemySingle",
+        "statusId": "status_002",
+        "chance": 0.5
+      }
+    ]
+  },
+  {
+    "id": "skill_009",
+    "name": "（仮）みんなで一息",
+    "mpCost": 18,
+    "description": "「○回ごと」条件と全体回復のサンプル。",
+    "trigger": {
+      "type": "attackCountEvery",
+      "n": 4,
+      "start": 4
+    },
+    "effects": [
+      {
+        "type": "heal",
+        "target": "allyAll",
+        "power": 0.8
+      }
+    ]
+  },
+  {
+    "id": "skill_010",
+    "name": "（仮）とどめの一撃",
+    "mpCost": 12,
+    "description": "敵のHPを条件にする特技のサンプル。",
+    "trigger": {
+      "type": "enemyHpBelow",
+      "pct": 25
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 2.2
+      }
+    ]
+  },
+  {
+    "id": "skill_011",
+    "name": "（仮）隙を突く",
+    "mpCost": 10,
+    "description": "BREAK中の敵を狙う特技のサンプル。",
+    "trigger": {
+      "type": "enemyBreak"
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 2.5
+      }
+    ]
+  },
+  {
+    "id": "skill_012",
+    "name": "（仮）身構える",
+    "mpCost": 12,
+    "description": "敵の大技準備中に味方全体の防御を上げる。",
+    "trigger": {
+      "type": "enemyCharging"
+    },
+    "effects": [
+      {
+        "type": "applyStatus",
+        "target": "allyAll",
+        "statusId": "status_004"
+      }
+    ]
+  },
+  {
+    "id": "skill_013",
+    "name": "（仮）なぎ払い",
+    "mpCost": 0,
+    "description": "ボスの大技のサンプル。力をためてから放つ。",
+    "trigger": {
+      "type": "always"
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemyAll",
+        "power": 1.8
+      }
+    ]
+  },
+  {
+    "id": "skill_014",
+    "name": "（仮）崩し打ち",
+    "mpCost": 10,
+    "description": "BREAKゲージを大きく削る特技のサンプル。",
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 3
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 1.0,
+        "breakPower": 4
+      }
+    ]
+  }
+]

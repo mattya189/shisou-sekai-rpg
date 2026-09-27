@@ -1,0 +1,14 @@
+[
+  {
+    "id": "region_001",
+    "worldId": "world_001",
+    "name": "（仮）はじまりの草原地方",
+    "weatherTable": [
+      { "weatherId": "weather_001", "weight": 45 },
+      { "weatherId": "weather_002", "weight": 25 },
+      { "weatherId": "weather_003", "weight": 15 },
+      { "weatherId": "weather_004", "weight": 10 },
+      { "weatherId": "weather_005", "weight": 5 }
+    ]
+  }
+]

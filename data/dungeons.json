@@ -1,0 +1,25 @@
+[
+  {
+    "id": "dgn_001",
+    "name": "（仮）遺跡",
+    "description": "（仮）連戦ダンジョンのサンプル。HPとMPは戦闘ごとに回復しない。",
+    "entranceNodeId": "loc_004",
+    "requires": {
+      "items": [
+        "item_010"
+      ]
+    },
+    "lockedHint": "入口は固く閉ざされている。鍵が必要だ",
+    "stages": [
+      {
+        "encounterTableId": "enc_005"
+      },
+      {
+        "encounterTableId": "enc_005"
+      },
+      {
+        "bossId": "boss_001"
+      }
+    ]
+  }
+]

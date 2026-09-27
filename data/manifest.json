@@ -1,0 +1,68 @@
+{
+  "note": "読み込むデータファイルの一覧。1カテゴリに複数ファイルを並べられる（例: 世界ごとに monsters_world_002.json を追加）。",
+  "categories": {
+    "elements": [
+      "elements.json"
+    ],
+    "statuses": [
+      "statuses.json"
+    ],
+    "weathers": [
+      "weathers.json"
+    ],
+    "regions": [
+      "regions.json"
+    ],
+    "worlds": [
+      "worlds.json"
+    ],
+    "towns": [
+      "towns.json"
+    ],
+    "locations": [
+      "locations.json"
+    ],
+    "encounters": [
+      "encounters.json"
+    ],
+    "dungeons": [
+      "dungeons.json"
+    ],
+    "characters": [
+      "characters.json"
+    ],
+    "monsters": [
+      "monsters.json"
+    ],
+    "bosses": [
+      "bosses.json"
+    ],
+    "skills": [
+      "skills.json"
+    ],
+    "passives": [
+      "passives.json"
+    ],
+    "items": [
+      "items.json"
+    ],
+    "equipment": [
+      "equipment.json"
+    ],
+    "currencies": [
+      "currencies.json"
+    ],
+    "shops": [
+      "shops.json"
+    ],
+    "recipes": [
+      "recipes.json"
+    ],
+    "events": [
+      "events.json"
+    ]
+  },
+  "singletons": {
+    "balance": "balance.json"
+  }
+}

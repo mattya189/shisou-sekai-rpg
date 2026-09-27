@@ -1,0 +1,45 @@
+[
+  {
+    "id": "status_001",
+    "name": "（仮）毒",
+    "kind": "damageOverTime",
+    "durationMs": 10000,
+    "params": {
+      "pctOfMaxHp": 4,
+      "tickMs": 2000
+    },
+    "description": "一定時間ごとに最大HPの4%のダメージ。"
+  },
+  {
+    "id": "status_002",
+    "name": "（仮）麻痺",
+    "kind": "attackDelay",
+    "durationMs": 6000,
+    "params": {
+      "delayMs": 1000
+    },
+    "description": "かかった瞬間と、効果が続く間の攻撃間隔が1秒のびる。"
+  },
+  {
+    "id": "status_003",
+    "name": "（仮）攻撃ダウン",
+    "kind": "statModifier",
+    "durationMs": 8000,
+    "params": {
+      "stat": "atk",
+      "pct": -20
+    },
+    "description": "攻撃力が20%下がる。"
+  },
+  {
+    "id": "status_004",
+    "name": "（仮）防御アップ",
+    "kind": "statModifier",
+    "durationMs": 8000,
+    "params": {
+      "stat": "def",
+      "pct": 50
+    },
+    "description": "防御力が50%上がる。"
+  }
+]

@@ -1,0 +1,306 @@
+[
+  {
+    "id": "enc_001",
+    "name": "（仮）草原入口",
+    "entries": [
+      {
+        "weight": 6,
+        "enemies": [
+          {
+            "defId": "mon_001",
+            "level": [
+              1,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 3,
+        "enemies": [
+          {
+            "defId": "mon_001",
+            "level": [
+              1,
+              2
+            ]
+          },
+          {
+            "defId": "mon_001",
+            "level": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 3,
+        "enemies": [
+          {
+            "defId": "mon_002",
+            "level": [
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 2,
+        "when": {
+          "periods": [
+            "night"
+          ],
+          "weathers": [
+            "weather_003",
+            "weather_004",
+            "weather_005"
+          ]
+        },
+        "enemies": [
+          {
+            "defId": "mon_005",
+            "level": [
+              4,
+              5
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "enc_002",
+    "name": "（仮）川辺",
+    "entries": [
+      {
+        "weight": 4,
+        "enemies": [
+          {
+            "defId": "mon_002",
+            "level": [
+              3,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 4,
+        "enemies": [
+          {
+            "defId": "mon_001",
+            "level": [
+              3,
+              4
+            ]
+          },
+          {
+            "defId": "mon_002",
+            "level": [
+              3,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 3,
+        "when": {
+          "periods": [
+            "evening",
+            "night"
+          ]
+        },
+        "enemies": [
+          {
+            "defId": "mon_003",
+            "level": [
+              4,
+              5
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 2,
+        "when": {
+          "periods": [
+            "night"
+          ],
+          "weathers": [
+            "weather_003",
+            "weather_004",
+            "weather_005"
+          ]
+        },
+        "enemies": [
+          {
+            "defId": "mon_005",
+            "level": [
+              5,
+              6
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "enc_003",
+    "name": "（仮）丘",
+    "entries": [
+      {
+        "weight": 4,
+        "enemies": [
+          {
+            "defId": "mon_003",
+            "level": [
+              5,
+              6
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 4,
+        "enemies": [
+          {
+            "defId": "mon_004",
+            "level": [
+              5,
+              6
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 2,
+        "enemies": [
+          {
+            "defId": "mon_003",
+            "level": [
+              5,
+              6
+            ]
+          },
+          {
+            "defId": "mon_004",
+            "level": [
+              5,
+              6
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "enc_004",
+    "name": "（仮）遺跡の入口",
+    "entries": [
+      {
+        "weight": 3,
+        "enemies": [
+          {
+            "defId": "mon_004",
+            "level": [
+              7,
+              8
+            ]
+          },
+          {
+            "defId": "mon_004",
+            "level": [
+              7,
+              8
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 3,
+        "enemies": [
+          {
+            "defId": "mon_003",
+            "level": [
+              7,
+              8
+            ]
+          },
+          {
+            "defId": "mon_004",
+            "level": [
+              7,
+              8
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "enc_005",
+    "name": "（仮）遺跡の中",
+    "entries": [
+      {
+        "weight": 3,
+        "enemies": [
+          {
+            "defId": "mon_004",
+            "level": [
+              7,
+              8
+            ]
+          },
+          {
+            "defId": "mon_003",
+            "level": [
+              7,
+              8
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 3,
+        "enemies": [
+          {
+            "defId": "mon_002",
+            "level": [
+              7,
+              8
+            ]
+          },
+          {
+            "defId": "mon_002",
+            "level": [
+              7,
+              8
+            ]
+          },
+          {
+            "defId": "mon_003",
+            "level": [
+              6,
+              7
+            ]
+          }
+        ]
+      },
+      {
+        "weight": 2,
+        "enemies": [
+          {
+            "defId": "mon_004",
+            "level": [
+              8,
+              9
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
