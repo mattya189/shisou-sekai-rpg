@@ -71,5 +71,6 @@ AGENTS.md           AIエージェント（Codex等）向けの作業ルール
 | [docs/battle-system.md](docs/battle-system.md) | 攻撃回数型戦闘の仕様 |
 | [docs/exploration-system.md](docs/exploration-system.md) | フィールド・行動力・時間・天候・エンカウント |
 | [docs/content-guide.md](docs/content-guide.md) | 新しいコンテンツの追加方法 |
+| [docs/monster-development-guide.md](docs/monster-development-guide.md) | モンスター追加の標準手順・短縮依頼テンプレート |
 | [docs/save-data.md](docs/save-data.md) | セーブデータの構造とバージョン管理 |
 | [docs/TODO.md](docs/TODO.md) | 未実装・仮実装・改善点・次に依頼するとよい作業 |

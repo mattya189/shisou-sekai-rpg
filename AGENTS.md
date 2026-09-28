@@ -1,6 +1,7 @@
 # AGENTS.md — このリポジトリで作業するAIエージェントへ
 
 作業を始める前に `docs/HANDOFF.md`（引き継ぎ書）、`docs/architecture.md`、`docs/content-guide.md` を読んでください。
+モンスター追加時は、共通仕様と標準手順をまとめた `docs/monster-development-guide.md` も必ず確認してください。
 
 ## 必ず守ること
 
