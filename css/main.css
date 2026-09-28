@@ -734,6 +734,9 @@ button.unit-row:active { background: var(--raised); }
 .particle-wind i { width: 20px; height: 3px; border-radius: 999px; background: linear-gradient(90deg, transparent, var(--particle-color)); box-shadow: 0 0 5px var(--particle-accent); animation-name: particle-wind; }
 .particle-ice i { border-radius: 0; background: linear-gradient(135deg, var(--particle-accent), var(--particle-color)); transform: rotate(45deg); }
 .particle-nature i { width: 9px; height: 6px; border-radius: 100% 0 100% 0; background: linear-gradient(135deg, var(--particle-accent), var(--particle-color)); animation-name: particle-leaf; }
+.particle-light i { width: 10px; height: 3px; border-radius: 999px; background: var(--particle-accent); box-shadow: 0 0 10px var(--particle-color); }
+.particle-lightning i { width: 4px; height: 13px; border-radius: 1px; background: linear-gradient(var(--particle-accent), var(--particle-color)); clip-path: polygon(45% 0, 100% 0, 65% 42%, 100% 42%, 20% 100%, 40% 55%, 0 55%); }
+.particle-dark i { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--particle-accent), var(--particle-color) 45%, #24103d); box-shadow: 0 0 9px var(--particle-color); animation-name: particle-status; }
 .particle-heal i { border-radius: 50%; background: var(--particle-color); animation-name: particle-heal; }
 .particle-marker i { width: 9px; height: 9px; border-radius: 60% 40% 70% 30%; background: var(--particle-color); }
 .particle-status i { border-radius: 50%; background: radial-gradient(circle, var(--particle-accent), var(--particle-color)); animation-name: particle-status; }

@@ -76,6 +76,9 @@ test('属性ごとの演出定義をデータから使い、未知属性は無�
   assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_003' }, data).particle, 'water');
   assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_004' }, data).particle, 'wind');
   assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_006' }, data).particle, 'nature');
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_007' }, data).particle, 'light');
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_008' }, data).particle, 'lightning');
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_009' }, data).particle, 'dark');
   assert.equal(effectPresentation({ type: 'damage', elementId: 'unknown' }, data).particle, 'neutral');
 });
 

@@ -4,5 +4,8 @@
   { "id": "elem_003", "name": "（仮）水", "attackElement": true, "description": "仮の属性。属性体系は未確定。", "presentation": { "particle": "water", "color": "#3fc7ff", "accent": "#c6f4ff", "sound": "water" } },
   { "id": "elem_004", "name": "（仮）風", "attackElement": true, "description": "仮の属性。属性体系は未確定。", "presentation": { "particle": "wind", "color": "#8ee8c0", "accent": "#effff4", "sound": "wind" } },
   { "id": "elem_005", "name": "氷", "attackElement": true, "description": "氷の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "ice", "color": "#73cfff", "accent": "#f1fdff", "sound": "ice" } },
-  { "id": "elem_006", "name": "自然", "attackElement": true, "description": "自然の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "nature", "color": "#79db70", "accent": "#e5ff96", "sound": "nature" } }
+  { "id": "elem_006", "name": "自然", "attackElement": true, "description": "自然の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "nature", "color": "#79db70", "accent": "#e5ff96", "sound": "nature" } },
+  { "id": "elem_007", "name": "光", "attackElement": true, "description": "光の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "light", "color": "#fff2a8", "accent": "#ffffff", "sound": "light" } },
+  { "id": "elem_008", "name": "雷", "attackElement": true, "description": "雷の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "lightning", "color": "#ffe84d", "accent": "#f7fbff", "sound": "lightning" } },
+  { "id": "elem_009", "name": "闇", "attackElement": true, "description": "闇の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "dark", "color": "#9a68e8", "accent": "#e5d7ff", "sound": "dark" } }
 ]
