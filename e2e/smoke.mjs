@@ -78,11 +78,12 @@ try {
     await page.click('.action-btn:has-text("採取する")');
     await page.waitForSelector('.explore-result');
   });
-  await step('モンスターを探す → 戦闘（×3）→ 結果', async () => {
+  await step('モンスターを探す → 戦闘（×4）→ 結果', async () => {
     await page.click('.action-btn:has-text("モンスターを探す")');
     await page.waitForSelector('.battle-screen');
-    await page.click('.speed-btn:text("×3")');
+    await page.click('.speed-btn:text("×4")');
     await page.waitForSelector('.battle-result:not([hidden])', { timeout: 120000 });
+    await page.waitForSelector('.battle-report tbody tr');
     await page.click('.result-panel .btn-primary');
     await page.waitForSelector('.location-screen, .town-screen');
   });

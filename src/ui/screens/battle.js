@@ -9,11 +9,12 @@
  *
  * 描画の仕組み: DOMは最初に1回だけ作り、毎フレーム paint() で数値とバーだけ更新する。
  * エンジン（src/battle/engine.js）は「進めた時間」だけで結果が決まるため、
- * 速度 ×1/×2/×3 は実時間に掛ける倍率を変えているだけ。
+ * 速度ボタンは実時間に掛ける倍率を変えているだけで、戦闘結果には影響しない。
  */
 import { h } from '../dom.js';
 import { unitImageSrc } from '../placeholder.js';
 import { describeEvent } from '../battleLog.js';
+import { buildBattleReport, presentationCues } from '../battlePresentation.js';
 import { createBattle, advance, battleResult, sideOf, effectiveInterval } from '../../battle/engine.js';
 import { alliesFromParty } from '../../battle/setup.js';
 import { markMonster } from '../../progression/codex.js';
@@ -23,6 +24,7 @@ import { afterDungeonBattle, dungeonMp } from '../../exploration/dungeon.js';
 const LOG_LINES = 6;
 const FLASH_MS = 900;
 const MAX_FRAME_MS = 250;
+const MAX_FX_NODES = 24;
 
 function bar(kind) {
   const fill = h('span', { class: 'bar-fill' });
@@ -59,7 +61,11 @@ export default {
     // ---- 部品を作る ----
     const cards = new Map();
     const statusChips = (u) => [
-      ...u.statuses.map((s) => h('span', { class: 'status-chip' }, data.find('statuses', s.statusId)?.name.replace(/^（仮）/, '') ?? s.statusId)),
+      ...u.statuses.map((s) => {
+        const name = data.find('statuses', s.statusId)?.name.replace(/^（仮）/, '') ?? s.statusId;
+        const remaining = s.remainingTurns != null ? `${s.remainingTurns}T` : s.expiresAt != null ? `${Math.max(0, Math.ceil((s.expiresAt - battle.timeMs) / 1000))}秒` : '';
+        return h('span', { class: 'status-chip status-effect' }, `${name}${remaining ? ` ${remaining}` : ''}`);
+      }),
       ...Object.entries(u.markers ?? {})
         .filter(([markerId, state]) => {
           const marker = data.find('markers', markerId);
@@ -71,18 +77,13 @@ export default {
           const value = marker?.showMax ? `${state.stacks}/${marker.maxStacks}` : state.stacks;
           return h('span', { class: 'status-chip' }, `${marker?.name ?? markerId} ${value}`);
         }),
-      ...Object.entries(u.resources ?? {})
-        .filter(([, state]) => state.items?.length)
-        .map(([resourceId, state]) => {
-          const labels = { red: '赤', blue: '青', yellow: '黄', green: '緑', purple: '紫' };
-          return h('span', { class: 'status-chip' }, `${resourceId === 'prismCores' ? '彩核' : resourceId} ${state.items.map((x) => labels[x] ?? x).join('・')}`);
-        }),
     ];
 
     const enemyCard = (u) => {
       const hp = bar('hp');
       const brk = u.boss?.break ? bar('break') : null;
       const status = h('span', { class: 'status-row' });
+      const count = h('span', { class: 'attack-count enemy-count' });
       const alert = h('span', { class: 'boss-alert', 'aria-live': 'polite' });
       const el = h(
         'div',
@@ -90,12 +91,13 @@ export default {
         h('img', { class: `portrait ${u.isPart ? 'portrait-sm' : 'portrait-md'}`, src: unitImageSrc({ id: u.isPart ? `${u.defId}_${u.partKey}` : u.defId, name: u.name, image: u.image }, 'monster'), alt: '' }),
         u.isPart ? h('span', { class: 'part-label' }, '部位') : null,
         h('span', { class: 'enemy-name' }, u.name),
+        count,
         hp.el,
         brk ? h('span', { class: 'break-row' }, h('span', { class: 'meter-label' }, 'BRK'), brk.el) : null,
         alert,
         status,
       );
-      cards.set(u.id, { el, hp, brk, alert, status });
+      cards.set(u.id, { el, hp, brk, alert, status, count });
       return el;
     };
 
@@ -114,7 +116,7 @@ export default {
         h(
           'div',
           { class: 'ally-head' },
-          h('img', { class: 'portrait portrait-sm', src: unitImageSrc({ id: u.defId, name: u.name, image: u.image }, u.kind), alt: '' }),
+          h('img', { class: 'portrait portrait-md', src: unitImageSrc({ id: u.defId, name: u.name, image: u.image }, u.kind), alt: '' }),
           h('span', { class: 'ally-name' }, u.name),
         ),
         h('div', { class: 'meter' }, h('span', { class: 'meter-label' }, 'HP'), hp.el, hpText),
@@ -164,11 +166,94 @@ export default {
       'section',
       { class: 'battle-screen' },
       h('div', { class: 'battle-bar' }, timeText, h('span', { class: 'speed-group', role: 'group', 'aria-label': '戦闘速度' }, speedButtons, pauseBtn)),
-      h('div', { class: 'enemy-row' }, sideOf(battle, 'enemy').map(enemyCard)),
+      h('div', { class: 'battle-stage', 'aria-label': '戦場' },
+        h('div', { class: 'skill-banner', 'aria-live': 'polite', 'aria-atomic': 'true' }),
+        h('div', { class: 'enemy-row' }, sideOf(battle, 'enemy').map(enemyCard)),
+        h('div', { class: 'ally-grid' }, sideOf(battle, 'ally').map(allyCard)),
+      ),
       logList,
-      h('div', { class: 'ally-grid' }, sideOf(battle, 'ally').map(allyCard)),
       resultLayer,
     );
+
+    const banner = root.querySelector('.skill-banner');
+    const fxTimers = new Set();
+    let processedLog = battle.log.length;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function later(fn, ms) {
+      const timer = setTimeout(() => {
+        fxTimers.delete(timer);
+        fn();
+      }, ms);
+      fxTimers.add(timer);
+    }
+
+    function pulse(el, className, ms = 520) {
+      if (!el || reducedMotion) return;
+      el.classList.remove(className);
+      void el.offsetWidth;
+      el.classList.add(className);
+      later(() => el.classList.remove(className), ms);
+    }
+
+    function floatText(card, text, kind) {
+      if (!card) return;
+      while (root.querySelectorAll('.battle-float').length >= MAX_FX_NODES) root.querySelector('.battle-float')?.remove();
+      const node = h('span', { class: `battle-float float-${kind}`, 'aria-hidden': 'true' }, text);
+      card.el.append(node);
+      node.addEventListener('animationend', () => node.remove(), { once: true });
+      later(() => node.remove(), 1100);
+    }
+
+    function showBanner(cue) {
+      if (!cue.label) return;
+      banner.textContent = cue.label;
+      banner.className = `skill-banner show tier-${cue.tier}`;
+      pulse(banner, 'banner-pop', cue.tier === 'ultimate' ? 1000 : 700);
+      later(() => {
+        if (banner.textContent === cue.label) banner.className = 'skill-banner';
+      }, cue.tier === 'ultimate' ? 1200 : 850);
+    }
+
+    function presentNewEvents() {
+      const events = battle.log.slice(processedLog);
+      processedLog = battle.log.length;
+      for (const event of events) {
+        for (const cue of presentationCues(event, battle, data)) {
+          const card = cards.get(cue.targetId);
+          if (cue.type === 'action') {
+            pulse(card?.el, `motion-${cue.tier}`, cue.tier === 'ultimate' ? 900 : 520);
+            if (cue.countsAsAttack && cue.tier !== 'normal') pulse(card?.count, 'count-trigger', 700);
+          } else if (cue.type === 'banner') showBanner(cue);
+          else if (cue.type === 'damage') {
+            floatText(card, cue.amount, cue.dot ? 'dot' : 'damage');
+            pulse(card?.el, 'motion-hit', 380);
+          } else if (cue.type === 'heal') {
+            floatText(card, `+${cue.amount}`, 'heal');
+            pulse(card?.el, 'motion-heal', 650);
+          } else if (cue.type === 'miss') {
+            floatText(card, 'MISS', 'miss');
+            pulse(card?.el, 'motion-dodge', 500);
+          } else if (cue.type === 'marker') {
+            const name = data.find('markers', cue.markerId)?.name ?? cue.markerId;
+            floatText(card, `${name} ${cue.amount > 0 ? '+' : ''}${cue.amount}`, 'marker');
+          } else if (cue.type === 'status') {
+            const name = data.find('statuses', cue.statusId)?.name?.replace(/^（仮）/, '') ?? cue.statusId;
+            floatText(card, name, 'status');
+          } else if (cue.type === 'attackCount') {
+            floatText(card, `攻撃回数 +${cue.amount}`, 'count');
+            pulse(card?.count, 'count-trigger', 700);
+          } else if (cue.type === 'comboQueued') {
+            floatText(card, '連携準備', 'combo');
+          } else if (cue.type === 'combo') {
+            const name = data.find('skills', cue.skillId)?.name ?? '連携発動';
+            showBanner({ label: name, tier: 'combo' });
+            pulse(card?.el, 'motion-combo', 750);
+          } else if (cue.type === 'break') floatText(card, 'BREAK!', 'break');
+          else if (cue.type === 'defeat') pulse(card?.el, 'motion-ko', 700);
+        }
+      }
+    }
 
     // ---- 描画 ----
     let shownLog = -1;
@@ -183,6 +268,7 @@ export default {
         c.hp.fill.style.width = `${(u.hp / u.maxHp) * 100}%`;
         c.status.replaceChildren(...statusChips(u));
         if (u.side !== 'ally') {
+          c.count.textContent = `攻撃 ${u.attackCount}回`;
           if (c.brk) c.brk.fill.style.width = `${u.broken ? 0 : (u.boss.break.gauge / u.boss.break.max) * 100}%`;
           if (c.alert) {
             c.alert.textContent = u.broken ? 'BREAK!' : u.charging ? '力をためている！' : '';
@@ -203,6 +289,8 @@ export default {
         c.flash.textContent = flashing ? data.find('skills', la.skillId)?.name ?? '' : '';
         c.el.classList.toggle('acting', Boolean(flashing));
       }
+
+      presentNewEvents();
 
       if (battle.log.length !== shownLog) {
         shownLog = battle.log.length;
@@ -280,6 +368,25 @@ export default {
       };
       const isDebug = params.source === 'debug';
       const leaveLabel = isDebug ? '戻る' : sm.returnedToTown ? '街へ' : params.source === 'dungeon' ? (dg?.ended ? '外へ' : '先へ進む') : '探索に戻る';
+      const report = buildBattleReport(battle);
+      const reportTable = h(
+        'div',
+        { class: 'battle-report-wrap' },
+        h('h3', { class: 'battle-report-title' }, '戦績'),
+        h(
+          'table',
+          { class: 'battle-report' },
+          h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, '仲間'), h('th', { scope: 'col' }, '与ダメ'), h('th', { scope: 'col' }, '被ダメ'), h('th', { scope: 'col' }, '回復'), h('th', { scope: 'col' }, '通常'), h('th', { scope: 'col' }, '特技'))),
+          h('tbody', {}, report.map((row) => h('tr', {},
+            h('th', { scope: 'row' }, row.name),
+            h('td', {}, row.damageDealt),
+            h('td', {}, row.damageTaken),
+            h('td', {}, row.healing),
+            h('td', {}, row.normalAttacks),
+            h('td', {}, row.skillUses),
+          ))),
+        ),
+      );
       resultLayer.replaceChildren(
         h(
           'div',
@@ -287,6 +394,7 @@ export default {
           h('h2', { class: `result-title result-${r.outcome}` }, title),
           h('p', { class: 'muted small' }, `戦闘時間 ${clock(r.timeMs)}　倒した敵 ${r.defeatedEnemies.length}体`),
           h('div', { class: 'result-lines' }, lines),
+          reportTable,
           ctx.debug ? h('p', { class: 'muted small' }, `seed ${r.seed}（同じseedで同じ展開を再現できます）`) : null,
           h(
             'div',
@@ -311,6 +419,10 @@ export default {
     }
     raf = requestAnimationFrame(frame);
     ctx.onCleanup(() => cancelAnimationFrame(raf));
+    ctx.onCleanup(() => {
+      for (const timer of fxTimers) clearTimeout(timer);
+      fxTimers.clear();
+    });
 
     paint();
     return root;
