@@ -1,11 +1,8 @@
 [
-  { "id": "elem_001", "name": "無", "description": "属性なし。" },
-  { "id": "elem_002", "name": "（仮）火", "attackElement": true, "description": "仮の属性。属性体系は未確定。" },
-  { "id": "elem_003", "name": "（仮）水", "attackElement": true, "description": "仮の属性。属性体系は未確定。" },
-  { "id": "elem_004", "name": "（仮）風", "attackElement": true, "description": "仮の属性。属性体系は未確定。" },
-  { "id": "elem_005", "name": "氷", "attackElement": true, "description": "氷の属性。相性倍率は各ユニットのデータで調整する。" },
-  { "id": "elem_006", "name": "自然", "attackElement": true, "description": "自然の属性。相性倍率は各ユニットのデータで調整する。" },
-  { "id": "elem_007", "name": "光", "attackElement": true, "description": "光の属性。相性倍率は各ユニットのデータで調整する。" },
-  { "id": "elem_008", "name": "雷", "attackElement": true, "description": "雷の属性。相性倍率は各ユニットのデータで調整する。" },
-  { "id": "elem_009", "name": "闇", "attackElement": true, "description": "闇の属性。相性倍率は各ユニットのデータで調整する。" }
+  { "id": "elem_001", "name": "無", "description": "属性なし。", "presentation": { "particle": "neutral", "color": "#f2f4ff", "accent": "#aeb8dd", "sound": "impact" } },
+  { "id": "elem_002", "name": "（仮）火", "attackElement": true, "description": "仮の属性。属性体系は未確定。", "presentation": { "particle": "fire", "color": "#ff653b", "accent": "#ffd166", "sound": "fire" } },
+  { "id": "elem_003", "name": "（仮）水", "attackElement": true, "description": "仮の属性。属性体系は未確定。", "presentation": { "particle": "water", "color": "#3fc7ff", "accent": "#c6f4ff", "sound": "water" } },
+  { "id": "elem_004", "name": "（仮）風", "attackElement": true, "description": "仮の属性。属性体系は未確定。", "presentation": { "particle": "wind", "color": "#8ee8c0", "accent": "#effff4", "sound": "wind" } },
+  { "id": "elem_005", "name": "氷", "attackElement": true, "description": "氷の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "ice", "color": "#73cfff", "accent": "#f1fdff", "sound": "ice" } },
+  { "id": "elem_006", "name": "自然", "attackElement": true, "description": "自然の属性。相性倍率は各ユニットのデータで調整する。", "presentation": { "particle": "nature", "color": "#79db70", "accent": "#e5ff96", "sound": "nature" } }
 ]

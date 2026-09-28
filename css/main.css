@@ -539,6 +539,32 @@ button.unit-row:active { background: var(--raised); }
 }
 .speed-btn[aria-pressed='true'] { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 700; }
 .pause-btn { min-width: 76px; }
+.battle-audio-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(38, 42, 62, .72);
+}
+.sound-label, .sound-volume-text { color: var(--muted); font-size: 12px; }
+.sound-toggle {
+  min-width: 72px;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.sound-toggle[aria-pressed='true'] { border-color: var(--mist); color: var(--mist); }
+.sound-volume { flex: 1; min-width: 80px; height: 30px; margin: 0; accent-color: var(--lamp); }
+.sound-volume:disabled { opacity: .35; }
+.sound-volume-text { width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
 
 .bar { position: relative; display: block; flex: 1; height: 8px; border-radius: 4px; background: var(--raised); overflow: hidden; }
 .bar-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 4px; }
@@ -680,6 +706,71 @@ button.unit-row:active { background: var(--raised); }
 .float-marker, .float-status, .float-count { color: #ffd58c; font-size: 12px; }
 .float-combo, .float-break { color: #9ee7ff; font-size: 14px; }
 
+.battle-particle-burst {
+  --particle-color: #f2f4ff;
+  --particle-accent: #aeb8dd;
+  --particle-duration: 650ms;
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  animation: particle-shell var(--particle-duration) linear forwards;
+}
+.battle-particle-burst i {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--particle-color);
+  box-shadow: 0 0 7px var(--particle-accent);
+  opacity: 0;
+  animation: particle-radial var(--particle-duration) cubic-bezier(.15, .7, .25, 1) var(--particle-delay) forwards;
+}
+.particle-fire i { border-radius: 70% 20% 70% 30%; background: linear-gradient(var(--particle-accent), var(--particle-color)); animation-name: particle-rise; }
+.particle-water i { width: 6px; height: 10px; border-radius: 60% 40% 65% 35%; background: linear-gradient(145deg, var(--particle-accent), var(--particle-color)); }
+.particle-wind i { width: 20px; height: 3px; border-radius: 999px; background: linear-gradient(90deg, transparent, var(--particle-color)); box-shadow: 0 0 5px var(--particle-accent); animation-name: particle-wind; }
+.particle-ice i { border-radius: 0; background: linear-gradient(135deg, var(--particle-accent), var(--particle-color)); transform: rotate(45deg); }
+.particle-nature i { width: 9px; height: 6px; border-radius: 100% 0 100% 0; background: linear-gradient(135deg, var(--particle-accent), var(--particle-color)); animation-name: particle-leaf; }
+.particle-heal i { border-radius: 50%; background: var(--particle-color); animation-name: particle-heal; }
+.particle-marker i { width: 9px; height: 9px; border-radius: 60% 40% 70% 30%; background: var(--particle-color); }
+.particle-status i { border-radius: 50%; background: radial-gradient(circle, var(--particle-accent), var(--particle-color)); animation-name: particle-status; }
+.particle-break i { width: 12px; height: 4px; border-radius: 0; background: var(--particle-accent); animation-name: particle-radial; }
+
+@keyframes particle-shell { from { opacity: 1; } 85% { opacity: 1; } to { opacity: 0; } }
+@keyframes particle-radial {
+  0% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(4px) scale(.5); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(var(--particle-distance)) scale(.15); }
+}
+@keyframes particle-rise {
+  0% { opacity: 0; transform: translate(0, 8px) scale(.5) rotate(0); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(var(--particle-distance)) scale(.2) rotate(80deg); }
+}
+@keyframes particle-wind {
+  0% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(2px) scaleX(.3); }
+  22% { opacity: .9; }
+  100% { opacity: 0; transform: rotate(calc(var(--particle-angle) + 110deg)) translateX(var(--particle-distance)) scaleX(1.15); }
+}
+@keyframes particle-leaf {
+  0% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(2px) scale(.4); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(calc(var(--particle-angle) + 170deg)) translateX(var(--particle-distance)) scale(.25); }
+}
+@keyframes particle-heal {
+  0% { opacity: 0; transform: translateY(10px) scale(.3); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(calc(0px - var(--particle-distance))) scale(1.2); }
+}
+@keyframes particle-status {
+  0% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(4px) scale(.4); }
+  35% { opacity: .9; transform: rotate(var(--particle-angle)) translateX(18px) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(var(--particle-distance)) scale(.1); }
+}
+
 .motion-normal { animation: battle-lunge .36s ease; }
 .motion-skill { animation: battle-skill .5s ease; }
 .motion-combo { animation: battle-combo .7s ease; }
@@ -701,6 +792,11 @@ button.unit-row:active { background: var(--raised); }
 @keyframes battle-heal { 45% { filter: brightness(1.45); box-shadow: 0 0 20px rgba(127, 207, 138, .6); } }
 @keyframes battle-ko { to { transform: translateY(8px); filter: grayscale(.8); opacity: .35; } }
 @keyframes battle-banner { 40% { transform: translate(-50%, -50%) scale(1.08); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-stage .portrait, .battle-particle-burst { animation: none; }
+  .battle-particle-burst { display: none; }
+}
 
 .battle-result {
   position: fixed;

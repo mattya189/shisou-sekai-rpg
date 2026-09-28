@@ -37,7 +37,14 @@ export function presentationCues(event, battle, data) {
 
   for (const result of event.results ?? []) {
     if (!RESULT_KINDS.has(result.kind) && !['attackCountChanged', 'attackComboQueued', 'attackComboTriggered', 'defeat', 'break'].includes(result.kind)) continue;
-    if (result.kind === 'damage') cues.push({ type: 'damage', targetId: result.targetId, amount: result.amount, tier: presentation.tier });
+    if (result.kind === 'damage') cues.push({
+      type: 'damage',
+      targetId: result.targetId,
+      amount: result.amount,
+      tier: presentation.tier,
+      presentationType: presentation.type,
+      elementId: result.element ?? skill?.element ?? null,
+    });
     else if (result.kind === 'heal' && result.amount > 0) cues.push({ type: 'heal', targetId: result.targetId, amount: result.amount });
     else if (result.kind === 'miss') cues.push({ type: 'miss', targetId: result.targetId });
     else if (result.kind === 'markerChanged' && result.amount !== 0) cues.push({ type: 'marker', targetId: result.targetId, markerId: result.markerId, amount: result.amount, value: result.value });
@@ -49,6 +56,16 @@ export function presentationCues(event, battle, data) {
     else if (result.kind === 'break') cues.push({ type: 'break', targetId: result.targetId });
   }
   return cues;
+}
+
+/** 属性・効果種別から表示層だけで使う色と粒子形状を返す。 */
+export function effectPresentation(cue, data) {
+  if (cue.type === 'heal') return { particle: 'heal', color: '#82e897', accent: '#edfff1', sound: 'heal' };
+  if (cue.type === 'marker') return { particle: 'marker', color: '#438dff', accent: '#d7ebff', sound: 'marker' };
+  if (cue.type === 'status') return { particle: 'status', color: '#d47bd8', accent: '#ffe1ff', sound: 'status' };
+  if (cue.type === 'break') return { particle: 'break', color: '#9ee7ff', accent: '#ffffff', sound: 'break' };
+  const element = cue.elementId ? data.find('elements', cue.elementId) : null;
+  return element?.presentation ?? { particle: 'neutral', color: '#f2f4ff', accent: '#aeb8dd', sound: 'impact' };
 }
 
 /** 戦闘ログから味方ごとの戦績を集計する。 */

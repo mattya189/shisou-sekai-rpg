@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBattleReport, presentationCues, skillPresentation } from '../../src/ui/battlePresentation.js';
+import { buildBattleReport, effectPresentation, presentationCues, skillPresentation } from '../../src/ui/battlePresentation.js';
+import { shouldPlayCue, soundSpecForCue } from '../../src/ui/battleAudio.js';
 import { advance, battleResult, createBattle, runToEnd } from '../../src/battle/engine.js';
 import { loadBattleData } from '../helpers.js';
 
@@ -55,6 +56,35 @@ test('1行動内の複数対象・スタック変化・連携をすべて表示�
   assert.equal(cues.find((c) => c.type === 'marker').amount, 2);
   assert.deepEqual(cues.find((c) => c.type === 'attackCount'), { type: 'attackCount', targetId: 'a1', amount: 1, value: 4 });
   assert.equal(cues.filter((c) => c.type === 'combo').length, 1);
+});
+
+test('確定ダメージに使われた属性IDをパーティクルと効果音へ引き継ぐ', async () => {
+  const data = await loadBattleData();
+  const event = {
+    type: 'action', actorId: 'a1', kind: 'skill', skillId: 'skill_002', countsAsAttack: true, attackCount: 1,
+    results: [{ kind: 'damage', targetId: 'e1', amount: 20, element: 'elem_005' }],
+  };
+  const cue = presentationCues(event, { units: [] }, data).find((entry) => entry.type === 'damage');
+  assert.equal(cue.elementId, 'elem_005');
+  assert.equal(effectPresentation(cue, data).particle, 'ice');
+  assert.equal(soundSpecForCue(cue, data).from, 980);
+});
+
+test('属性ごとの演出定義をデータから使い、未知属性は無属性へフォールバックする', async () => {
+  const data = await loadBattleData();
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_002' }, data).particle, 'fire');
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_003' }, data).particle, 'water');
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_004' }, data).particle, 'wind');
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'elem_006' }, data).particle, 'nature');
+  assert.equal(effectPresentation({ type: 'damage', elementId: 'unknown' }, data).particle, 'neutral');
+});
+
+test('4倍速では通常ヒットだけ決定的に間引き、奥義・BREAK・戦闘結果は残す', () => {
+  assert.equal(shouldPlayCue({ type: 'damage', tier: 'normal' }, 4, 1), false);
+  assert.equal(shouldPlayCue({ type: 'damage', tier: 'normal' }, 4, 3), true);
+  assert.equal(shouldPlayCue({ type: 'damage', tier: 'ultimate' }, 4, 1), true);
+  assert.equal(shouldPlayCue({ type: 'break' }, 4, 1), true);
+  assert.equal(shouldPlayCue({ type: 'outcome', outcome: 'won' }, 4, 1), true);
 });
 
 test('通常・特技・連携・奥義の演出強度をデータとイベントから決める', () => {

@@ -14,7 +14,8 @@
 import { h } from '../dom.js';
 import { unitImageSrc } from '../placeholder.js';
 import { describeEvent } from '../battleLog.js';
-import { buildBattleReport, presentationCues } from '../battlePresentation.js';
+import { buildBattleReport, effectPresentation, presentationCues } from '../battlePresentation.js';
+import { createBattleAudio, shouldPlayCue } from '../battleAudio.js';
 import { createBattle, advance, battleResult, sideOf, effectiveInterval } from '../../battle/engine.js';
 import { alliesFromParty } from '../../battle/setup.js';
 import { markMonster } from '../../progression/codex.js';
@@ -57,6 +58,8 @@ export default {
     }
     const battle = state.battle;
     let speed = speeds.includes(save.settings?.battleSpeed) ? save.settings.battleSpeed : speeds[0];
+    let soundEnabled = save.settings?.battleSoundEnabled !== false;
+    let soundVolume = Number.isFinite(save.settings?.battleSoundVolume) ? Math.max(0, Math.min(1, save.settings.battleSoundVolume)) : 0.45;
 
     // ---- 部品を作る ----
     const cards = new Map();
@@ -159,13 +162,42 @@ export default {
       },
       '一時停止',
     );
+    const soundButton = h('button', {
+      type: 'button',
+      class: 'sound-toggle',
+      'aria-pressed': String(soundEnabled),
+      onClick: () => {
+        soundEnabled = !soundEnabled;
+        save.settings = { ...(save.settings ?? {}), battleSoundEnabled: soundEnabled, battleSoundVolume: soundVolume };
+        session.commit();
+        updateSoundControls();
+        if (soundEnabled) audio.resume();
+      },
+    });
+    const volumeText = h('span', { class: 'sound-volume-text' });
+    const volumeInput = h('input', {
+      class: 'sound-volume',
+      type: 'range',
+      min: 0,
+      max: 100,
+      step: 5,
+      value: Math.round(soundVolume * 100),
+      'aria-label': '戦闘効果音の音量',
+      onInput: (event) => {
+        soundVolume = Number(event.target.value) / 100;
+        save.settings = { ...(save.settings ?? {}), battleSoundVolume: soundVolume };
+        updateSoundControls();
+      },
+      onChange: () => session.commit(),
+    });
     const logList = h('ol', { class: 'battle-log', 'aria-label': '戦闘ログ' });
     const resultLayer = h('div', { class: 'battle-result', hidden: true });
 
     const root = h(
       'section',
-      { class: 'battle-screen' },
+      { class: 'battle-screen', onPointerdown: () => audio.resume() },
       h('div', { class: 'battle-bar' }, timeText, h('span', { class: 'speed-group', role: 'group', 'aria-label': '戦闘速度' }, speedButtons, pauseBtn)),
+      h('div', { class: 'battle-audio-bar' }, h('span', { class: 'sound-label' }, '効果音'), soundButton, volumeInput, volumeText),
       h('div', { class: 'battle-stage', 'aria-label': '戦場' },
         h('div', { class: 'skill-banner', 'aria-live': 'polite', 'aria-atomic': 'true' }),
         h('div', { class: 'enemy-row' }, sideOf(battle, 'enemy').map(enemyCard)),
@@ -178,7 +210,18 @@ export default {
     const banner = root.querySelector('.skill-banner');
     const fxTimers = new Set();
     let processedLog = battle.log.length;
+    let cueSerial = 0;
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const audio = createBattleAudio({ enabled: () => soundEnabled, volume: () => soundVolume });
+    audio.resume();
+
+    function updateSoundControls() {
+      soundButton.textContent = soundEnabled ? '🔊 ON' : '🔇 OFF';
+      soundButton.setAttribute('aria-pressed', String(soundEnabled));
+      volumeInput.disabled = !soundEnabled;
+      volumeText.textContent = `${Math.round(soundVolume * 100)}%`;
+    }
+    updateSoundControls();
 
     function later(fn, ms) {
       const timer = setTimeout(() => {
@@ -205,6 +248,30 @@ export default {
       later(() => node.remove(), 1100);
     }
 
+    function spawnParticles(card, cue, serial) {
+      if (!card || reducedMotion || !shouldPlayCue(cue, speed, serial)) return;
+      while (root.querySelectorAll('.battle-particle-burst').length >= MAX_FX_NODES) root.querySelector('.battle-particle-burst')?.remove();
+      const presentation = effectPresentation(cue, data);
+      const tierCount = cue.tier === 'ultimate' ? 16 : cue.tier === 'combo' ? 13 : cue.tier === 'skill' ? 10 : 7;
+      const count = speed >= 2 ? Math.min(8, tierCount) : tierCount;
+      const burst = h('span', { class: `battle-particle-burst particle-${presentation.particle}`, 'aria-hidden': 'true' });
+      burst.style.setProperty('--particle-color', presentation.color);
+      burst.style.setProperty('--particle-accent', presentation.accent);
+      burst.style.setProperty('--particle-duration', `${Math.round((cue.tier === 'ultimate' ? 900 : 650) / Math.min(speed, 2))}ms`);
+      for (let i = 0; i < count; i += 1) {
+        const particle = h('i');
+        particle.style.setProperty('--particle-angle', `${(360 / count) * i + (serial % 4) * 9}deg`);
+        particle.style.setProperty('--particle-distance', `${22 + ((i * 11 + serial * 7) % 28)}px`);
+        particle.style.setProperty('--particle-delay', `${(i % 4) * 18}ms`);
+        burst.append(particle);
+      }
+      card.el.append(burst);
+      burst.addEventListener('animationend', (event) => {
+        if (event.target === burst) burst.remove();
+      });
+      later(() => burst.remove(), 1100);
+    }
+
     function showBanner(cue) {
       if (!cue.label) return;
       banner.textContent = cue.label;
@@ -220,6 +287,8 @@ export default {
       processedLog = battle.log.length;
       for (const event of events) {
         for (const cue of presentationCues(event, battle, data)) {
+          cueSerial += 1;
+          audio.play(cue, data, speed, cueSerial);
           const card = cards.get(cue.targetId);
           if (cue.type === 'action') {
             pulse(card?.el, `motion-${cue.tier}`, cue.tier === 'ultimate' ? 900 : 520);
@@ -228,18 +297,22 @@ export default {
           else if (cue.type === 'damage') {
             floatText(card, cue.amount, cue.dot ? 'dot' : 'damage');
             pulse(card?.el, 'motion-hit', 380);
+            spawnParticles(card, cue, cueSerial);
           } else if (cue.type === 'heal') {
             floatText(card, `+${cue.amount}`, 'heal');
             pulse(card?.el, 'motion-heal', 650);
+            spawnParticles(card, cue, cueSerial);
           } else if (cue.type === 'miss') {
             floatText(card, 'MISS', 'miss');
             pulse(card?.el, 'motion-dodge', 500);
           } else if (cue.type === 'marker') {
             const name = data.find('markers', cue.markerId)?.name ?? cue.markerId;
             floatText(card, `${name} ${cue.amount > 0 ? '+' : ''}${cue.amount}`, 'marker');
+            spawnParticles(card, cue, cueSerial);
           } else if (cue.type === 'status') {
             const name = data.find('statuses', cue.statusId)?.name?.replace(/^（仮）/, '') ?? cue.statusId;
             floatText(card, name, 'status');
+            spawnParticles(card, cue, cueSerial);
           } else if (cue.type === 'attackCount') {
             floatText(card, `攻撃回数 +${cue.amount}`, 'count');
             pulse(card?.count, 'count-trigger', 700);
@@ -249,7 +322,10 @@ export default {
             const name = data.find('skills', cue.skillId)?.name ?? '連携発動';
             showBanner({ label: name, tier: 'combo' });
             pulse(card?.el, 'motion-combo', 750);
-          } else if (cue.type === 'break') floatText(card, 'BREAK!', 'break');
+          } else if (cue.type === 'break') {
+            floatText(card, 'BREAK!', 'break');
+            spawnParticles(card, cue, cueSerial);
+          }
           else if (cue.type === 'defeat') pulse(card?.el, 'motion-ko', 700);
         }
       }
@@ -313,6 +389,8 @@ export default {
       }
       if (!resultLayer.hidden) return;
       const r = battleResult(battle);
+      cueSerial += 1;
+      audio.play({ type: 'outcome', outcome: r.outcome }, data, speed, cueSerial);
       const sm = state.summary;
       const title = { won: '勝利', lost: '全滅', timeout: '時間切れ' }[r.outcome];
       const unitName = (id) => data.findUnitDef(save.units[id]?.defId ?? id)?.def.name ?? id;
@@ -422,6 +500,7 @@ export default {
     ctx.onCleanup(() => {
       for (const timer of fxTimers) clearTimeout(timer);
       fxTimers.clear();
+      audio.dispose();
     });
 
     paint();

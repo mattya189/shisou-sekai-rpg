@@ -51,7 +51,11 @@
   "events": { "seen": { "event_002": 1 } },            // イベントの発生回数（once の判定）
   "dungeonRun": { "dungeonId": "dgn_001", "stage": 1, "mp": { "chr_001": 30 } },  // 進行中のダンジョン（なければ null）
   "dungeons": { "cleared": { "dgn_001": 1 } },          // 踏破回数
-  "settings": { "battleSpeed": 1 }     // 戦闘速度（前回の選択を覚える）
+  "settings": {
+    "battleSpeed": 1,                  // 戦闘速度（前回の選択を覚える）
+    "battleSoundEnabled": true,        // 戦闘効果音のミュート設定
+    "battleSoundVolume": 0.45          // 戦闘効果音量（0～1）
+  }
 }
 ```
 

@@ -52,6 +52,8 @@ test('欠けている項目は初期値で補完され、未知の項目は残�
   assert.equal(s.units.mon_001.level, 5);
   assert.equal(s.units.mon_001.rank, 1);
   assert.deepEqual(s.units.mon_001.equippedSkills, []);
+  assert.equal(s.settings.battleSoundEnabled, true);
+  assert.equal(s.settings.battleSoundVolume, 0.45);
   assert.deepEqual(s.futureField, { x: 1 });
 });
 

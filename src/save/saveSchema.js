@@ -63,6 +63,10 @@ export function createEmptySave() {
     settings: {
       /** 戦闘速度（balance.battle.speeds のいずれか） */
       battleSpeed: 1,
+      /** Web Audio API で生成する戦闘効果音。旧セーブはデフォルト値で補完される */
+      battleSoundEnabled: true,
+      /** 戦闘効果音の音量（0～1） */
+      battleSoundVolume: 0.45,
     },
   };
 }
