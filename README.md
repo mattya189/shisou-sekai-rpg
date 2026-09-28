@@ -55,7 +55,7 @@ src/
   config.js         設定（デバッグの有効条件など）
   main.js           エントリーポイント
 scripts/            ローカルサーバー・データ検証・バランス確認
-  tests/              自動テスト（node:test、231件）
+  tests/              自動テスト（node:test、234件）
 e2e/                画面の通しテスト（任意）
 docs/               開発ドキュメント
 AGENTS.md           AIエージェント（Codex等）向けの作業ルール

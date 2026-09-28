@@ -61,7 +61,11 @@ export default {
     const statusChips = (u) => [
       ...u.statuses.map((s) => h('span', { class: 'status-chip' }, data.find('statuses', s.statusId)?.name.replace(/^（仮）/, '') ?? s.statusId)),
       ...Object.entries(u.markers ?? {})
-        .filter(([, state]) => state.stacks > 0)
+        .filter(([markerId, state]) => {
+          const marker = data.find('markers', markerId);
+          const allowed = !marker?.allowedSpeciesIds?.length || marker.allowedSpeciesIds.some((speciesId) => u.speciesIds?.includes(speciesId));
+          return state.stacks > 0 && allowed;
+        })
         .map(([markerId, state]) => {
           const marker = data.find('markers', markerId);
           const value = marker?.showMax ? `${state.stacks}/${marker.maxStacks}` : state.stacks;

@@ -303,6 +303,10 @@ function makeApi(battle, data) {
     addMarker(target, markerId, amount, results = [], context = {}) {
       if (!target) return 0;
       const def = data.get('markers', markerId);
+      // 種族共通マーカーは該当種族だけが保持できる。未指定のマーカーは従来どおり全ユニットが利用可能。
+      if (def.allowedSpeciesIds?.length && !def.allowedSpeciesIds.some((speciesId) => target.speciesIds?.includes(speciesId))) {
+        return 0;
+      }
       const state = target.markers[markerId] ?? { stacks: 0, reachedMaxAt: null };
       const before = state.stacks;
       state.stacks = Math.min(def.maxStacks, Math.max(0, before + amount));

@@ -110,6 +110,13 @@ test('種族条件はspeciesIdsの参照切れを検出する', async () => {
   assert.ok(data.validate().errors.some((e) => e.includes('species_999')));
 });
 
+test('種族限定マーカーはallowedSpeciesIdsの参照切れを検出する', async () => {
+  const data = await loadModifiedData((raw) => {
+    raw.markers.find((m) => m.id === 'marker_002').allowedSpeciesIds = ['species_999'];
+  });
+  assert.ok(data.validate().errors.some((e) => e.includes('species_999')));
+});
+
 test('状態異常は時間または対象の行動回数を継続基準にできる', async () => {
   const data = await loadModifiedData((raw) => {
     const status = raw.statuses[0];

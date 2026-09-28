@@ -23,6 +23,38 @@ test('犬の好意は最大10で止まる', async () => {
   assert.equal(b.units[0].markers.marker_002.stacks, 10);
 });
 
+test('イロワン以外の犬族も犬の好意を利用でき、ユニットごとに個別保持する', async () => {
+  const data = await loadBattleData((raw) => {
+    raw.passives.find((p) => p.id === 'passive_008').effects[0].chance = 1;
+    const dog = raw.monsters.find((m) => m.id === 'mon_900');
+    dog.speciesIds = ['species_003'];
+    dog.passives = ['passive_008'];
+    dog.baseStats.attackIntervalMs = 1000;
+  });
+  const b = createBattle(data, {
+    allies: [{ defId: 'mon_900', skills: [] }, { defId: 'mon_900', skills: [] }],
+    enemies: [sandbag()], seed: 1,
+  });
+  b.units[1].nextAttackAt = 10_000_000;
+  advance(b, data, 1000);
+  assert.equal(b.units[0].defId, 'mon_900', 'イロワンIDへ依存しない');
+  assert.equal(b.units[0].markers.marker_002.stacks, 1);
+  assert.equal(b.units[1].markers.marker_002, undefined, '同じ犬族でもスタックは共有しない');
+});
+
+test('非犬族は犬の好意を意図せず獲得しない', async () => {
+  const data = await loadBattleData((raw) => {
+    raw.passives.find((p) => p.id === 'passive_008').effects[0].chance = 1;
+    const nonDog = raw.monsters.find((m) => m.id === 'mon_900');
+    nonDog.speciesIds = ['species_002'];
+    nonDog.passives = ['passive_008'];
+    nonDog.baseStats.attackIntervalMs = 1000;
+  });
+  const b = createBattle(data, { allies: [{ defId: 'mon_900', skills: [] }], enemies: [sandbag()], seed: 1 });
+  advance(b, data, 1000);
+  assert.equal(b.units[0].markers.marker_002, undefined);
+});
+
 test('好意の色は侵色11を消費して犬の好意+1、侵色10以下では発動しない', async () => {
   const data = await loadBattleData(withoutFriendlyChance);
   const b = createBattle(data, { allies: [irowan({ skills: [] })], enemies: [sandbag()], seed: 1 });

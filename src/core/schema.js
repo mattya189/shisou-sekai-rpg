@@ -90,6 +90,7 @@ export const CATEGORY_SCHEMAS = {
   species: { prefix: 'species_', required: ['id', 'name'] },
   markers: {
     prefix: 'marker_', required: ['id', 'name', 'maxStacks'],
+    refs: [['allowedSpeciesIds[]', 'species']],
     check(entry, ctx) {
       if (!Number.isInteger(entry.maxStacks) || entry.maxStacks < 1) ctx.error('maxStacks は正の整数にしてください');
     },
