@@ -521,7 +521,15 @@ button.unit-row:active { background: var(--raised); }
 
 /* ---------- 戦闘 ---------- */
 
-.battle-screen { display: flex; flex-direction: column; gap: 10px; min-height: calc(100dvh - 40px); min-width: 0; overflow-x: clip; }
+.battle-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 40px);
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
 .battle-screen > * { min-width: 0; }
 
 .battle-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -576,12 +584,16 @@ button.unit-row:active { background: var(--raised); }
 .battle-stage {
   position: relative;
   display: grid;
-  gap: 14px;
-  padding: 10px;
+  align-content: space-around;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-height: 0;
+  padding: 7px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: radial-gradient(circle at 50% 40%, #454d74 0, var(--surface) 58%, #292e46 100%);
   isolation: isolate;
+  overflow: hidden;
 }
 .enemy-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); justify-content: center; gap: 8px; }
 .enemy-card {
@@ -597,6 +609,12 @@ button.unit-row:active { background: var(--raised); }
   border: 1px solid var(--line);
 }
 .enemy-row:has(> :only-child) .enemy-card { width: min(150px, 46%); justify-self: center; }
+.enemy-row.units-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.enemy-row.units-4 .enemy-card { gap: 2px; padding: 4px; border-radius: var(--radius-sm); }
+.enemy-row.units-4 .portrait { width: 46px; height: 46px; }
+.enemy-row.units-4 .enemy-name { font-size: 10px; line-height: 1.25; }
+.enemy-row.units-4 .status-row { gap: 2px; }
+.enemy-row.units-4 .status-chip { padding: 0 3px; font-size: 9px; line-height: 15px; }
 .enemy-card .bar { width: 100%; flex: none; }
 .enemy-name {
   display: -webkit-box;
@@ -614,17 +632,17 @@ button.unit-row:active { background: var(--raised); }
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-height: calc(4 * 1.5em + 20px);
-  max-height: calc(6 * 1.5em + 20px);
+  min-height: calc(4 * 1.35em + 14px);
+  max-height: calc(4 * 1.35em + 14px);
   overflow: hidden;
   margin: 0;
-  padding: 10px 12px;
+  padding: 7px 10px;
   border-radius: var(--radius-md);
   background: var(--bg);
   border: 1px solid var(--line);
   list-style: none;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 .battle-log li { color: var(--muted); }
 .battle-log li:first-child { color: var(--text); }
@@ -642,6 +660,18 @@ button.unit-row:active { background: var(--raised); }
   transition: border-color .15s;
 }
 .ally-card.acting { border-color: var(--lamp); }
+.ally-grid.units-4 { gap: 5px; }
+.ally-grid.units-4 .ally-card { gap: 2px; padding: 5px 6px 6px; border-radius: var(--radius-sm); }
+.ally-grid.units-4 .ally-head { gap: 5px; }
+.ally-grid.units-4 .portrait { width: 40px; height: 40px; }
+.ally-grid.units-4 .ally-name { font-size: 12px; }
+.ally-grid.units-4 .meter { gap: 3px; font-size: 10px; line-height: 1.2; }
+.ally-grid.units-4 .meter-label { width: 16px; }
+.ally-grid.units-4 .meter .num { min-width: 43px; }
+.ally-grid.units-4 .attack-count { min-width: 50px; font-size: 10px; }
+.ally-grid.units-4 .skill-flash { min-height: 1.2em; font-size: 11px; line-height: 1.2; }
+.ally-grid.units-4 .status-row { gap: 2px; }
+.ally-grid.units-4 .status-chip { padding: 0 3px; font-size: 9px; line-height: 15px; }
 .ally-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .ally-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meter { display: flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -834,13 +864,21 @@ button.unit-row:active { background: var(--raised); }
 .battle-report thead th { color: var(--muted); font-weight: 400; }
 
 @media (max-width: 360px) {
-  .battle-stage { padding: 7px; gap: 10px; }
+  .battle-screen { gap: 5px; height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 32px); }
+  .battle-stage { padding: 5px; gap: 6px; }
   .enemy-row { grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); }
+  .enemy-row.units-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+  .enemy-row.units-4 .portrait { width: 40px; height: 40px; }
   .ally-card { padding: 6px 7px 8px; }
+  .ally-grid.units-4 .ally-card { padding: 4px 5px 5px; }
+  .ally-grid.units-4 .portrait { width: 36px; height: 36px; }
   .meter .num { min-width: 48px; }
+  .ally-grid.units-4 .meter .num { min-width: 39px; }
   .attack-count { min-width: 54px; }
+  .ally-grid.units-4 .attack-count { min-width: 46px; }
   .speed-btn { min-width: 42px; padding: 0 7px; }
   .pause-btn { min-width: 68px; }
+  .battle-log { font-size: 12px; }
 }
 
 /* ---------- 探索（Phase 4〜5） ---------- */

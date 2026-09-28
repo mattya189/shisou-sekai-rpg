@@ -68,6 +68,16 @@ export function effectPresentation(cue, data) {
   return element?.presentation ?? { particle: 'neutral', color: '#f2f4ff', accent: '#aeb8dd', sound: 'impact' };
 }
 
+/**
+ * 行動ごとの演出間隔。戦闘計算には影響せず、表示キューを読む速さだけを決める。
+ * 高速設定でも平方根までしか短縮しないことで、特技名と結果が潰れないようにする。
+ */
+export function presentationDelayMs(speed, cues = []) {
+  const tiers = new Set(cues.map((cue) => cue.tier));
+  const base = tiers.has('ultimate') ? 720 : tiers.has('combo') ? 560 : tiers.has('skill') ? 440 : 280;
+  return Math.round(base / Math.sqrt(Math.max(1, Number(speed) || 1)));
+}
+
 /** 戦闘ログから味方ごとの戦績を集計する。 */
 export function buildBattleReport(battle) {
   const allies = battle.units.filter((u) => u.side === 'ally');

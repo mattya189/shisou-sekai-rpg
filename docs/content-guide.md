@@ -386,7 +386,7 @@
 ```
 
 - 1行が1つの敵グループ。条件（`when`）を満たす行から `weight` で抽選。
-- 敵は1〜3体（`balance.battle.maxEnemies`）。レベルは [最小, 最大]。
+- 敵は1〜4体（`balance.battle.maxEnemies`）。レベルは [最小, 最大]。
 - 希少種・変異種は `when` で出現条件を絞ると特別感が出ます。
 
 ## 図鑑の段階を変える（`balance.json` の `codex.monsterStages`）

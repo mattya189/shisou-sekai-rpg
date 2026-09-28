@@ -94,11 +94,11 @@
     "defenseConstant": 50,
     "damageVariance": 0.05,
     "timeLimitMs": 300000,
-    "maxEnemies": 3,
+    "maxEnemies": 4,
     "speeds": [
       1,
       2,
-      4
+      3
     ]
   },
   "qualities": [

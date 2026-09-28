@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBattleReport, effectPresentation, presentationCues, skillPresentation } from '../../src/ui/battlePresentation.js';
+import { buildBattleReport, effectPresentation, presentationCues, presentationDelayMs, skillPresentation } from '../../src/ui/battlePresentation.js';
 import { shouldPlayCue, soundSpecForCue } from '../../src/ui/battleAudio.js';
 import { advance, battleResult, createBattle, runToEnd } from '../../src/battle/engine.js';
 import { loadBattleData } from '../helpers.js';
@@ -88,6 +88,15 @@ test('4倍速では通常ヒットだけ決定的に間引き、奥義・BREAK�
   assert.equal(shouldPlayCue({ type: 'damage', tier: 'ultimate' }, 4, 1), true);
   assert.equal(shouldPlayCue({ type: 'break' }, 4, 1), true);
   assert.equal(shouldPlayCue({ type: 'outcome', outcome: 'won' }, 4, 1), true);
+});
+
+test('行動表示間隔は特技ほど長く、高速設定でも読める長さを残す', () => {
+  const normal = presentationDelayMs(1, [{ tier: 'normal' }]);
+  const skill = presentationDelayMs(1, [{ tier: 'skill' }]);
+  const ultimateFast = presentationDelayMs(3, [{ tier: 'ultimate' }]);
+  assert.ok(skill > normal);
+  assert.ok(ultimateFast >= 400);
+  assert.ok(presentationDelayMs(3, [{ tier: 'skill' }]) >= 250);
 });
 
 test('通常・特技・連携・奥義の演出強度をデータとイベントから決める', () => {

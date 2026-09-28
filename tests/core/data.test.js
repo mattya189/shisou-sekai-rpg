@@ -49,6 +49,13 @@ test('4体編成・特技5枠・装備2枠・品質5段階の固定値を検証�
   assert.ok(errors.some((e) => e.includes('qualities は5段階')));
 });
 
+test('戦闘表示は4対4と読みやすい3段階速度を前提にする', async () => {
+  const data = await loadRealData();
+  assert.equal(data.balance.party.size, 4);
+  assert.equal(data.balance.battle.maxEnemies, 4);
+  assert.deepEqual(data.balance.battle.speeds, [1, 2, 3]);
+});
+
 test('IDの重複を検出する', async () => {
   const data = await loadModifiedData((raw) => {
     raw.monsters.push({ ...raw.monsters[0] });
