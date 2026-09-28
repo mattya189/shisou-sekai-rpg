@@ -95,5 +95,50 @@
     "turnTiming": "actionEnd",
     "params": { "stat": "evasion", "amount": 20 },
     "description": "回避率が20ポイント上がる。自身が2回行動すると終了。"
+  },
+  {
+    "id": "status_010",
+    "name": "あまえる",
+    "kind": "statModifier",
+    "durationTurns": 3,
+    "turnTiming": "actionEnd",
+    "params": { "stat": "atk", "pct": -5 },
+    "description": "攻撃力が5%下がる。対象自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_011",
+    "name": "犬のとうぼえ",
+    "kind": "statModifier",
+    "durationTurns": 3,
+    "turnTiming": "actionEnd",
+    "params": { "stat": "atk", "pct": 10 },
+    "description": "攻撃力が10%上がる。対象自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_012",
+    "name": "休み",
+    "kind": "skipAction",
+    "durationTurns": 1,
+    "turnTiming": "actionStart",
+    "params": {},
+    "description": "次の行動機会を1回消費して何もしない。ターンは進むが攻撃回数は進まない。"
+  },
+  {
+    "id": "status_013",
+    "name": "染尽攻撃低下",
+    "kind": "statModifier",
+    "durationTurns": 5,
+    "turnTiming": "actionEnd",
+    "params": { "stat": "atk", "pct": -50 },
+    "description": "攻撃力が50%下がる。対象自身が5回行動すると終了。"
+  },
+  {
+    "id": "status_014",
+    "name": "染尽速度低下",
+    "kind": "intervalPctModifier",
+    "durationTurns": 5,
+    "turnTiming": "actionEnd",
+    "params": { "pct": 30 },
+    "description": "攻撃間隔が30%長くなる。対象自身が5回行動すると終了。"
   }
 ]

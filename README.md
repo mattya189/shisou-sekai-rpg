@@ -39,7 +39,7 @@ ES Modules と `fetch` を使うため、`index.html` をファイルとして�
 ```
 index.html          入口
 css/main.css        スタイル（スマホ縦画面優先）
-data/               ゲームコンテンツ（JSON）。コンテンツ追加は基本ここだけ
+  data/               ゲームコンテンツ（JSON）。コンテンツ追加は基本ここだけ（種族タグもID管理）
 src/
   core/             データ読み込み・検証・乱数・エラー
   save/             セーブの形・マイグレーション・保存先
@@ -55,7 +55,7 @@ src/
   config.js         設定（デバッグの有効条件など）
   main.js           エントリーポイント
 scripts/            ローカルサーバー・データ検証・バランス確認
-tests/              自動テスト（node:test、188件）
+  tests/              自動テスト（node:test、231件）
 e2e/                画面の通しテスト（任意）
 docs/               開発ドキュメント
 AGENTS.md           AIエージェント（Codex等）向けの作業ルール

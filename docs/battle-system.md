@@ -106,6 +106,8 @@ battleResult(battle);        // { outcome, timeMs, allies: [{ hp, mp, ... }], de
 | `always` | – | 毎回 |
 | `attackCountMultiple` | `n` | 攻撃回数が n の倍数 |
 | `attackCountEvery` | `n`, `start`(省略時 n) | start 回目から n 回ごと |
+| `turnCountEquals` | `n` | そのユニット自身の n ターン目だけ |
+| `selfMarkerAtLeast` | `markerId`, `stacks` | 自身の指定マーカーが指定量以上 |
 | `selfHpBelow` | `pct` | 自分のHPが pct% 以下 |
 | `allyHpBelow` | `pct` | HPが pct% 以下の味方がいる |
 | `enemyHpBelow` | `pct` | 敵のHPが pct% 以下 |
@@ -133,8 +135,19 @@ battleResult(battle);        // { outcome, timeMs, allies: [{ hp, mp, ... }], de
 | `addMarker` | `target`, `markerId`, `amount` または `min` / `max` |
 | `collectMarker` | `markerId`（最多の敵。同数なら敵の並び順先頭） |
 | `scheduleEffects` | `afterTurns`, `effects`（指定した次回以降の行動開始時に解決） |
+| `conditionalEffects` | `condition`, `effects`（条件成立時だけ入れ子効果を実行） |
+| `randomElementDamage` | 攻撃属性から1つをseed固定乱数で選ぶ単発攻撃 |
+| `allElementDamage` | 対象ごとに最有効な攻撃属性を1つ選ぶ単発攻撃 |
+| `randomPowerDamage` | `minPower`〜`maxPower` の威力をseed固定乱数で抽選 |
+| `applyStatusBySpecies` | 種族IDと範囲に一致するユニットへ状態を付与 |
+| `speciesScaledDamage` | 同陣営の指定種族数で威力を加算 |
+| `advanceAttackCountBySpecies` | 指定種族の攻撃回数を直接加算（条件は即時再判定しない） |
+| `queueComboOnNextAttack` | コンボ特技を次の実際の攻撃直前へ予約 |
 
-対象（`target`）: `enemySingle` `enemyAll` `self` `allyLowestHp` `allyAll`
+対象（`target`）: `enemySingle` `enemyAll` `self` `allyLowestHp` `allyAll` `sourceAttacker`
+
+`damage` 系効果は `scalingStat: "maxHp"` を指定すると最大HP依存にできる。防御側は `damageType` が
+`physical` なら防御、`magic` なら魔法防御を使う。独自のダメージ式を特技内へ書かない。
 
 ## 固有パッシブ（`src/battle/passives.js`）
 
@@ -149,6 +162,8 @@ battleResult(battle);        // { outcome, timeMs, allies: [{ hp, mp, ... }], de
 | `damageVsStatus` | `pct`, `statusId`（省略時は何らかの状態異常） |
 | `flatStatPct` | `stat`, `pct`（static） |
 | `normalAttackMarker` | `markerId`, `amount`（通常攻撃命中時だけ付与） |
+| `consumeTargetMarkerOnHitGainSelfMarker` | 攻撃命中時、対象マーカーを消費して自身の別マーカーへ変換 |
+| `chanceSelfMarkerOnPhysicalHit` | 物理攻撃命中時、確率で自身へマーカーを付与 |
 
 ## 状態異常（`data/statuses.json`）
 
@@ -163,6 +178,7 @@ battleResult(battle);        // { outcome, timeMs, allies: [{ hp, mp, ... }], de
 | `multiStatModifier` | `statPct`, `intervalPct` | 複数能力と行動間隔をまとめて割合増減 |
 | `intervalPctModifier` | `pct` | 行動間隔を割合で増減（正なら遅くなる） |
 | `additionalNormalAttack` | `target`, `power`, `damageType` など | 通常攻撃直前の追加攻撃。攻撃回数は増えない |
+| `skipAction` | – | 次の行動機会を消費。ターンは進み、攻撃回数は進まない |
 
 継続基準は状態効果データごとに次のどちらか一方を指定する。
 
@@ -181,6 +197,27 @@ battleResult(battle);        // { outcome, timeMs, allies: [{ hp, mp, ... }], de
 - コンボ特技は `comboFrom` と `completionEffects` を持つ。コンボ元が予約した完成時だけ効果を足し、通常の優先順位候補にはならない。コンボ元とコンボ特技の両方がセットされている場合だけ有効。
 - `oncePerBattle: true` の特技は、発動後に同じ戦闘では候補から外れる。
 - 通常攻撃直前の追加攻撃は同一行動内の処理であり、`attackCount` を追加で増やさない。
+- `queueComboOnNextAttack` の連携追加攻撃も独立ターンではなく、次の `countsAsAttack: true` の行動直前に1回だけ解決する。
+- `advanceAttackCountBySpecies` などの直接加算はカウンターだけを進める。増加した瞬間には倍数条件を再評価せず、次の実際の攻撃機会から続行する。
+
+## 即時発動と被ダメージ反応
+
+通常の行動選択外で発動する特技は `immediateTrigger` を持ち、通常の優先順位候補から除外される。
+発動しても `turnCount` / `attackCount` は増えない。処理中の同一特技再入禁止と最大再帰深度16で無限連鎖を防ぐ。
+
+| type | パラメータ | 発動 |
+|---|---|---|
+| `markerThresholdReached` | `markerId`, `thresholds` | 自身のマーカーが下から閾値へ到達・通過した変化 |
+| `damaged` | `chance` | 敵から実ダメージを受けた直後。seed固定乱数で判定 |
+
+閾値3/6/9のような条件は、1回のマーカー変化につき特技1回だけ。同じ変化で複数閾値を跨いでも重複発動しない。
+マーカーが減ったあと同じ閾値へ再到達した場合は、戦闘中1回制限がない限り再発動できる。
+
+## 種族タグ・状態耐性・全属性
+
+- 種族は `data/species.json` のIDをユニットの `speciesIds` に設定する。表示名への部分一致は使わない。
+- 状態耐性はユニットの `statusResistances` に `{ "status_012": 0.5 }` のように0〜1で持ち、基礎成功率へ `1 - 耐性` を乗算する。`statusImmune` は従来どおり完全無効。
+- 属性データの `attackElement: true` がランダム属性・全属性の候補。全属性は多段攻撃ではなく、対象ごとに被ダメージ倍率が最大になる属性を1つだけ使う。倍率同率ならデータ順の先頭を選ぶ。
 
 ## 物理・魔法・回避（後方互換）
 

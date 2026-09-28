@@ -8,6 +8,7 @@
  *   statPct(e, unit, key, stat) : 戦闘中の能力値の増減（%）
  *   damagePct(e, attacker, target) : 与えるダメージの増減（%）
  *   normalAttackMpPct(e)        : 通常攻撃で回復するMPの追加（最大MPの%）
+ *   afterAttackHit(e, unit, target, api, ctx) : 通常/特技を問わず、攻撃が命中した直後
  *   afterAction(e, unit, key, api, ctx) : 行動の後。ctx.attacked で攻撃成立を判定できる
  *
  * key はパッシブ効果ごとの識別子。unit.passiveState[key] に累積値などを保存できる。
@@ -52,6 +53,23 @@ export const PASSIVE_EFFECTS = {
     params: ['markerId', 'amount'],
     afterNormalAttackHit(e, unit, target, api) {
       api.addMarker(target, e.markerId, e.amount);
+    },
+  },
+  /** 対象のマーカーを一定量消費し、自身の別マーカーへ変換する。 */
+  consumeTargetMarkerOnHitGainSelfMarker: {
+    params: ['targetMarkerId', 'required', 'consume', 'selfMarkerId', 'gain'],
+    afterAttackHit(e, unit, target, api) {
+      if (api.markerStacks(target, e.targetMarkerId) < e.required) return;
+      api.addMarker(target, e.targetMarkerId, -e.consume);
+      api.addMarker(unit, e.selfMarkerId, e.gain);
+    },
+  },
+  /** 物理攻撃の命中時、seed固定可能な確率で自身へマーカーを付与する。 */
+  chanceSelfMarkerOnPhysicalHit: {
+    params: ['markerId', 'amount', 'chance'],
+    afterAttackHit(e, unit, target, api, ctx) {
+      if (ctx.damageType !== 'physical' || !api.chance(e.chance)) return;
+      api.addMarker(unit, e.markerId, e.amount);
     },
   },
 };

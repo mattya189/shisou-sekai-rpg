@@ -37,6 +37,7 @@ save/  core/           セーブの形と読み書き / データ読み込み・
 | `src/progression/*.js` | ユニット入手、レベル/ランク、特技セット、編成、装備個体、能力値計算、アイテム/通貨、図鑑記録 |
 | `src/battle/engine.js` | 戦闘エンジン。`createBattle` / `advance` / `runToEnd` / `battleResult` |
 | `src/battle/conditions.js` `effects.js` `statusEffects.js` `passives.js` | 発動条件・特技効果・状態異常・パッシブの**レジストリ**（検証・説明文・戦闘中の処理） |
+| `src/battle/eventTriggers.js` | マーカー閾値到達・被ダメージなど、通常行動外で発動する即時特技のイベントレジストリ。再入と連鎖深度を制限する |
 | `src/battle/combatant.js` | 戦闘ユニットの作成、状態異常とパッシブを反映した実効値 |
 | `src/battle/setup.js` | セーブの編成から味方の参加者を作る |
 | `src/ui/battleLog.js` | 戦闘ログの文章化 |

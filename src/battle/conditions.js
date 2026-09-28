@@ -46,6 +46,16 @@ export const CONDITIONS = {
       return c.attackCount >= start && (c.attackCount - start) % p.n === 0;
     },
   },
+  turnCountEquals: {
+    params: ['n'],
+    describe: (p) => `自身の${p.n}ターン目のみ`,
+    check: (p, c) => c.turnCount === p.n,
+  },
+  selfMarkerAtLeast: {
+    params: ['markerId', 'stacks'],
+    describe: (p, data) => `自分の${nameOf(data, 'markers', p.markerId)}が${p.stacks}以上`,
+    check: (p, c) => markerStacks(c.self, p.markerId) >= p.stacks,
+  },
   selfHpBelow: {
     params: ['pct'],
     describe: (p) => `自分のHPが${p.pct}%以下`,

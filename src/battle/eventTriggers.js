@@ -1,0 +1,38 @@
+/**
+ * 通常の行動選択とは別に、戦闘中の出来事へ反応して即時発動する特技条件。
+ * 特定モンスター名ではなく、データの immediateTrigger.type で登録する。
+ */
+export const EVENT_TRIGGERS = {
+  markerThresholdReached: {
+    params: ['markerId', 'thresholds'],
+    matches(p, c) {
+      if (c.event.type !== 'markerChanged' || c.event.target !== c.actor || c.event.markerId !== p.markerId) return false;
+      if (c.event.after <= c.event.before) return false;
+      // 1回のスタック変化につき特技は1回だけ。減少後の再到達では再び発動できる。
+      return p.thresholds.some((n) => c.event.before < n && c.event.after >= n);
+    },
+  },
+  damaged: {
+    params: ['chance'],
+    matches(p, c) {
+      return c.event.type === 'damaged'
+        && c.event.target === c.actor
+        && c.event.source?.side !== c.actor.side
+        && c.rng.chance(p.chance);
+    },
+  },
+};
+
+export function validateEventTrigger(trigger, where = 'immediateTrigger') {
+  if (!trigger) return [];
+  const def = EVENT_TRIGGERS[trigger.type];
+  if (!def) return [`${where}.type "${trigger.type}" は未登録の即時発動条件です（src/battle/eventTriggers.js）`];
+  const errors = def.params
+    .filter((p) => trigger[p] === undefined)
+    .map((p) => `${where}: 条件 ${trigger.type} にはパラメータ ${p} が必要です`);
+  if (trigger.type === 'damaged' && !(trigger.chance >= 0 && trigger.chance <= 1)) errors.push(`${where}.chance は0〜1で指定してください`);
+  if (trigger.type === 'markerThresholdReached' && !(Array.isArray(trigger.thresholds) && trigger.thresholds.every((n) => Number.isInteger(n) && n > 0))) {
+    errors.push(`${where}.thresholds は正の整数配列で指定してください`);
+  }
+  return errors;
+}

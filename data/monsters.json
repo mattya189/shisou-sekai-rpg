@@ -391,12 +391,13 @@
     "id": "mon_007",
     "name": "ソメイム",
     "description": "青いインクを操り、相手を少しずつ自分の色へ侵食する色命族のスライム。長期戦では蓄積した侵色を利用して力を発揮する。",
-    "image": "img/monsters/mon_007.jpeg",
+    "image": "img/monsters/mon_007.png",
     "worldId": "world_001",
     "rarity": "normal",
     "strength": 1,
     "battleType": "高速型",
     "species": ["色命族", "スライム"],
+    "speciesIds": ["species_001", "species_002"],
     "element": "elem_005",
     "baseStats": {
       "hp": 82,
@@ -447,5 +448,67 @@
     },
     "exp": 10,
     "gold": 7
+  },
+  {
+    "id": "mon_008",
+    "name": "イロワン",
+    "description": "自分の色を隠さず表に出す、色命族の犬型モンスター。侵色を犬の好意へ変え、犬の仲間と走るほど連携力を高める。",
+    "image": "img/monsters/mon_008.png",
+    "worldId": "world_001",
+    "rarity": "normal",
+    "strength": 1,
+    "battleType": "攻撃型",
+    "species": ["色命族", "犬"],
+    "speciesIds": ["species_001", "species_003"],
+    "element": "elem_006",
+    "baseStats": {
+      "hp": 98,
+      "mp": 44,
+      "atk": 19,
+      "def": 8,
+      "matk": 9,
+      "mdef": 8,
+      "evasion": 2,
+      "attackIntervalMs": 1850
+    },
+    "growth": {
+      "hp": 10,
+      "mp": 3,
+      "atk": 1.9,
+      "def": 0.8,
+      "matk": 0.7,
+      "mdef": 0.7,
+      "evasion": 0
+    },
+    "elementMultipliers": {
+      "elem_002": 1.5,
+      "elem_006": 0.5
+    },
+    "learnset": [
+      { "skillId": "skill_025", "rank": 1, "level": 1 },
+      { "skillId": "skill_026", "rank": 1, "level": 10 },
+      { "skillId": "skill_027", "rank": 1, "level": 15 },
+      { "skillId": "skill_028", "rank": 2, "level": 1 },
+      { "skillId": "skill_029", "rank": 2, "level": 10 },
+      { "skillId": "skill_030", "rank": 2, "level": 20 },
+      { "skillId": "skill_031", "rank": 3, "level": 1 },
+      { "skillId": "skill_032", "rank": 3, "level": 20 },
+      { "skillId": "skill_033", "rank": 4, "level": 1 },
+      { "skillId": "skill_034", "rank": 5, "level": 1 }
+    ],
+    "passives": ["passive_007", "passive_008"],
+    "drops": [
+      { "itemId": "item_011", "rate": 0.55, "qty": [1, 2] }
+    ],
+    "recruit": {
+      "baseRate": 0.3,
+      "failBonus": 0.05,
+      "guaranteeAfter": 5,
+      "duplicateTo": [
+        { "itemId": "item_009", "qty": 3 }
+      ]
+    },
+    "exp": 11,
+    "gold": 8
   }
 ]

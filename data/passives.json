@@ -28,5 +28,23 @@
     "id": "passive_006", "name": "染色本能",
     "description": "通常攻撃が命中した対象へ侵色+1（最大100）。",
     "effects": [ { "type": "normalAttackMarker", "markerId": "marker_001", "amount": 1 } ]
+  },
+  {
+    "id": "passive_007", "name": "好意の色",
+    "description": "侵色11以上の敵へ攻撃を命中させると、侵色を11消費して自身の犬の好意+1（最大10）。",
+    "effects": [
+      {
+        "type": "consumeTargetMarkerOnHitGainSelfMarker",
+        "targetMarkerId": "marker_001", "required": 11, "consume": 11,
+        "selfMarkerId": "marker_002", "gain": 1
+      }
+    ]
+  },
+  {
+    "id": "passive_008", "name": "人懐っこい",
+    "description": "物理攻撃が命中したとき、10%の確率で自身の犬の好意+1（最大10）。",
+    "effects": [
+      { "type": "chanceSelfMarkerOnPhysicalHit", "markerId": "marker_002", "amount": 1, "chance": 0.1 }
+    ]
   }
 ]

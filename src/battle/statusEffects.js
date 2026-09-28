@@ -64,6 +64,11 @@ export const STATUS_KINDS = {
   additionalNormalAttack: {
     params: ['target', 'power', 'damageType'],
   },
+  /** 次の行動機会を消費する。turnCount は進むが attackCount は進まない。 */
+  skipAction: {
+    params: [],
+    skipsAction: true,
+  },
 };
 
 export function validateStatusDef(entry) {

@@ -92,6 +92,24 @@ test('発動条件の必須パラメータ不足を検出する', async () => {
   assert.ok(data.validate().errors.some((e) => e.includes('パラメータ n')));
 });
 
+test('未登録の即時発動条件と必須パラメータ不足を検出する', async () => {
+  const unknown = await loadModifiedData((raw) => {
+    raw.skills[0].immediateTrigger = { type: 'unknownImmediate' };
+  });
+  assert.ok(unknown.validate().errors.some((e) => e.includes('unknownImmediate')));
+  const missing = await loadModifiedData((raw) => {
+    raw.skills[0].immediateTrigger = { type: 'markerThresholdReached', markerId: 'marker_001' };
+  });
+  assert.ok(missing.validate().errors.some((e) => e.includes('thresholds')));
+});
+
+test('種族条件はspeciesIdsの参照切れを検出する', async () => {
+  const data = await loadModifiedData((raw) => {
+    raw.monsters.find((m) => m.id === 'mon_008').speciesIds = ['species_999'];
+  });
+  assert.ok(data.validate().errors.some((e) => e.includes('species_999')));
+});
+
 test('状態異常は時間または対象の行動回数を継続基準にできる', async () => {
   const data = await loadModifiedData((raw) => {
     const status = raw.statuses[0];

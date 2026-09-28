@@ -81,5 +81,13 @@
     "category": "key",
     "hasQuality": false,
     "description": "重要アイテムのサンプル。"
+  },
+  {
+    "id": "item_011",
+    "name": "彩色の毛束",
+    "category": "material",
+    "hasQuality": true,
+    "description": "イロワンの体から抜け落ちた、鮮やかな色を帯びる毛束。",
+    "price": 10
   }
 ]

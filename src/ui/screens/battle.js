@@ -62,7 +62,11 @@ export default {
       ...u.statuses.map((s) => h('span', { class: 'status-chip' }, data.find('statuses', s.statusId)?.name.replace(/^（仮）/, '') ?? s.statusId)),
       ...Object.entries(u.markers ?? {})
         .filter(([, state]) => state.stacks > 0)
-        .map(([markerId, state]) => h('span', { class: 'status-chip' }, `${data.find('markers', markerId)?.name ?? markerId} ${state.stacks}`)),
+        .map(([markerId, state]) => {
+          const marker = data.find('markers', markerId);
+          const value = marker?.showMax ? `${state.stacks}/${marker.maxStacks}` : state.stacks;
+          return h('span', { class: 'status-chip' }, `${marker?.name ?? markerId} ${value}`);
+        }),
     ];
 
     const enemyCard = (u) => {

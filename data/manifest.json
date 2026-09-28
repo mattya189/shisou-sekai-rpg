@@ -4,6 +4,9 @@
     "elements": [
       "elements.json"
     ],
+    "species": [
+      "species.json"
+    ],
     "markers": [
       "markers.json"
     ],

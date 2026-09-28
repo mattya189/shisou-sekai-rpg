@@ -10,8 +10,10 @@
 import { effectiveStat } from './combatant.js';
 import { PASSIVE_EFFECTS } from './passives.js';
 
-export function computeDamage({ attacker, target, power, element, rng, balance, damageType = 'physical' }) {
-  const atk = effectiveStat(attacker, damageType === 'magic' ? 'matk' : 'atk');
+export function computeDamage({ attacker, target, power, element, rng, balance, damageType = 'physical', scalingStat = null }) {
+  const atk = scalingStat === 'maxHp'
+    ? attacker.maxHp
+    : effectiveStat(attacker, scalingStat ?? (damageType === 'magic' ? 'matk' : 'atk'));
   const def = effectiveStat(target, damageType === 'magic' ? 'mdef' : 'def');
   const k = balance.battle.defenseConstant;
   const base = (atk * power * k) / (k + def);

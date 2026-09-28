@@ -7,6 +7,12 @@ import { unitImageSrc } from '../placeholder.js';
 import { monsterEntry } from '../../codex/codex.js';
 import { describeCondition } from '../../battle/conditions.js';
 import { recruitChance } from '../../game/recruit.js';
+
+function speciesNames(data, def) {
+  return def.speciesIds?.length
+    ? def.speciesIds.map((id) => data.find('species', id)?.name ?? id)
+    : (def.species ?? []);
+}
 import { periodName, seconds } from '../format.js';
 
 function whenText(data, when) {
@@ -135,7 +141,7 @@ export default {
           { class: 'unit-head-text' },
           h('h1', { class: 'unit-name' }, m.name),
           h('div', { class: 'unit-row-meta' }, kindBadge('monster', m), h('span', {}, data.find('worlds', m.worldId)?.name ?? '')),
-          m.species?.length ? h('p', { class: 'muted small' }, `種族 ${m.species.join('・')}`) : null,
+          speciesNames(data, m).length ? h('p', { class: 'muted small' }, `種族 ${speciesNames(data, m).join('・')}`) : null,
           h('p', { class: 'muted small' }, `倒した数 ${rec?.counts?.defeated ?? 0}${rec?.flags?.recruited ? '　仲間にした' : ''}`),
         ),
       ),

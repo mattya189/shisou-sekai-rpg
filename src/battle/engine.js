@@ -25,6 +25,7 @@ import { PASSIVE_EFFECTS } from './passives.js';
 import { STATUS_KINDS } from './statusEffects.js';
 import { computeDamage } from './damage.js';
 import { hpPct } from './unitState.js';
+import { EVENT_TRIGGERS } from './eventTriggers.js';
 
 const SUFFIX = 'ABCDEFGHIJ';
 
@@ -61,6 +62,9 @@ export function createBattle(data, { allies, enemies, seed = 1, mode = 'field' }
     /** null: 戦闘中 / 'won' / 'lost' / 'timeout' */
     outcome: null,
     units,
+    /** 即時発動の再帰防止用。特技IDではなくユニット＋特技の組で管理する。 */
+    resolvingImmediate: [],
+    immediateDepth: 0,
     log: [{ t: 0, type: 'start' }],
   };
 }
@@ -220,21 +224,34 @@ function makeApi(battle, data) {
         }
         case 'allyAll':
           return allies;
+        case 'sourceAttacker':
+          return act.sourceAttacker?.alive ? [act.sourceAttacker] : [];
         default:
           return [];
       }
     },
-    dealDamage(attacker, target, power, element, results, breakPower = 1, damageType = 'physical') {
+    dealDamage(attacker, target, power, element, results, breakPower = 1, damageType = 'physical', scalingStat = null, triggerHitPassives = true) {
       const evasion = effectiveStat(target, 'evasion');
       if (evasion > 0 && battle.rng.chance(Math.min(0.95, evasion / 100))) {
         results.push({ kind: 'miss', targetId: target.id });
         return false;
       }
-      const amount = computeDamage({ attacker, target, power, element, rng: battle.rng, balance: data.balance, damageType });
+      const amount = computeDamage({ attacker, target, power, element, rng: battle.rng, balance: data.balance, damageType, scalingStat });
       applyDamage(battle, target, amount, results, { element });
       if (target.alive && target.boss) {
         reduceBreak(battle, target, breakPower, results);
         checkPhase(target, results);
+      }
+      if (target.alive) triggerImmediateSkills(battle, data, { type: 'damaged', target, source: attacker, primaryTarget: attacker });
+      if (triggerHitPassives) {
+        const passiveApi = {
+          markerStacks: (unit, markerId) => api.markerStacks(unit, markerId),
+          addMarker: (unit, markerId, value) => api.addMarker(unit, markerId, value, results, { primaryTarget: target }),
+          chance: (chance) => battle.rng.chance(chance),
+        };
+        for (const p of attacker.passives) {
+          PASSIVE_EFFECTS[p.effect.type]?.afterAttackHit?.(p.effect, attacker, target, passiveApi, { damageType, element });
+        }
       }
       return true;
     },
@@ -251,7 +268,9 @@ function makeApi(battle, data) {
         results.push({ kind: 'statusResisted', targetId: target.id, statusId, immune: true });
         return;
       }
-      if (chance < 1 && !battle.rng.chance(chance)) {
+      const resistance = Math.min(1, Math.max(0, target.statusResistances?.[statusId] ?? target.statusResistances?.['*'] ?? 0));
+      const finalChance = Math.min(1, Math.max(0, chance * (1 - resistance)));
+      if (finalChance < 1 && !battle.rng.chance(finalChance)) {
         results.push({ kind: 'statusResisted', targetId: target.id, statusId });
         return;
       }
@@ -281,8 +300,8 @@ function makeApi(battle, data) {
     randomInt(min, max) {
       return battle.rng.int(min, max);
     },
-    addMarker(target, markerId, amount, results = []) {
-      if (!target.alive) return 0;
+    addMarker(target, markerId, amount, results = [], context = {}) {
+      if (!target) return 0;
       const def = data.get('markers', markerId);
       const state = target.markers[markerId] ?? { stacks: 0, reachedMaxAt: null };
       const before = state.stacks;
@@ -291,6 +310,12 @@ function makeApi(battle, data) {
       target.markers[markerId] = state;
       const actual = state.stacks - before;
       results.push({ kind: 'markerChanged', targetId: target.id, markerId, amount: actual, value: state.stacks });
+      if (actual !== 0) {
+        triggerImmediateSkills(battle, data, {
+          type: 'markerChanged', target, markerId, before, after: state.stacks,
+          primaryTarget: context.primaryTarget ?? null,
+        });
+      }
       return actual;
     },
     collectMarker(targets, markerId, results = []) {
@@ -318,8 +343,91 @@ function makeApi(battle, data) {
       actor.pendingActionEffects.push({ turnsLeft: afterTurns, effects: completionEffects, sourceSkillId: sourceSkill?.id ?? null });
       results.push({ kind: 'effectsScheduled', targetId: actor.id, afterTurns, sourceSkillId: sourceSkill?.id ?? null });
     },
+    unitsBySpecies(speciesId, scope, actor) {
+      const units = battle.units.filter((u) => u.alive && u.speciesIds.includes(speciesId));
+      if (scope === 'all') return units;
+      if (scope === 'allies') return units.filter((u) => u.side === actor.side);
+      if (scope === 'alliesExceptSelf') return units.filter((u) => u.side === actor.side && u !== actor);
+      return [];
+    },
+    addAttackCount(target, amount, results = []) {
+      if (!(amount > 0) || !target.alive) return;
+      target.attackCount += amount;
+      results.push({ kind: 'attackCountChanged', targetId: target.id, amount, value: target.attackCount });
+      // 直接加算だけでは条件判定や特技発動を行わない。
+    },
+    randomAttackElement() {
+      return battle.rng.pick(data.list('elements').filter((e) => e.attackElement).map((e) => e.id));
+    },
+    bestAttackElement(target) {
+      const ids = data.list('elements').filter((e) => e.attackElement).map((e) => e.id);
+      let best = ids[0] ?? null;
+      for (const id of ids) {
+        if ((target.elementMultipliers[id] ?? 1) > (target.elementMultipliers[best] ?? 1)) best = id;
+      }
+      return best;
+    },
+    checkCondition(condition, act) {
+      const allies = aliveOf(battle, act.actor.side);
+      const enemies = aliveOf(battle, act.actor.side === 'ally' ? 'enemy' : 'ally');
+      return checkCondition(condition, {
+        self: act.actor, allies, enemies, target: act.primaryTarget, rng: battle.rng,
+        attackCount: act.actor.attackCount, turnCount: act.actor.turnCount,
+      });
+    },
+    queueAttackCombo(actor, sourceSkill, results = []) {
+      for (const skillId of actor.skills) {
+        const combo = data.find('skills', skillId);
+        if (combo?.comboFrom !== sourceSkill?.id) continue;
+        actor.pendingAttackEffects.push({ effects: [...(combo.completionEffects ?? [])], sourceSkillId: sourceSkill.id, comboSkillId: combo.id });
+        results.push({ kind: 'attackComboQueued', targetId: actor.id, sourceSkillId: sourceSkill.id, comboSkillId: combo.id });
+      }
+    },
   };
   return api;
+}
+
+/** 条件成立時即時発動。ターン・攻撃回数を消費せず、再帰深度と同一特技の再入を制限する。 */
+function triggerImmediateSkills(battle, data, triggerEvent) {
+  if (battle.immediateDepth >= 16) return;
+  const actor = triggerEvent.target;
+  if (!actor?.alive) return;
+  const api = makeApi(battle, data);
+  const keyOf = (skillId) => `${actor.id}:${skillId}`;
+  battle.immediateDepth += 1;
+  try {
+    for (const skillId of actor.skills) {
+      const skill = data.find('skills', skillId);
+      const trigger = skill?.immediateTrigger;
+      const def = trigger && EVENT_TRIGGERS[trigger.type];
+      if (!def || battle.resolvingImmediate.includes(keyOf(skillId))) continue;
+      if (skill.oncePerBattle && actor.usedSkills.includes(skill.id)) continue;
+      if (actor.usesMp && actor.mp < skill.mpCost) continue;
+      if (!def.matches(trigger, { event: triggerEvent, actor, rng: battle.rng })) continue;
+
+      const foes = aliveOf(battle, actor.side === 'ally' ? 'enemy' : 'ally');
+      const primaryTarget = triggerEvent.primaryTarget?.alive ? triggerEvent.primaryTarget : foes[0] ?? null;
+      const results = [];
+      const immediate = {
+        t: battle.timeMs, type: 'action', actorId: actor.id,
+        turnCount: actor.turnCount, attackCount: actor.attackCount, countsAsAttack: false,
+        kind: 'immediate', skillId: skill.id, skippedForMp: [], charged: false, results,
+      };
+      if (actor.usesMp) actor.mp -= skill.mpCost;
+      if (skill.oncePerBattle) actor.usedSkills.push(skill.id);
+      battle.resolvingImmediate.push(keyOf(skillId));
+      try {
+        const actCtx = { actor, primaryTarget, skill, results, sourceAttacker: triggerEvent.source ?? null };
+        for (const effect of skill.effects) EFFECTS[effect.type]?.apply(effect, api, actCtx);
+      } finally {
+        battle.resolvingImmediate = battle.resolvingImmediate.filter((k) => k !== keyOf(skillId));
+      }
+      actor.lastAction = { t: battle.timeMs, kind: 'skill', skillId: skill.id };
+      battle.log.push(immediate);
+    }
+  } finally {
+    battle.immediateDepth -= 1;
+  }
 }
 
 function applyDamage(battle, target, amount, results, extra = {}) {
@@ -389,6 +497,7 @@ function act(battle, data, actor) {
   const api = makeApi(battle, data);
   actor.turnCount += 1;
   const actionStartStatuses = [...actor.statuses];
+  const skipsAction = actionStartStatuses.some((s) => STATUS_KINDS[s.kind]?.skipsAction);
   processTurnStatuses(battle, actor, 'actionStart', actionStartStatuses);
   if (!actor.alive) {
     battle.log.push({
@@ -396,6 +505,18 @@ function act(battle, data, actor) {
       attackCount: actor.attackCount, countsAsAttack: false, kind: 'interrupted', skillId: null,
       skippedForMp: [], charged: false, results: [],
     });
+    return;
+  }
+  if (skipsAction) {
+    const statusesAtTurnStart = [...actor.statuses];
+    actor.lastAction = { t: battle.timeMs, kind: 'skipped', skillId: null };
+    battle.log.push({
+      t: battle.timeMs, type: 'action', actorId: actor.id, turnCount: actor.turnCount,
+      attackCount: actor.attackCount, countsAsAttack: false, kind: 'skipped', skillId: null,
+      skippedForMp: [], charged: false, results: [],
+    });
+    processTurnStatuses(battle, actor, 'actionEnd', statusesAtTurnStart);
+    actor.nextAttackAt += effectiveInterval(actor);
     return;
   }
 
@@ -416,7 +537,7 @@ function act(battle, data, actor) {
   }
   const statusesAtTurnStart = [...actor.statuses];
   const nextAttackCount = actor.attackCount + 1;
-  const condCtx = { self: actor, allies, enemies: foes, target: primaryTarget, rng: battle.rng };
+  const condCtx = { self: actor, allies, enemies: foes, target: primaryTarget, rng: battle.rng, turnCount: actor.turnCount };
 
   // ボスの大技: 決まった回数ごとに力をため（予兆）、ため終わったら必ず放つ
   let forced = null;
@@ -444,6 +565,7 @@ function act(battle, data, actor) {
     const skill = data.find('skills', skillId);
     if (!skill) continue;
     if (skill.comboFrom) continue;
+    if (skill.immediateTrigger) continue;
     if (skill.oncePerBattle && actor.usedSkills.includes(skill.id)) continue;
     // 攻撃特技は「今回成立する攻撃回数」、非攻撃特技は「成立済みの攻撃回数」で条件判定する。
     const conditionAttackCount = skill.countsAsAttack === false ? actor.attackCount : nextAttackCount;
@@ -488,6 +610,15 @@ function act(battle, data, actor) {
     results,
   };
   const actCtx = { actor, primaryTarget, skill: used, results };
+
+  // 予約済み連携は「次の実際の攻撃」の直前に1回だけ解決する。
+  if (countsAsAttack && actor.pendingAttackEffects.length) {
+    for (const pending of [...actor.pendingAttackEffects]) {
+      for (const effect of pending.effects) EFFECTS[effect.type]?.apply(effect, api, actCtx);
+      actor.pendingAttackEffects = actor.pendingAttackEffects.filter((p) => p !== pending);
+      results.push({ kind: 'attackComboTriggered', targetId: actor.id, comboSkillId: pending.comboSkillId, sourceSkillId: pending.sourceSkillId });
+    }
+  }
 
   if (used) {
     if (actor.usesMp && !forced) actor.mp -= used.mpCost;

@@ -374,5 +374,124 @@
     "effects": [
       { "type": "damage", "target": "enemySingle", "power": 2.8, "damageType": "magic" }
     ]
+  },
+  {
+    "id": "skill_025",
+    "name": "色彩連牙",
+    "mpCost": 14,
+    "description": "10の倍数回目に物理攻撃180%。犬の好意が1以上なら同じ対象へもう1回攻撃する。追加攻撃は攻撃回数を増やさず、発動条件を再判定しない。",
+    "trigger": { "type": "attackCountMultiple", "n": 10 },
+    "effects": [
+      { "type": "damage", "target": "enemySingle", "power": 1.8, "damageType": "physical" },
+      {
+        "type": "conditionalEffects",
+        "condition": { "type": "selfMarkerAtLeast", "markerId": "marker_002", "stacks": 1 },
+        "effects": [
+          { "type": "damage", "target": "enemySingle", "power": 1.8, "damageType": "physical" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "skill_026",
+    "name": "あまえる",
+    "mpCost": 0,
+    "description": "犬の好意が3・6・9へ下から到達したとき即時発動し、敵1体の攻撃力を5%下げる。3ターン継続。",
+    "trigger": { "type": "always" },
+    "immediateTrigger": { "type": "markerThresholdReached", "markerId": "marker_002", "thresholds": [3, 6, 9] },
+    "effects": [
+      { "type": "applyStatus", "target": "enemySingle", "statusId": "status_010" }
+    ]
+  },
+  {
+    "id": "skill_027",
+    "name": "レインボー噛みつき",
+    "mpCost": 10,
+    "description": "4の倍数回目に、攻撃属性からランダムに1つ選んだ属性で物理攻撃120%。",
+    "trigger": { "type": "attackCountMultiple", "n": 4 },
+    "effects": [
+      { "type": "randomElementDamage", "target": "enemySingle", "power": 1.2, "damageType": "physical" }
+    ]
+  },
+  {
+    "id": "skill_028",
+    "name": "犬のとうぼえ",
+    "countsAsAttack": false,
+    "mpCost": 12,
+    "description": "自身の5ターン目のみ、敵味方を問わず犬種族全員の攻撃力を10%上げる。各対象の3ターン継続。",
+    "trigger": { "type": "turnCountEquals", "n": 5 },
+    "effects": [
+      { "type": "applyStatusBySpecies", "speciesId": "species_003", "statusId": "status_011", "scope": "all" }
+    ]
+  },
+  {
+    "id": "skill_029",
+    "name": "睨みつける",
+    "mpCost": 0,
+    "description": "ダメージを受けたとき10%で即時反応し、攻撃者へ基礎成功率50%で休みを付与する。",
+    "trigger": { "type": "always" },
+    "immediateTrigger": { "type": "damaged", "chance": 0.1 },
+    "effects": [
+      { "type": "applyStatus", "target": "sourceAttacker", "statusId": "status_012", "chance": 0.5 }
+    ]
+  },
+  {
+    "id": "skill_030",
+    "name": "ドッグラン",
+    "mpCost": 15,
+    "description": "6の倍数回目に物理攻撃111%＋自分以外の味方犬1体につき11%。さらに自分は犬数ぶん、ほかの味方犬は各1、攻撃回数が増える。直接加算では特技を即時発動しない。",
+    "trigger": { "type": "attackCountMultiple", "n": 6 },
+    "effects": [
+      { "type": "speciesScaledDamage", "target": "enemySingle", "speciesId": "species_003", "basePower": 1.11, "powerPerOtherAlly": 0.11, "damageType": "physical" },
+      { "type": "advanceAttackCountBySpecies", "speciesId": "species_003" }
+    ]
+  },
+  {
+    "id": "skill_031",
+    "name": "デペント",
+    "mpCost": 12,
+    "description": "15の倍数回目に敵1体へ侵色を8～12付与する。",
+    "trigger": { "type": "attackCountMultiple", "n": 15 },
+    "effects": [
+      { "type": "addMarker", "target": "enemySingle", "markerId": "marker_001", "min": 8, "max": 12 }
+    ]
+  },
+  {
+    "id": "skill_032",
+    "name": "虹のブレス",
+    "mpCost": 22,
+    "description": "8の倍数回目に敵全体へ、最大HP依存105%の全属性ブレス攻撃。対象ごとに最も有効な属性を1つ適用する。",
+    "trigger": { "type": "attackCountMultiple", "n": 8 },
+    "effects": [
+      { "type": "allElementDamage", "target": "enemyAll", "power": 1.05, "damageType": "physical", "scalingStat": "maxHp" },
+      { "type": "queueComboOnNextAttack" }
+    ]
+  },
+  {
+    "id": "skill_033",
+    "name": "虹の空気爆発",
+    "mpCost": 0,
+    "description": "虹のブレス後、次の実際の攻撃直前に敵全体へ最大HP依存40%の全属性物理攻撃を追加する。独立したターン・攻撃回数ではない。",
+    "comboFrom": "skill_032",
+    "trigger": { "type": "always" },
+    "effects": [],
+    "completionEffects": [
+      { "type": "allElementDamage", "target": "enemyAll", "power": 0.4, "damageType": "physical", "scalingStat": "maxHp" }
+    ]
+  },
+  {
+    "id": "skill_034",
+    "name": "奥義：しゃぶって染め尽くす",
+    "mpCost": 0,
+    "oncePerBattle": true,
+    "description": "犬の好意10到達時に戦闘中1回だけ即時発動。好意10を消費し、敵1体の攻撃力-50%・攻撃速度-30%を5ターン付与して、物理攻撃100～500%。",
+    "trigger": { "type": "always" },
+    "immediateTrigger": { "type": "markerThresholdReached", "markerId": "marker_002", "thresholds": [10] },
+    "effects": [
+      { "type": "addMarker", "target": "self", "markerId": "marker_002", "amount": -10 },
+      { "type": "applyStatus", "target": "enemySingle", "statusId": "status_013" },
+      { "type": "applyStatus", "target": "enemySingle", "statusId": "status_014" },
+      { "type": "randomPowerDamage", "target": "enemySingle", "minPower": 100, "maxPower": 500, "damageType": "physical", "triggerHitPassives": false }
+    ]
   }
 ]

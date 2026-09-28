@@ -47,6 +47,8 @@ export function createCombatant(data, spec, { id, side }) {
     level: unitLike.level,
     element: def.element ?? null,
     elementMultipliers: def.elementMultipliers ?? {},
+    /** 表示名ではなくデータIDで判定する種族タグ */
+    speciesIds: [...(def.speciesIds ?? [])],
     stats,
     maxHp: stats.hp,
     maxMp: stats.mp,
@@ -61,12 +63,16 @@ export function createCombatant(data, spec, { id, side }) {
     markers: {},
     /** 次回以降の行動開始時に解決する予約効果 */
     pendingActionEffects: [],
+    /** 次の実際の攻撃時に解決する連携効果 */
+    pendingAttackEffects: [],
     /** 戦闘中1回制限の使用済み特技 */
     usedSkills: [],
     /** 戦闘中ずっと続く能力増減（%）。ボスのフェーズ・ギミック・部位破壊などで変わる */
     buffs: {},
     /** かからない状態異常 */
     statusImmune: [],
+    /** 状態異常ごとの耐性（0〜1）。成功率へ乗算する */
+    statusResistances: { ...(def.statusResistances ?? {}) },
     /** ボスの設定と状態（ボス以外は null） */
     boss: null,
     /** 部位なら true。partOfUnit は本体 */
@@ -166,9 +172,10 @@ export function createBossUnits(data, spec) {
 
 function createPartBase() {
   return {
-    id: '', side: 'enemy', unitId: null, image: null, element: null, elementMultipliers: {},
-    maxMp: 0, mp: 0, usesMp: false, skills: [], passives: [], passiveState: {}, statuses: [], buffs: {},
-    statusImmune: [], boss: null, isPart: true, turnCount: 0, attackCount: 0, nonAttackSkillUses: {}, nextAttackAt: Infinity, alive: true,
+    id: '', side: 'enemy', unitId: null, image: null, element: null, elementMultipliers: {}, speciesIds: [],
+    maxMp: 0, mp: 0, usesMp: false, skills: [], passives: [], passiveState: {}, statuses: [], markers: {},
+    pendingActionEffects: [], pendingAttackEffects: [], usedSkills: [], buffs: {},
+    statusImmune: [], statusResistances: {}, boss: null, isPart: true, turnCount: 0, attackCount: 0, nonAttackSkillUses: {}, nextAttackAt: Infinity, alive: true,
     broken: false, charging: false, lastAction: null,
   };
 }

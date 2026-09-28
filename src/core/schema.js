@@ -14,6 +14,7 @@ import { validateCondition } from '../battle/conditions.js';
 import { validateEffect } from '../battle/effects.js';
 import { validatePassiveEffect } from '../battle/passives.js';
 import { validateStatusDef } from '../battle/statusEffects.js';
+import { validateEventTrigger } from '../battle/eventTriggers.js';
 import { ITEM_USES } from '../progression/consumables.js';
 import { EVENT_EFFECTS } from '../events/events.js';
 import { BOSS_RECRUIT_CONDITIONS } from '../game/battleOutcome.js';
@@ -47,6 +48,7 @@ function checkConnections(entry, ctx) {
 const unitRefs = [
   ['element', 'elements'],
   ['elementMultipliers{}', 'elements'],
+  ['speciesIds[]', 'species'],
   ['learnset[].skillId', 'skills'],
   ['passives[]', 'passives'],
   ['duplicateTo[].itemId', 'items'],
@@ -76,10 +78,16 @@ function checkUnit(entry, ctx) {
       ctx.error(`learnset の ${l.skillId} の習得ランク ${l.rank} が範囲外です`);
     }
   }
+  const statusIds = new Set((ctx.raw.statuses ?? []).map((s) => s.id));
+  for (const [statusId, resistance] of Object.entries(entry.statusResistances ?? {})) {
+    if (statusId !== '*' && !statusIds.has(statusId)) ctx.error(`statusResistances の ${statusId} は存在しません`);
+    if (!(resistance >= 0 && resistance <= 1)) ctx.error(`statusResistances.${statusId} は0〜1で指定してください`);
+  }
 }
 
 export const CATEGORY_SCHEMAS = {
   elements: { prefix: 'elem_', required: ['id', 'name'] },
+  species: { prefix: 'species_', required: ['id', 'name'] },
   markers: {
     prefix: 'marker_', required: ['id', 'name', 'maxStacks'],
     check(entry, ctx) {
@@ -197,12 +205,16 @@ export const CATEGORY_SCHEMAS = {
       ['effects[].markerId', 'markers'],
       ['effects[].effects[].statusId', 'statuses'],
       ['effects[].effects[].markerId', 'markers'],
+      ['effects[].speciesId', 'species'],
+      ['effects[].effects[].speciesId', 'species'],
+      ['effects[].condition.markerId', 'markers'],
       ['completionEffects[].statusId', 'statuses'],
       ['completionEffects[].markerId', 'markers'],
       ['trigger.statusId', 'statuses'],
       ['trigger.markerId', 'markers'],
       ['trigger.of[].statusId', 'statuses'],
       ['trigger.of[].markerId', 'markers'],
+      ['immediateTrigger.markerId', 'markers'],
       ['comboFrom', 'skills'],
       ['targetSelector.markerId', 'markers'],
     ],
@@ -211,6 +223,7 @@ export const CATEGORY_SCHEMAS = {
         ctx.error('countsAsAttack は true または false で指定してください');
       }
       validateCondition(entry.trigger).forEach((m) => ctx.error(m));
+      validateEventTrigger(entry.immediateTrigger).forEach((m) => ctx.error(m));
       if (!Array.isArray(entry.effects) || (!entry.comboFrom && entry.effects.length === 0)) ctx.error('effects を1つ以上指定してください');
       (entry.effects ?? []).forEach((e, i) => validateEffect(e, `effects[${i}]`).forEach((m) => ctx.error(m)));
       (entry.completionEffects ?? []).forEach((e, i) => validateEffect(e, `completionEffects[${i}]`).forEach((m) => ctx.error(m)));
@@ -222,7 +235,10 @@ export const CATEGORY_SCHEMAS = {
   passives: {
     prefix: 'passive_',
     required: ['id', 'name', 'description', 'effects'],
-    refs: [['effects[].statusId', 'statuses'], ['effects[].markerId', 'markers']],
+    refs: [
+      ['effects[].statusId', 'statuses'], ['effects[].markerId', 'markers'],
+      ['effects[].targetMarkerId', 'markers'], ['effects[].selfMarkerId', 'markers'],
+    ],
     check(entry, ctx) {
       (entry.effects ?? []).forEach((e, i) => validatePassiveEffect(e, `effects[${i}]`).forEach((m) => ctx.error(m)));
     },

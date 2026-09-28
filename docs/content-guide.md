@@ -26,6 +26,7 @@
 | 装備 | `equipment.json` | `equip_` |
 | 通貨 | `currencies.json` | `cur_` |
 | 属性 | `elements.json` | `elem_` |
+| 種族タグ | `species.json` | `species_` |
 | 蓄積マーカー | `markers.json` | `marker_` |
 | 状態異常 | `statuses.json` | `status_` |
 | 天候 | `weathers.json` | `weather_` |
@@ -80,10 +81,11 @@
 
 | 項目 | 意味 |
 |---|---|
-| `image` | 画像パス（例 `img/chr/chr_003.png`）。`null` なら自動で仮画像 |
+| `image` | 画像パス（例 `img/chr/chr_003.png`）。`null` なら自動で仮画像。正式モンスター画像は実透過PNGを原則とする |
 | `baseStats` | Lv1・ランク1の能力値。`attackIntervalMs` は攻撃間隔（ミリ秒） |
 | `growth` | 1レベルごとの上昇量（小数可。表示時に切り捨て） |
 | `elementMultipliers` | 受けるダメージの属性倍率。`{ "elem_002": 1.5 }` なら火に弱い |
+| `speciesIds` | 種族タグIDの配列。種族条件は表示名ではなくこのIDを参照する |
 | `learnset` | 習得する特技と習得条件。`rank`（省略時1）と `level` の両方を満たすと習得。**最大10個**（`balance.skills.maxLearned`） |
 | `passives` | 固有パッシブ。**1〜2個** |
 | `duplicateTo` | 所持済みで再入手したときに変換される素材（任意） |
@@ -93,6 +95,8 @@
 ## モンスターを追加する（`monsters.json`）
 
 サンプル: `mon_001`（通常）, `mon_002`（高速）, `mon_003`（状態異常）, `mon_004`（硬い）, `mon_005`（変異種）
+
+正式なモンスター画像は、元デザイン・全身・縦横比を維持し、背景だけを除去したアルファチャンネル付きPNGを `img/monsters/` に置きます。白背景や、市松模様が画像自体に焼き込まれたJPEGをそのまま正式アセットにしないでください。
 
 人間キャラクターの項目に加えて:
 
@@ -166,6 +170,27 @@
 戦闘中1回だけの特技には `oncePerBattle: true` を付ける。蓄積値は `markers.json` に上限つきで定義し、
 `addMarker` / `markerScaledDamage` / マーカー条件からID参照する。
 
+条件成立時にターン外で発動する特技は `immediateTrigger` を使う。
+
+```json
+{
+  "trigger": { "type": "always" },
+  "immediateTrigger": {
+    "type": "markerThresholdReached",
+    "markerId": "marker_002",
+    "thresholds": [3, 6, 9]
+  }
+}
+```
+
+`damaged` は被ダメージ時反応に使う。即時発動はターン・攻撃回数を増やさず、同一特技の再入を防止する。
+閾値は減少後の再到達で再発動できるが、同じ1回のスタック変化では1回だけ発動する。
+
+種族連携は `speciesIds` と `applyStatusBySpecies` / `speciesScaledDamage` /
+`advanceAttackCountBySpecies` を使う。攻撃回数の直接加算は倍数特技をその場で発動させない。
+全属性は `allElementDamage`、ランダム属性は `randomElementDamage`、次の実攻撃に連携させる場合は
+コンボ元の `queueComboOnNextAttack` とコンボ特技の `comboFrom` / `completionEffects` を組み合わせる。
+
 **新しい種類の条件**が必要なら `src/battle/conditions.js` の `CONDITIONS` に登録します。
 **新しい種類の効果**は `src/battle/effects.js` の `EFFECTS` に登録します。
 
@@ -182,7 +207,7 @@
 }
 ```
 
-`kind` は `damageOverTime` / `attackDelay` / `statModifier`（詳細は [battle-system.md](battle-system.md)）。
+`kind` は `damageOverTime` / `attackDelay` / `statModifier` / `skipAction` など（詳細は [battle-system.md](battle-system.md)）。
 新しい種類は `src/battle/statusEffects.js` に登録します。
 
 継続期間は `durationMs`（経過時間）または `durationTurns`（対象自身の行動回数）のどちらか一方を指定します。

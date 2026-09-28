@@ -18,6 +18,12 @@ function skillBody(data, skill) {
   );
 }
 
+function speciesNames(data, def) {
+  return def.speciesIds?.length
+    ? def.speciesIds.map((id) => data.find('species', id)?.name ?? id)
+    : (def.species ?? []);
+}
+
 export default {
   nav: 'party',
   render(ctx, params) {
@@ -43,7 +49,7 @@ export default {
         { class: 'unit-head-text' },
         h('h1', { class: 'unit-name' }, def.name),
         h('div', { class: 'unit-row-meta' }, kindBadge(kind, def), element ? h('span', {}, `属性 ${element.name}`) : null),
-        def.species?.length ? h('p', { class: 'muted small' }, `種族 ${def.species.join('・')}`) : null,
+        speciesNames(data, def).length ? h('p', { class: 'muted small' }, `種族 ${speciesNames(data, def).join('・')}`) : null,
         h('p', { class: 'unit-level' }, `Lv.${unit.level}`, h('span', { class: 'muted' }, ` / ${data.balance.levelCap}`), `　ランク${unit.rank}`),
         h(
           'div',
