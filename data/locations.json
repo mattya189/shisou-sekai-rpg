@@ -24,6 +24,16 @@
       "searchMonsters",
       "investigate"
     ],
+    "optionalEncounters": [
+      {
+        "id": "strong_001",
+        "name": "万彩浮遊体 プリズマリア",
+        "description": "強い気配が漂っている。挑戦は任意で、敗北しても後から再挑戦できる。",
+        "enemies": [
+          { "defId": "mon_009", "level": 22, "rank": 3, "skills": ["skill_035", "skill_036", "skill_037", "skill_038", "skill_042", "skill_043"] }
+        ]
+      }
+    ],
     "gathering": [
       {
         "itemId": "item_001",

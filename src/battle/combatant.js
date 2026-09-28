@@ -30,7 +30,10 @@ export function createCombatant(data, spec, { id, side }) {
     equipment: [],
   };
   const stats = computeStats(data, unitLike, spec.equipment ?? []);
-  const skills = spec.skills ?? learnedSkillIds(data, unitLike).slice(0, data.balance.skills.maxEquipped);
+  const learned = learnedSkillIds(data, unitLike);
+  const selected = spec.skills ?? learned.slice(0, data.balance.skills.maxEquipped);
+  const intrinsic = learned.filter((id) => data.find('skills', id)?.intrinsic);
+  const skills = [...new Set([...selected, ...intrinsic])];
   const passives = (def.passives ?? []).flatMap((pid) =>
     (data.find('passives', pid)?.effects ?? []).map((effect, i) => ({ key: `${pid}:${i}`, passiveId: pid, effect })),
   );
@@ -61,6 +64,8 @@ export function createCombatant(data, spec, { id, side }) {
     statuses: [],
     /** ユニットごとに独立した蓄積マーカー。markerId -> { stacks, reachedMaxAt } */
     markers: {},
+    /** 戦闘中だけ保持する、色などの種類を持つ上限付きリソース */
+    resources: {},
     /** 次回以降の行動開始時に解決する予約効果 */
     pendingActionEffects: [],
     /** 次の実際の攻撃時に解決する連携効果 */
@@ -173,7 +178,7 @@ export function createBossUnits(data, spec) {
 function createPartBase() {
   return {
     id: '', side: 'enemy', unitId: null, image: null, element: null, elementMultipliers: {}, speciesIds: [],
-    maxMp: 0, mp: 0, usesMp: false, skills: [], passives: [], passiveState: {}, statuses: [], markers: {},
+    maxMp: 0, mp: 0, usesMp: false, skills: [], passives: [], passiveState: {}, statuses: [], markers: {}, resources: {},
     pendingActionEffects: [], pendingAttackEffects: [], usedSkills: [], buffs: {},
     statusImmune: [], statusResistances: {}, boss: null, isPart: true, turnCount: 0, attackCount: 0, nonAttackSkillUses: {}, nextAttackAt: Infinity, alive: true,
     broken: false, charging: false, lastAction: null,

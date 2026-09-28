@@ -237,12 +237,16 @@ function makeApi(battle, data) {
         return false;
       }
       const amount = computeDamage({ attacker, target, power, element, rng: battle.rng, balance: data.balance, damageType, scalingStat });
+      const beforePct = hpPct(target);
       applyDamage(battle, target, amount, results, { element });
       if (target.alive && target.boss) {
         reduceBreak(battle, target, breakPower, results);
         checkPhase(target, results);
       }
-      if (target.alive) triggerImmediateSkills(battle, data, { type: 'damaged', target, source: attacker, primaryTarget: attacker });
+      if (target.alive) triggerImmediateSkills(battle, data, {
+        type: 'damaged', target, source: attacker, primaryTarget: attacker,
+        beforePct, afterPct: hpPct(target),
+      });
       if (triggerHitPassives) {
         const passiveApi = {
           markerStacks: (unit, markerId) => api.markerStacks(unit, markerId),
@@ -297,6 +301,46 @@ function makeApi(battle, data) {
     markerStacks(target, markerId) {
       return target.markers?.[markerId]?.stacks ?? 0;
     },
+    resourceItems(target, resourceId) {
+      return target.resources?.[resourceId]?.items ?? [];
+    },
+    addResourceItems(target, resourceId, items, max, results = []) {
+      const state = target.resources[resourceId] ?? { items: [] };
+      const added = items.slice(0, Math.max(0, max - state.items.length));
+      state.items.push(...added);
+      target.resources[resourceId] = state;
+      results.push({ kind: 'resourceChanged', targetId: target.id, resourceId, added, items: [...state.items] });
+      return added;
+    },
+    addRandomResourceItems(target, resourceId, pool, count, max, results = []) {
+      const state = target.resources[resourceId] ?? { items: [] };
+      let actualCount = count;
+      if (state.doubleNext && count > 0) {
+        actualCount += 1;
+        state.doubleNext = false;
+      }
+      target.resources[resourceId] = state;
+      return api.addResourceItems(target, resourceId, Array.from({ length: actualCount }, () => battle.rng.pick(pool)), max, results);
+    },
+    armDoubleNextResource(target, resourceId, results = []) {
+      const state = target.resources[resourceId] ?? { items: [] };
+      state.doubleNext = true;
+      target.resources[resourceId] = state;
+      results.push({ kind: 'resourceDoubleArmed', targetId: target.id, resourceId });
+    },
+    consumeResourceItems(target, resourceId, items, results = []) {
+      const state = target.resources?.[resourceId];
+      if (!state) return false;
+      const copy = [...state.items];
+      for (const item of items) {
+        const i = copy.indexOf(item);
+        if (i < 0) return false;
+        copy.splice(i, 1);
+      }
+      state.items = copy;
+      results.push({ kind: 'resourceChanged', targetId: target.id, resourceId, consumed: items, items: [...copy] });
+      return true;
+    },
     randomInt(min, max) {
       return battle.rng.int(min, max);
     },
@@ -319,6 +363,16 @@ function makeApi(battle, data) {
           type: 'markerChanged', target, markerId, before, after: state.stacks,
           primaryTarget: context.primaryTarget ?? null,
         });
+        if (actual > 0) {
+          for (const owner of battle.units.filter((u) => u.alive)) {
+            const passiveApi = {
+              addRandomResourceItems: (unit, resourceId, pool, count, max) => api.addRandomResourceItems(unit, resourceId, pool, count, max, results),
+            };
+            for (const p of owner.passives) {
+              PASSIVE_EFFECTS[p.effect.type]?.onMarkerIncreased?.(p.effect, owner, p.key, passiveApi, { markerId, amount: actual, target });
+            }
+          }
+        }
       }
       return actual;
     },
@@ -671,7 +725,11 @@ function processTurnStatuses(battle, unit, timing, statusesAtTurnStart) {
     const results = [];
     const kind = STATUS_KINDS[status.kind];
     if (kind?.ticks && unit.alive) {
-      applyDamage(battle, unit, kind.tickDamage(status, unit), results);
+      if (kind.tickHeal) {
+        const amount = Math.min(unit.maxHp - unit.hp, kind.tickHeal(status, unit));
+        unit.hp += amount;
+        results.push({ kind: 'heal', targetId: unit.id, amount, source: 'status' });
+      } else applyDamage(battle, unit, kind.tickDamage(status, unit), results);
       battle.log.push({ t: battle.timeMs, type: 'statusTick', targetId: unit.id, statusId: status.statusId, results });
     }
     status.remainingTurns -= 1;
@@ -683,7 +741,11 @@ function processTurnStatuses(battle, unit, timing, statusesAtTurnStart) {
 function statusTick(battle, unit, status) {
   const kind = STATUS_KINDS[status.kind];
   const results = [];
-  applyDamage(battle, unit, kind.tickDamage(status, unit), results);
+  if (kind.tickHeal) {
+    const amount = Math.min(unit.maxHp - unit.hp, kind.tickHeal(status, unit));
+    unit.hp += amount;
+    results.push({ kind: 'heal', targetId: unit.id, amount, source: 'status' });
+  } else applyDamage(battle, unit, kind.tickDamage(status, unit), results);
   battle.log.push({ t: battle.timeMs, type: 'statusTick', targetId: unit.id, statusId: status.statusId, results });
   status.nextTickAt += status.params.tickMs;
 }

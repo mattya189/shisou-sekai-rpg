@@ -56,6 +56,9 @@ const unitRefs = [
 
 function checkUnit(entry, ctx) {
   const { balance } = ctx.raw;
+  if (entry.initialRank != null && (!Number.isInteger(entry.initialRank) || entry.initialRank < 1 || entry.initialRank > (balance?.ranks?.length ?? 5))) {
+    ctx.error(`initialRank ${entry.initialRank} が範囲外です`);
+  }
   for (const k of [...UNIT_STAT_KEYS, 'attackIntervalMs']) {
     if (typeof entry.baseStats?.[k] !== 'number') ctx.error(`baseStats.${k} は数値で指定してください`);
   }
@@ -156,6 +159,8 @@ export const CATEGORY_SCHEMAS = {
       ['secrets[].rewards.items[].itemId', 'items'],
       ['secrets[].rewards.currencies[].currencyId', 'currencies'],
       ['dungeonId', 'dungeons'],
+      ['optionalEncounters[].enemies[].defId', 'monsters'],
+      ['optionalEncounters[].enemies[].skills[]', 'skills'],
     ],
     check(entry, ctx) {
       checkConnections(entry, ctx);
@@ -169,6 +174,10 @@ export const CATEGORY_SCHEMAS = {
       (entry.secrets ?? []).forEach((sc, i) => {
         if (!FLAG_PATTERN.test(sc.flag ?? '')) ctx.error(`secrets[${i}].flag は flag_001 の形式にしてください`);
         checkWhen(sc.when, `secrets[${i}].when`, ctx);
+      });
+      (entry.optionalEncounters ?? []).forEach((enc, i) => {
+        if (!enc.id || !enc.name || !enc.enemies?.length) ctx.error(`optionalEncounters[${i}] には id / name / enemies が必要です`);
+        if (enc.enemies?.length > (ctx.raw.balance?.battle?.maxEnemies ?? 3)) ctx.error(`optionalEncounters[${i}] の敵数が上限を超えています`);
       });
     },
   },
@@ -192,6 +201,7 @@ export const CATEGORY_SCHEMAS = {
       checkUnit(entry, ctx);
       const r = entry.recruit ?? {};
       if (!(r.baseRate >= 0 && r.baseRate <= 1)) ctx.error('recruit.baseRate は0〜1で指定してください');
+      if (r.level != null && (!Number.isInteger(r.level) || r.level < 1 || r.level > (ctx.raw.balance?.levelCap ?? 100))) ctx.error('recruit.level が範囲外です');
       for (const d of entry.drops ?? []) {
         if (!(d.rate >= 0 && d.rate <= 1)) ctx.error(`drops の ${d.itemId} の rate は0〜1で指定してください`);
       }
@@ -208,6 +218,9 @@ export const CATEGORY_SCHEMAS = {
       ['effects[].effects[].markerId', 'markers'],
       ['effects[].speciesId', 'species'],
       ['effects[].effects[].speciesId', 'species'],
+      ['effects[].bands[].statusId', 'statuses'],
+      ['effects[].pairs[].effects[].statusId', 'statuses'],
+      ['effects[].fallbackEffects[].statusId', 'statuses'],
       ['effects[].condition.markerId', 'markers'],
       ['completionEffects[].statusId', 'statuses'],
       ['completionEffects[].markerId', 'markers'],
@@ -230,6 +243,7 @@ export const CATEGORY_SCHEMAS = {
       (entry.completionEffects ?? []).forEach((e, i) => validateEffect(e, `completionEffects[${i}]`).forEach((m) => ctx.error(m)));
       if (entry.comboFrom && !(entry.completionEffects?.length > 0)) ctx.error('コンボ特技には completionEffects が必要です');
       if (entry.oncePerBattle != null && typeof entry.oncePerBattle !== 'boolean') ctx.error('oncePerBattle は真偽値で指定してください');
+      if (entry.intrinsic != null && typeof entry.intrinsic !== 'boolean') ctx.error('intrinsic は真偽値で指定してください');
       if (entry.targetSelector && entry.targetSelector.type !== 'enemyMarkerOldest') ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
     },
   },

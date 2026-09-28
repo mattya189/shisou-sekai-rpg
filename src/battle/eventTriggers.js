@@ -21,6 +21,13 @@ export const EVENT_TRIGGERS = {
         && c.rng.chance(p.chance);
     },
   },
+  hpThresholdCrossed: {
+    params: ['pct'],
+    matches(p, c) {
+      return c.event.type === 'damaged' && c.event.target === c.actor
+        && c.event.beforePct > p.pct && c.event.afterPct <= p.pct;
+    },
+  },
 };
 
 export function validateEventTrigger(trigger, where = 'immediateTrigger') {
@@ -31,6 +38,7 @@ export function validateEventTrigger(trigger, where = 'immediateTrigger') {
     .filter((p) => trigger[p] === undefined)
     .map((p) => `${where}: 条件 ${trigger.type} にはパラメータ ${p} が必要です`);
   if (trigger.type === 'damaged' && !(trigger.chance >= 0 && trigger.chance <= 1)) errors.push(`${where}.chance は0〜1で指定してください`);
+  if (trigger.type === 'hpThresholdCrossed' && !(trigger.pct > 0 && trigger.pct < 100)) errors.push(`${where}.pct は0より大きく100未満にしてください`);
   if (trigger.type === 'markerThresholdReached' && !(Array.isArray(trigger.thresholds) && trigger.thresholds.every((n) => Number.isInteger(n) && n > 0))) {
     errors.push(`${where}.thresholds は正の整数配列で指定してください`);
   }

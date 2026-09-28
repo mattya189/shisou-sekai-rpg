@@ -24,6 +24,13 @@ export const STATUS_KINDS = {
       return Math.max(1, Math.floor((unit.maxHp * inst.params.pctOfMaxHp) / 100));
     },
   },
+  healOverTime: {
+    params: ['pctOfMaxHp'],
+    ticks: true,
+    tickHeal(inst, unit) {
+      return Math.max(1, Math.floor((unit.maxHp * inst.params.pctOfMaxHp) / 100));
+    },
+  },
   attackDelay: {
     params: ['delayMs'],
     onApply(inst, unit) {

@@ -26,7 +26,7 @@ export const EFFECTS = {
       for (const t of api.targets(e.target, act)) {
         const hits = e.hits ?? 1;
         for (let i = 0; i < hits && t.alive; i++) {
-          api.dealDamage(act.actor, t, e.power, act.skill?.element ?? null, act.results, e.breakPower ?? 1, e.damageType ?? 'physical', e.scalingStat);
+          api.dealDamage(act.actor, t, e.power, e.element ?? act.skill?.element ?? null, act.results, e.breakPower ?? 1, e.damageType ?? 'physical', e.scalingStat);
         }
       }
     },
@@ -36,6 +36,12 @@ export const EFFECTS = {
     apply(e, api, act) {
       const amount = Math.max(1, Math.floor(effectiveStat(act.actor, 'atk') * e.power));
       for (const t of api.targets(e.target, act)) api.heal(t, amount, 'skill', act.results);
+    },
+  },
+  healPctMax: {
+    params: ['target', 'pct'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) api.heal(t, Math.max(1, Math.floor(t.maxHp * e.pct / 100)), 'skill', act.results);
     },
   },
   applyStatus: {
@@ -53,6 +59,15 @@ export const EFFECTS = {
       }
     },
   },
+  markerThresholdDamage: {
+    params: ['target', 'markerId', 'threshold', 'basePower', 'boostedPower'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) {
+        const power = api.markerStacks(t, e.markerId) >= e.threshold ? e.boostedPower : e.basePower;
+        api.dealDamage(act.actor, t, power, e.element ?? act.skill?.element ?? null, act.results, e.breakPower ?? 1, e.damageType ?? 'physical');
+      }
+    },
+  },
   addMarker: {
     params: ['target', 'markerId'],
     apply(e, api, act) {
@@ -60,6 +75,83 @@ export const EFFECTS = {
         const amount = e.amount ?? api.randomInt(e.min, e.max);
         api.addMarker(t, e.markerId, amount, act.results);
       }
+    },
+  },
+  addRandomResource: {
+    params: ['target', 'resourceId', 'items', 'count', 'max'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) api.addRandomResourceItems(t, e.resourceId, e.items, e.count, e.max, act.results);
+    },
+  },
+  addResourceItems: {
+    params: ['target', 'resourceId', 'items', 'max'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) api.addResourceItems(t, e.resourceId, e.items, e.max, act.results);
+    },
+  },
+  consumeResource: {
+    params: ['target', 'resourceId', 'items'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) api.consumeResourceItems(t, e.resourceId, e.items, act.results);
+    },
+  },
+  armDoubleNextResource: {
+    params: ['target', 'resourceId'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) api.armDoubleNextResource(t, e.resourceId, act.results);
+    },
+  },
+  absorbMarkerToRandomResource: {
+    params: ['markerId', 'maxPerTarget', 'per', 'resourceId', 'items', 'max'],
+    apply(e, api, act) {
+      let total = 0;
+      for (const target of api.targets('enemyAll', act)) {
+        const amount = Math.min(e.maxPerTarget, api.markerStacks(target, e.markerId));
+        if (amount > 0) total += -api.addMarker(target, e.markerId, -amount, act.results);
+      }
+      const count = Math.floor(total / e.per);
+      if (count > 0) api.addRandomResourceItems(act.actor, e.resourceId, e.items, count, e.max, act.results);
+      act.results.push({ kind: 'markerAbsorbed', targetId: act.actor.id, markerId: e.markerId, amount: total, remainder: total % e.per });
+    },
+  },
+  markerBandStatus: {
+    params: ['target', 'markerId', 'bands'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) {
+        const stacks = api.markerStacks(t, e.markerId);
+        const band = [...e.bands].sort((a, b) => b.min - a.min).find((b) => stacks >= b.min);
+        if (band) api.applyStatus(t, band.statusId, 1, act.results);
+      }
+    },
+  },
+  removeOneDebuff: {
+    params: ['target'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) {
+        const removed = t.statuses.find((s) => ['statModifier', 'intervalPctModifier', 'attackDelay', 'skipAction', 'damageOverTime'].includes(s.kind));
+        if (removed) {
+          t.statuses = t.statuses.filter((s) => s !== removed);
+          act.results.push({ kind: 'statusRemoved', targetId: t.id, statusId: removed.statusId });
+        }
+      }
+    },
+  },
+  multiElementDamage: {
+    params: ['target', 'power', 'elements'],
+    apply(e, api, act) {
+      for (const t of api.targets(e.target, act)) {
+        for (const element of e.elements) if (t.alive) api.dealDamage(act.actor, t, e.power, element, act.results, e.breakPower ?? 1, e.damageType ?? 'magic');
+      }
+    },
+  },
+  resourceMix: {
+    params: ['target', 'resourceId', 'pairs'],
+    apply(e, api, act) {
+      const held = api.resourceItems(act.actor, e.resourceId);
+      const pair = e.pairs.find((p) => p.items.every((item) => held.includes(item)))
+        ?? { items: [...new Set(held)].slice(0, 2), effects: e.fallbackEffects ?? [] };
+      if (pair.items.length < 2 || !api.consumeResourceItems(act.actor, e.resourceId, pair.items, act.results)) return;
+      for (const nested of pair.effects) EFFECTS[nested.type]?.apply(nested, api, act);
     },
   },
   collectMarker: {
@@ -153,6 +245,13 @@ export function validateEffect(effect, where) {
   }
   if ((effect.type === 'scheduleEffects' || effect.type === 'conditionalEffects') && Array.isArray(effect.effects)) {
     effect.effects.forEach((e, i) => errors.push(...validateEffect(e, `${where}.effects[${i}]`)));
+  }
+  if (effect.type === 'resourceMix') {
+    for (const [i, pair] of (effect.pairs ?? []).entries()) {
+      if (!Array.isArray(pair.items) || pair.items.length !== 2 || pair.items[0] === pair.items[1]) errors.push(`${where}.pairs[${i}].items は異なる2種類にしてください`);
+      (pair.effects ?? []).forEach((e, j) => errors.push(...validateEffect(e, `${where}.pairs[${i}].effects[${j}]`)));
+    }
+    (effect.fallbackEffects ?? []).forEach((e, i) => errors.push(...validateEffect(e, `${where}.fallbackEffects[${i}]`)));
   }
   if (effect.type === 'conditionalEffects') errors.push(...validateCondition(effect.condition, `${where}.condition`));
   if (effect.type === 'randomPowerDamage' && !(effect.minPower <= effect.maxPower)) errors.push(`${where}: minPower は maxPower 以下にしてください`);

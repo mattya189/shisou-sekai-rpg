@@ -28,7 +28,7 @@ export function tryRecruit(save, data, monsterId, level, rng) {
   const success = rng.next() < chance;
   if (success) {
     save.recruit.failCounts[monsterId] = 0;
-    const grant = grantUnit(save, data, monsterId, { level });
+    const grant = grantUnit(save, data, monsterId, { level: def.recruit.level ?? level, rank: def.initialRank ?? 1 });
     return { monsterId, chance, success, grant };
   }
   save.recruit.failCounts[monsterId] = (save.recruit.failCounts[monsterId] ?? 0) + 1;

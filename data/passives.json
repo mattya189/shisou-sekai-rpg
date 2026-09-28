@@ -46,5 +46,12 @@
     "effects": [
       { "type": "chanceSelfMarkerOnPhysicalHit", "markerId": "marker_002", "amount": 1, "chance": 0.1 }
     ]
+  },
+  {
+    "id": "passive_009", "name": "万彩吸収",
+    "description": "戦場の侵色の新規付与・増加量を累積し、10増加ごとに彩核をランダムで1個生成する。侵色の減少は累積値を減らさない。",
+    "effects": [
+      { "type": "markerGainToRandomResource", "markerId": "marker_001", "per": 10, "resourceId": "prismCores", "items": ["red", "blue", "yellow", "green", "purple"], "max": 5 }
+    ]
   }
 ]

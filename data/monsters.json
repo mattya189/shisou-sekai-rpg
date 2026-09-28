@@ -510,5 +510,39 @@
     },
     "exp": 11,
     "gold": 8
+  },
+  {
+    "id": "mon_009",
+    "name": "万彩浮遊体 プリズマリア",
+    "description": "さまざまな個性を彩核へ取り込み、自分の可能性へ変換する色命族の浮遊体。侵色を蓄積・吸収し、多彩な魔法へ組み替える。",
+    "image": "img/monsters/mon_009.png",
+    "worldId": "world_001",
+    "rarity": "elite",
+    "initialRank": 3,
+    "strength": 4,
+    "battleType": "魔法型／蓄積・変換型",
+    "species": ["色命族", "浮遊族"],
+    "speciesIds": ["species_001", "species_004"],
+    "element": "elem_007",
+    "baseStats": { "hp": 168, "mp": 82, "atk": 7, "def": 11, "matk": 27, "mdef": 22, "evasion": 1, "attackIntervalMs": 2450 },
+    "growth": { "hp": 15, "mp": 5, "atk": 0.5, "def": 1.0, "matk": 2.5, "mdef": 2.0, "evasion": 0 },
+    "elementMultipliers": { "elem_009": 1.5, "elem_007": 0.5 },
+    "learnset": [
+      { "skillId": "skill_035", "rank": 3, "level": 1 },
+      { "skillId": "skill_036", "rank": 3, "level": 1 },
+      { "skillId": "skill_037", "rank": 3, "level": 1 },
+      { "skillId": "skill_038", "rank": 3, "level": 1 },
+      { "skillId": "skill_042", "rank": 3, "level": 1 },
+      { "skillId": "skill_043", "rank": 3, "level": 1 },
+      { "skillId": "skill_039", "rank": 4, "level": 1 },
+      { "skillId": "skill_040", "rank": 4, "level": 15 },
+      { "skillId": "skill_041", "rank": 4, "level": 25 },
+      { "skillId": "skill_044", "rank": 5, "level": 1 }
+    ],
+    "passives": ["passive_009"],
+    "drops": [{ "itemId": "item_007", "rate": 0.7, "qty": [1, 2] }],
+    "recruit": { "baseRate": 0.18, "failBonus": 0.06, "guaranteeAfter": 7, "level": 6, "duplicateTo": [{ "itemId": "item_009", "qty": 8 }] },
+    "exp": 42,
+    "gold": 28
   }
 ]

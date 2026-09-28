@@ -72,6 +72,21 @@ export const PASSIVE_EFFECTS = {
       api.addMarker(unit, e.markerId, e.amount);
     },
   },
+  markerGainToRandomResource: {
+    params: ['markerId', 'per', 'resourceId', 'items', 'max'],
+    onMarkerIncreased(e, unit, key, api, ctx) {
+      if (ctx.markerId !== e.markerId || ctx.amount <= 0) return;
+      const state = unit.passiveState[key] ?? { progress: 0, doubleNext: false };
+      state.progress += ctx.amount;
+      while (state.progress >= e.per) {
+        state.progress -= e.per;
+        const count = state.doubleNext ? 2 : 1;
+        state.doubleNext = false;
+        api.addRandomResourceItems(unit, e.resourceId, e.items, count, e.max);
+      }
+      unit.passiveState[key] = state;
+    },
+  },
 };
 
 export function validatePassiveEffect(effect, where) {

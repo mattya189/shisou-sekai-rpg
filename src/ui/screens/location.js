@@ -42,6 +42,21 @@ function dungeonEntry(ctx, nodeId) {
   );
 }
 
+function optionalStrongEncounters(ctx, loc, state) {
+  if (state.dismissedStrong) return null;
+  const entries = loc.optionalEncounters ?? [];
+  if (!entries.length) return null;
+  return h('div', { class: 'optional-strong-list' }, entries.map((enc) => h(
+    'div', { class: 'dungeon-entry optional-strong' },
+    h('p', { class: 'dungeon-entry-name' }, enc.name, h('span', { class: 'new-badge' }, '任意強敵')),
+    h('p', { class: 'help' }, enc.description ?? '通常敵より強い相手。挑戦するか選べる。'),
+    h('div', { class: 'result-actions' },
+      h('button', { type: 'button', class: 'btn btn-primary', onClick: () => ctx.go('battle', { enemies: enc.enemies, mode: 'field', source: 'optionalStrong', optionalEncounterId: enc.id }) }, '挑戦する'),
+      h('button', { type: 'button', class: 'btn', onClick: () => { state.dismissedStrong = true; ctx.rerender(); } }, '今はやめる'),
+    ),
+  )));
+}
+
 export default {
   nav: 'here',
   render(ctx, params, state) {
@@ -106,6 +121,7 @@ export default {
       partyHpStrip(save, data),
       actions.length ? h('div', { class: 'action-grid' }, actions) : h('p', { class: 'help' }, 'ここでできることはまだない。'),
       ap === 0 ? h('p', { class: 'notice' }, '行動力がありません。街の宿屋で休むと回復します。') : null,
+      optionalStrongEncounters(ctx, loc, state),
       dungeonEntry(ctx, nodeId),
       h('button', { type: 'button', class: 'btn btn-block move-btn', onClick: () => ctx.go('travel') }, '移動する'),
     );

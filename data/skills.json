@@ -493,5 +493,102 @@
       { "type": "applyStatus", "target": "enemySingle", "statusId": "status_014" },
       { "type": "randomPowerDamage", "target": "enemySingle", "minPower": 100, "maxPower": 500, "damageType": "physical", "triggerHitPassives": false }
     ]
+  },
+  {
+    "id": "skill_035", "name": "彩光弾", "mpCost": 10,
+    "description": "3の倍数回目に敵1体へ光属性の魔法攻撃100%を与え、侵色+3。",
+    "element": "elem_007", "trigger": { "type": "attackCountMultiple", "n": 3 },
+    "effects": [
+      { "type": "damage", "target": "enemySingle", "power": 1.0, "damageType": "magic" },
+      { "type": "addMarker", "target": "enemySingle", "markerId": "marker_001", "amount": 3 }
+    ]
+  },
+  {
+    "id": "skill_036", "name": "色彩捕食", "mpCost": 14,
+    "description": "5の倍数回目に敵全体から侵色を各5まで吸収し、今回の吸収量10につき彩核を1個生成する。10未満の余剰は次回へ持ち越さない。",
+    "trigger": { "type": "attackCountMultiple", "n": 5 },
+    "effects": [
+      { "type": "absorbMarkerToRandomResource", "markerId": "marker_001", "maxPerTarget": 5, "per": 10, "resourceId": "prismCores", "items": ["red", "blue", "yellow", "green", "purple"], "max": 5 }
+    ]
+  },
+  {
+    "id": "skill_037", "name": "赤彩・爆ぜる個性", "mpCost": 12,
+    "description": "赤彩核1個を消費し、炎属性の魔法攻撃160%。対象の侵色20以上なら210%。",
+    "element": "elem_002", "trigger": { "type": "selfResourceHas", "resourceId": "prismCores", "item": "red" },
+    "effects": [
+      { "type": "consumeResource", "target": "self", "resourceId": "prismCores", "items": ["red"] },
+      { "type": "markerThresholdDamage", "target": "enemySingle", "markerId": "marker_001", "threshold": 20, "basePower": 1.6, "boostedPower": 2.1, "damageType": "magic" }
+    ]
+  },
+  {
+    "id": "skill_038", "name": "青彩・静かな個性", "countsAsAttack": false, "mpCost": 10,
+    "description": "青彩核1個を消費し、自身の最大HP12%を回復して魔法防御+15%を3ターン付与。",
+    "trigger": { "type": "selfResourceHas", "resourceId": "prismCores", "item": "blue" },
+    "effects": [
+      { "type": "consumeResource", "target": "self", "resourceId": "prismCores", "items": ["blue"] },
+      { "type": "healPctMax", "target": "self", "pct": 12 },
+      { "type": "applyStatus", "target": "self", "statusId": "status_015" }
+    ]
+  },
+  {
+    "id": "skill_039", "name": "黄彩・弾ける個性", "mpCost": 16,
+    "description": "黄彩核1個を消費し、敵全体へ雷属性の魔法攻撃90%。攻撃速度-10%を2ターン付与。",
+    "element": "elem_008", "trigger": { "type": "selfResourceHas", "resourceId": "prismCores", "item": "yellow" },
+    "effects": [
+      { "type": "consumeResource", "target": "self", "resourceId": "prismCores", "items": ["yellow"] },
+      { "type": "damage", "target": "enemyAll", "power": 0.9, "damageType": "magic" },
+      { "type": "applyStatus", "target": "enemyAll", "statusId": "status_016" }
+    ]
+  },
+  {
+    "id": "skill_040", "name": "緑彩・巡る個性", "countsAsAttack": false, "mpCost": 11,
+    "description": "緑彩核1個を消費し、最大HP5%の継続回復を3ターン付与。次の彩核生成を1個だけ増やす。",
+    "trigger": { "type": "selfResourceHas", "resourceId": "prismCores", "item": "green" },
+    "effects": [
+      { "type": "consumeResource", "target": "self", "resourceId": "prismCores", "items": ["green"] },
+      { "type": "applyStatus", "target": "self", "statusId": "status_017" },
+      { "type": "armDoubleNextResource", "target": "self", "resourceId": "prismCores" }
+    ]
+  },
+  {
+    "id": "skill_041", "name": "紫彩・歪む個性", "mpCost": 13,
+    "description": "紫彩核1個を消費し、敵1体へ闇属性の魔法攻撃130%。侵色10以上では量に応じて魔法防御を3ターン下げる。",
+    "element": "elem_009", "trigger": { "type": "selfResourceHas", "resourceId": "prismCores", "item": "purple" },
+    "effects": [
+      { "type": "consumeResource", "target": "self", "resourceId": "prismCores", "items": ["purple"] },
+      { "type": "damage", "target": "enemySingle", "power": 1.3, "damageType": "magic" },
+      { "type": "markerBandStatus", "target": "enemySingle", "markerId": "marker_001", "bands": [
+        { "min": 50, "statusId": "status_020" }, { "min": 30, "statusId": "status_019" }, { "min": 10, "statusId": "status_018" }
+      ] }
+    ]
+  },
+  {
+    "id": "skill_042", "name": "混色魔法", "mpCost": 20,
+    "description": "異なる彩核2個を消費する。赤青は全体150%、青緑はHP20%回復とデバフ1つ解除、赤紫は単体230%、黄紫は全体120%と低確率の休み。ほかは全体100%。",
+    "trigger": { "type": "selfResourceDistinctAtLeast", "resourceId": "prismCores", "count": 2 },
+    "effects": [
+      { "type": "resourceMix", "target": "self", "resourceId": "prismCores", "pairs": [
+        { "items": ["red", "blue"], "effects": [{ "type": "damage", "target": "enemyAll", "power": 1.5, "damageType": "magic" }] },
+        { "items": ["blue", "green"], "effects": [{ "type": "healPctMax", "target": "self", "pct": 20 }, { "type": "removeOneDebuff", "target": "self" }] },
+        { "items": ["red", "purple"], "effects": [{ "type": "damage", "target": "enemySingle", "power": 2.3, "damageType": "magic" }] },
+        { "items": ["yellow", "purple"], "effects": [{ "type": "damage", "target": "enemyAll", "power": 1.2, "damageType": "magic" }, { "type": "applyStatus", "target": "enemyAll", "statusId": "status_012", "chance": 0.2 }] }
+      ], "fallbackEffects": [{ "type": "damage", "target": "enemyAll", "power": 1.0, "damageType": "magic" }] }
+    ]
+  },
+  {
+    "id": "skill_043", "name": "万彩解放", "intrinsic": true, "countsAsAttack": false, "mpCost": 0, "oncePerBattle": true,
+    "description": "自身のHPが初めて50%以下になった瞬間に即時発動し、5色の彩核を各1個生成する。",
+    "trigger": { "type": "always" }, "immediateTrigger": { "type": "hpThresholdCrossed", "pct": 50 },
+    "effects": [{ "type": "addResourceItems", "target": "self", "resourceId": "prismCores", "items": ["red", "blue", "yellow", "green", "purple"], "max": 5 }]
+  },
+  {
+    "id": "skill_044", "name": "奥義：万彩収束・オールプリズム", "mpCost": 0, "oncePerBattle": true,
+    "description": "5色の彩核をすべて消費し、異なる5属性で敵全体へ魔法攻撃80%×5ヒット。最後に侵色+10。1回の特技として扱う。",
+    "trigger": { "type": "selfResourceContainsAll", "resourceId": "prismCores", "items": ["red", "blue", "yellow", "green", "purple"] },
+    "effects": [
+      { "type": "consumeResource", "target": "self", "resourceId": "prismCores", "items": ["red", "blue", "yellow", "green", "purple"] },
+      { "type": "multiElementDamage", "target": "enemyAll", "power": 0.8, "elements": ["elem_002", "elem_003", "elem_008", "elem_006", "elem_009"], "damageType": "magic" },
+      { "type": "addMarker", "target": "enemyAll", "markerId": "marker_001", "amount": 10 }
+    ]
   }
 ]

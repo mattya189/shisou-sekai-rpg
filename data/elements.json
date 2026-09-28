@@ -4,5 +4,8 @@
   { "id": "elem_003", "name": "（仮）水", "attackElement": true, "description": "仮の属性。属性体系は未確定。" },
   { "id": "elem_004", "name": "（仮）風", "attackElement": true, "description": "仮の属性。属性体系は未確定。" },
   { "id": "elem_005", "name": "氷", "attackElement": true, "description": "氷の属性。相性倍率は各ユニットのデータで調整する。" },
-  { "id": "elem_006", "name": "自然", "attackElement": true, "description": "自然の属性。相性倍率は各ユニットのデータで調整する。" }
+  { "id": "elem_006", "name": "自然", "attackElement": true, "description": "自然の属性。相性倍率は各ユニットのデータで調整する。" },
+  { "id": "elem_007", "name": "光", "attackElement": true, "description": "光の属性。相性倍率は各ユニットのデータで調整する。" },
+  { "id": "elem_008", "name": "雷", "attackElement": true, "description": "雷の属性。相性倍率は各ユニットのデータで調整する。" },
+  { "id": "elem_009", "name": "闇", "attackElement": true, "description": "闇の属性。相性倍率は各ユニットのデータで調整する。" }
 ]

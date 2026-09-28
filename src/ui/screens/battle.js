@@ -71,6 +71,12 @@ export default {
           const value = marker?.showMax ? `${state.stacks}/${marker.maxStacks}` : state.stacks;
           return h('span', { class: 'status-chip' }, `${marker?.name ?? markerId} ${value}`);
         }),
+      ...Object.entries(u.resources ?? {})
+        .filter(([, state]) => state.items?.length)
+        .map(([resourceId, state]) => {
+          const labels = { red: '赤', blue: '青', yellow: '黄', green: '緑', purple: '紫' };
+          return h('span', { class: 'status-chip' }, `${resourceId === 'prismCores' ? '彩核' : resourceId} ${state.items.map((x) => labels[x] ?? x).join('・')}`);
+        }),
     ];
 
     const enemyCard = (u) => {

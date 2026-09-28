@@ -22,6 +22,10 @@ function markerStacks(unit, markerId) {
   return unit?.markers?.[markerId]?.stacks ?? 0;
 }
 
+function resourceItems(unit, resourceId) {
+  return unit?.resources?.[resourceId]?.items ?? [];
+}
+
 /**
  * @typedef {{ params: string[], describe: (p: any, data?: any) => string, check: (p: any, ctx: any) => boolean }} ConditionDef
  */
@@ -55,6 +59,21 @@ export const CONDITIONS = {
     params: ['markerId', 'stacks'],
     describe: (p, data) => `自分の${nameOf(data, 'markers', p.markerId)}が${p.stacks}以上`,
     check: (p, c) => markerStacks(c.self, p.markerId) >= p.stacks,
+  },
+  selfResourceHas: {
+    params: ['resourceId', 'item'],
+    describe: (p) => `${p.resourceId}に${p.item}がある`,
+    check: (p, c) => resourceItems(c.self, p.resourceId).includes(p.item),
+  },
+  selfResourceDistinctAtLeast: {
+    params: ['resourceId', 'count'],
+    describe: (p) => `${p.resourceId}が${p.count}種類以上`,
+    check: (p, c) => new Set(resourceItems(c.self, p.resourceId)).size >= p.count,
+  },
+  selfResourceContainsAll: {
+    params: ['resourceId', 'items'],
+    describe: (p) => `${p.resourceId}に指定された全種類がある`,
+    check: (p, c) => p.items.every((item) => resourceItems(c.self, p.resourceId).includes(item)),
   },
   selfHpBelow: {
     params: ['pct'],

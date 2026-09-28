@@ -1,5 +1,6 @@
 [
   { "id": "species_001", "name": "色命族" },
   { "id": "species_002", "name": "スライム" },
-  { "id": "species_003", "name": "犬" }
+  { "id": "species_003", "name": "犬" },
+  { "id": "species_004", "name": "浮遊族" }
 ]

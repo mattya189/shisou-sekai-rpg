@@ -393,7 +393,7 @@ test('データで使われている効果・状態異常・パッシブはす�
   for (const p of data.list('passives')) {
     for (const e of p.effects) {
       const def = PASSIVE_EFFECTS[e.type];
-      const hasHook = def.static || def.onAttackStart || def.statPct || def.damagePct || def.normalAttackMpPct || def.afterAction || def.afterNormalAttackHit || def.afterAttackHit;
+      const hasHook = def.static || def.onAttackStart || def.statPct || def.damagePct || def.normalAttackMpPct || def.afterAction || def.afterNormalAttackHit || def.afterAttackHit || def.onMarkerIncreased;
       assert.ok(hasHook, `${e.type} に処理がない`);
     }
   }

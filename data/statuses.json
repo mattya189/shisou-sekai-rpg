@@ -140,5 +140,29 @@
     "turnTiming": "actionEnd",
     "params": { "pct": 30 },
     "description": "攻撃間隔が30%長くなる。対象自身が5回行動すると終了。"
+  },
+  {
+    "id": "status_015", "name": "静彩魔防上昇", "kind": "statModifier", "durationTurns": 3, "turnTiming": "actionEnd",
+    "params": { "stat": "mdef", "pct": 15 }, "description": "魔法防御が15%上がる。自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_016", "name": "弾彩速度低下", "kind": "intervalPctModifier", "durationTurns": 2, "turnTiming": "actionEnd",
+    "params": { "pct": 10 }, "description": "攻撃間隔が10%長くなる。対象自身が2回行動すると終了。"
+  },
+  {
+    "id": "status_017", "name": "巡彩再生", "kind": "healOverTime", "durationTurns": 3, "turnTiming": "actionEnd",
+    "params": { "pctOfMaxHp": 5 }, "description": "行動終了時に最大HPの5%を回復する。自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_018", "name": "歪彩魔防低下・小", "kind": "statModifier", "durationTurns": 3, "turnTiming": "actionEnd",
+    "params": { "stat": "mdef", "pct": -10 }, "description": "魔法防御が10%下がる。対象自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_019", "name": "歪彩魔防低下・中", "kind": "statModifier", "durationTurns": 3, "turnTiming": "actionEnd",
+    "params": { "stat": "mdef", "pct": -15 }, "description": "魔法防御が15%下がる。対象自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_020", "name": "歪彩魔防低下・大", "kind": "statModifier", "durationTurns": 3, "turnTiming": "actionEnd",
+    "params": { "stat": "mdef", "pct": -20 }, "description": "魔法防御が20%下がる。対象自身が3回行動すると終了。"
   }
 ]
