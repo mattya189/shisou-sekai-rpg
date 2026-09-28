@@ -611,8 +611,10 @@ button.unit-row:active { background: var(--raised); }
 .enemy-row:has(> :only-child) .enemy-card { width: min(150px, 46%); justify-self: center; }
 .enemy-row.units-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
 .enemy-row.units-4 .enemy-card { gap: 2px; padding: 4px; border-radius: var(--radius-sm); }
-.enemy-row.units-4 .portrait { width: 46px; height: 46px; }
+.enemy-row.units-4 .portrait { width: 40px; height: 40px; }
 .enemy-row.units-4 .enemy-name { font-size: 10px; line-height: 1.25; }
+.enemy-row.units-4 .enemy-count { font-size: 9px; }
+.enemy-row.units-4 .bar { height: 6px; }
 .enemy-row.units-4 .status-row { gap: 2px; }
 .enemy-row.units-4 .status-chip { padding: 0 3px; font-size: 9px; line-height: 15px; }
 .enemy-card .bar { width: 100%; flex: none; }
@@ -661,15 +663,16 @@ button.unit-row:active { background: var(--raised); }
 }
 .ally-card.acting { border-color: var(--lamp); }
 .ally-grid.units-4 { gap: 5px; }
-.ally-grid.units-4 .ally-card { gap: 2px; padding: 5px 6px 6px; border-radius: var(--radius-sm); }
+.ally-grid.units-4 .ally-card { gap: 1px; padding: 4px 5px 5px; border-radius: var(--radius-sm); }
 .ally-grid.units-4 .ally-head { gap: 5px; }
-.ally-grid.units-4 .portrait { width: 40px; height: 40px; }
-.ally-grid.units-4 .ally-name { font-size: 12px; }
+.ally-grid.units-4 .portrait { width: 32px; height: 32px; }
+.ally-grid.units-4 .ally-name { font-size: 11px; }
 .ally-grid.units-4 .meter { gap: 3px; font-size: 10px; line-height: 1.2; }
 .ally-grid.units-4 .meter-label { width: 16px; }
 .ally-grid.units-4 .meter .num { min-width: 43px; }
 .ally-grid.units-4 .attack-count { min-width: 50px; font-size: 10px; }
 .ally-grid.units-4 .skill-flash { min-height: 1.2em; font-size: 11px; line-height: 1.2; }
+.ally-grid.units-4 .bar { height: 6px; }
 .ally-grid.units-4 .status-row { gap: 2px; }
 .ally-grid.units-4 .status-chip { padding: 0 3px; font-size: 9px; line-height: 15px; }
 .ally-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -678,7 +681,7 @@ button.unit-row:active { background: var(--raised); }
 .meter-label { width: 20px; color: var(--muted); }
 .meter .num { min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
 .attack-count { min-width: 62px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.enemy-count { min-width: 0; font-size: 11px; line-height: 1; }
+.enemy-count { width: 100%; min-width: 0; font-size: 10px; line-height: 1.1; text-align: center; white-space: nowrap; }
 .attack-count.count-trigger { color: var(--lamp); font-weight: 800; }
 .skill-flash { min-height: 1.4em; font-size: 13px; font-weight: 700; color: var(--lamp); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .status-row { display: flex; flex-wrap: wrap; gap: 4px; min-height: 0; }
@@ -864,21 +867,50 @@ button.unit-row:active { background: var(--raised); }
 .battle-report thead th { color: var(--muted); font-weight: 400; }
 
 @media (max-width: 360px) {
-  .battle-screen { gap: 5px; height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 32px); }
-  .battle-stage { padding: 5px; gap: 6px; }
+  .battle-screen { gap: 4px; height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 32px); }
+  .battle-stage { padding: 4px; gap: 4px; }
   .enemy-row { grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); }
-  .enemy-row.units-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
-  .enemy-row.units-4 .portrait { width: 40px; height: 40px; }
+  .enemy-row.units-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; }
+  .enemy-row.units-4 .enemy-card { padding: 3px 2px; }
+  .enemy-row.units-4 .portrait { width: 32px; height: 32px; }
+  .enemy-row.units-4 .enemy-name { font-size: 9px; }
   .ally-card { padding: 6px 7px 8px; }
-  .ally-grid.units-4 .ally-card { padding: 4px 5px 5px; }
-  .ally-grid.units-4 .portrait { width: 36px; height: 36px; }
+  .ally-grid.units-4 { gap: 3px; }
+  .ally-grid.units-4 .ally-card { padding: 3px 4px 4px; }
+  .ally-grid.units-4 .portrait { width: 28px; height: 28px; }
+  .ally-grid.units-4 .ally-name { font-size: 10px; }
+  .ally-grid.units-4 .meter { font-size: 9px; }
   .meter .num { min-width: 48px; }
-  .ally-grid.units-4 .meter .num { min-width: 39px; }
+  .ally-grid.units-4 .meter .num { min-width: 36px; }
   .attack-count { min-width: 54px; }
-  .ally-grid.units-4 .attack-count { min-width: 46px; }
-  .speed-btn { min-width: 42px; padding: 0 7px; }
-  .pause-btn { min-width: 68px; }
-  .battle-log { font-size: 12px; }
+  .ally-grid.units-4 .attack-count { min-width: 42px; font-size: 9px; }
+  .ally-grid.units-4 .skill-flash { font-size: 10px; }
+  .speed-btn { min-width: 39px; min-height: 34px; padding: 0 6px; font-size: 13px; }
+  .pause-btn { min-width: 60px; }
+  .battle-audio-bar { min-height: 28px; padding: 2px 6px; gap: 5px; }
+  .sound-toggle { min-width: 62px; min-height: 27px; padding: 0 5px; font-size: 11px; }
+  .sound-volume { min-width: 54px; height: 26px; }
+  .battle-log { font-size: 11px; padding: 5px 7px; }
+}
+
+/* iPhone SEなど、横幅だけでなく表示高も小さい端末向け。情報は残しつつ縦余白を削る。 */
+@media (max-height: 700px) {
+  .battle-screen { gap: 3px; }
+  .battle-stage { gap: 3px; padding: 4px; }
+  .battle-log {
+    min-height: calc(3 * 1.3em + 10px);
+    max-height: calc(3 * 1.3em + 10px);
+    padding: 4px 7px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .battle-audio-bar { min-height: 28px; padding-block: 2px; }
+  .enemy-row.units-4 .portrait { width: 30px; height: 30px; }
+  .ally-grid.units-4 .portrait { width: 26px; height: 26px; }
+  .ally-grid.units-4 .ally-card { padding-block: 3px; }
+  .ally-grid.units-4 .skill-flash { min-height: 1em; line-height: 1; }
+  .ally-grid.units-4 .status-row,
+  .enemy-row.units-4 .status-row { max-height: 30px; overflow-y: auto; }
 }
 
 /* ---------- 探索（Phase 4〜5） ---------- */

@@ -94,9 +94,13 @@ test('行動表示間隔は特技ほど長く、高速設定でも読める長�
   const normal = presentationDelayMs(1, [{ tier: 'normal' }]);
   const skill = presentationDelayMs(1, [{ tier: 'skill' }]);
   const ultimateFast = presentationDelayMs(3, [{ tier: 'ultimate' }]);
+  assert.equal(normal, 560);
+  assert.equal(skill, 880);
+  assert.equal(presentationDelayMs(1, [{ tier: 'combo' }]), 1120);
+  assert.equal(presentationDelayMs(1, [{ tier: 'ultimate' }]), 1440);
   assert.ok(skill > normal);
-  assert.ok(ultimateFast >= 400);
-  assert.ok(presentationDelayMs(3, [{ tier: 'skill' }]) >= 250);
+  assert.ok(ultimateFast >= 800);
+  assert.ok(presentationDelayMs(3, [{ tier: 'skill' }]) >= 500);
 });
 
 test('通常・特技・連携・奥義の演出強度をデータとイベントから決める', () => {

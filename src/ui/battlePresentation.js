@@ -74,7 +74,8 @@ export function effectPresentation(cue, data) {
  */
 export function presentationDelayMs(speed, cues = []) {
   const tiers = new Set(cues.map((cue) => cue.tier));
-  const base = tiers.has('ultimate') ? 720 : tiers.has('combo') ? 560 : tiers.has('skill') ? 440 : 280;
+  // 小さい画面でも技名・対象・結果を順番に追えるよう、旧設定の2倍を確保する。
+  const base = tiers.has('ultimate') ? 1440 : tiers.has('combo') ? 1120 : tiers.has('skill') ? 880 : 560;
   return Math.round(base / Math.sqrt(Math.max(1, Number(speed) || 1)));
 }
 

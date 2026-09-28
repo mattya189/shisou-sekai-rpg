@@ -355,7 +355,7 @@ export default {
         c.hp.fill.style.width = `${(u.hp / u.maxHp) * 100}%`;
         c.status.replaceChildren(...statusChips(u));
         if (u.side !== 'ally') {
-          c.count.textContent = `攻撃 ${u.attackCount}回`;
+          c.count.textContent = `HP ${u.hp}/${u.maxHp}・攻${u.attackCount}`;
           if (c.brk) c.brk.fill.style.width = `${u.broken ? 0 : (u.boss.break.gauge / u.boss.break.max) * 100}%`;
           if (c.alert) {
             c.alert.textContent = u.broken ? 'BREAK!' : u.charging ? '力をためている！' : '';
