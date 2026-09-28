@@ -58,7 +58,8 @@ npm run e2e     # 画面を変えたとき（Playwright を一時的に入れて
 
 1. `npm run check` を実行し、失敗があれば公開せず修正する。
 2. 変更内容を確認してコミットする。無関係なユーザー変更は含めない。
-3. `gh auth status` でGitHub CLIの認証を確認する。未認証ならトークンをリポジトリへ保存せず、
+3. `gh auth status` でGitHub CLIの認証を確認する。`gh` がPATHに無く `/root/.local/bin/gh` が存在する場合はそちらを使う。
+   CLI自体が無い場合は公式GitHub CLIをユーザーローカルへ導入する。未認証ならトークンをリポジトリへ保存せず、
    GitHub CLIのdevice flowでユーザーに一度だけ認証を依頼し、完了後に `gh auth setup-git` を実行する。
 4. `git push origin HEAD:main` で公開ブランチへ反映する。
 5. GitHub ActionsとGitHub Pagesの状態を確認し、公開URLへアクセスできるところまで検証する。
