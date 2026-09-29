@@ -7,7 +7,7 @@ import { addItem, addCurrency } from '../progression/inventory.js';
 import { grantEquipment, equipToUnit } from '../progression/equipment.js';
 import { rollAllWeather } from '../exploration/time.js';
 
-export function createNewGame(data, rng) {
+export function createNewGame(data, rng, { now = Date.now() } = {}) {
   const b = data.balance;
   const ng = b.newGame;
   const save = createEmptySave();
@@ -16,7 +16,8 @@ export function createNewGame(data, rng) {
   save.exploration.townId = ng.townId;
   save.exploration.discoveredNodes = [ng.townId];
   save.exploration.actionPoints = b.actionPoints.initial;
-  save.exploration.maxActionPoints = b.actionPoints.initial;
+  save.exploration.maxActionPoints = b.actionPoints.cap;
+  save.exploration.staminaUpdatedAt = now;
   save.exploration.time = { day: 1, period: b.time.startPeriod, tick: 0 };
   rollAllWeather(save, data, rng);
 

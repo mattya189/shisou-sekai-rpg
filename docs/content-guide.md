@@ -301,7 +301,7 @@
   "background": null,
   "facilities": [
     { "id": "fac_008", "type": "inn", "name": "宿屋" },
-    { "id": "fac_009", "type": "exit", "name": "街の外へ" }
+    { "id": "fac_009", "type": "exit", "name": "冒険へ" }
   ],
   "connections": [ { "to": "loc_005", "distance": 1 } ]
 }
@@ -366,11 +366,13 @@
 | `qualityBonus` | この地点の採取物の品質補正（任意） |
 | `gathering` | 採取テーブル。`weight` は出やすさ、`when` で時間帯・天候・フラグ条件 |
 | `secrets` | 「詳しく調べる」で見つかる隠し要素。見つけると `flag` が立つ（1回だけ）。`rewards` は任意 |
-| `connections` | 行き先。`distance` は進む時間、`apCost` で行動力消費、`requires`（flags / items）で解放条件 |
+| `adventureRequires` | 冒険先の解放条件（`flags` / `items`）。省略時は最初から選択可能 |
+| `adventureLockedHint` | 未解放時の短いヒント |
+| `connections` | v1の地点移動との互換用。新しい冒険先UIでは参照しない |
 
 `strongHint` は同じ地点の `optionalEncounters` のIDを `optionalEncounterId` に書きます。`message` はイベントカードの短い状況文です。`gather` / `treasure` は既存の `gathering` から抽選し、`times`（1〜5）と `qualityBonus` を任意指定できます。固定報酬型の `message` は `rewards.items` / `rewards.currencies` を持てます。
 
-`choice` の各選択肢には `id` / `label` / `message` を書き、任意で固定 `rewards`、別の `encounterTableId`、または同地点の `optionalEncounterId` を指定できます。選択肢の解決には追加の行動力を使いません。低い `weight` と `when` を組み合わせれば、レアイベントや時間・天候限定イベントもデータだけで追加できます。
+`choice` の各選択肢には `id` / `label` / `message` を書き、任意で固定 `rewards`、別の `encounterTableId`、または同地点の `optionalEncounterId` を指定できます。選択肢の解決には追加のスタミナを使いません。低い `weight` と `when` を組み合わせれば、レアイベントや時間・天候限定イベントもデータだけで追加できます。
 
 通常より強い敵グループを混ぜたい場合は、専用のエンカウント表を作り、`encounter` イベントの `encounterTableId` で指定します。省略時は地点本体の表を使います。
 
@@ -499,7 +501,7 @@
 ```
 
 入口の地点に `"dungeonId": "dgn_002"` を書くと、地点画面に入口が出ます。
-入場の行動力は `balance.dungeon.enterAp`。HP・MPは戦闘ごとに回復しません。
+入場のスタミナは `balance.dungeon.enterAp`。HP・MPは戦闘ごとに回復しません。
 
 ## ボスを追加する（`bosses.json`）
 

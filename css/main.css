@@ -91,6 +91,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar-time { color: var(--mist); white-space: nowrap; }
 .topbar-ap { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .topbar-ap-label { color: var(--muted); font-size: 12px; }
+.topbar-stamina-value { font-size: 13px; font-variant-numeric: tabular-nums; }
+.topbar-recovery { color: var(--mist); font-size: 11px; font-variant-numeric: tabular-nums; }
 .pips { display: flex; gap: 3px; }
 .pip { width: 8px; height: 14px; border-radius: 2px; background: var(--raised); border: 1px solid var(--line); }
 .pip.on { background: var(--lamp); border-color: var(--lamp); }
@@ -107,7 +109,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   max-width: 480px;
   margin: 0 auto;
   padding-bottom: var(--safe-bottom);
@@ -119,7 +121,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   min-height: var(--nav-h);
   border: 0;
   background: none;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
   position: relative;
 }
@@ -1002,6 +1004,8 @@ button.unit-row:active { background: var(--raised); }
 .travel-row.locked { border-style: dashed; background: transparent; }
 .travel-row.locked .travel-name { color: var(--muted); }
 .travel-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.adventure-row { min-height: 104px; }
+.adventure-world + .adventure-world { margin-top: 20px; }
 .travel-name { font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .travel-meta { font-size: 13px; color: var(--muted); }
 .travel-hint { font-size: 13px; color: var(--mist); }
@@ -1130,6 +1134,8 @@ button.unit-row:active { background: var(--raised); }
 @media (max-width: 380px) {
   .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
   .topbar-ap-label { display: none; }
+  .topbar-time { display: none; }
+  .nav-item { font-size: 12px; }
   .screen { padding-left: 12px; padding-right: 12px; }
   .town-hero, .location-hero { margin-left: -12px; margin-right: -12px; }
   .codex-grid { gap: 6px; }

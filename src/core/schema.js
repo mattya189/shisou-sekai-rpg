@@ -153,6 +153,7 @@ export const CATEGORY_SCHEMAS = {
       ['region', 'regions'],
       ['connections[].to', '@node'],
       ['connections[].requires.items[]', 'items'],
+      ['adventureRequires.items[]', 'items'],
       ['encounterTableId', 'encounters'],
       ['gathering[].itemId', 'items'],
       ['gathering[].when.weathers[]', 'weathers'],
@@ -214,6 +215,9 @@ export const CATEGORY_SCHEMAS = {
         if (!enc.id || !enc.name || !enc.enemies?.length) ctx.error(`optionalEncounters[${i}] には id / name / enemies が必要です`);
         if (enc.enemies?.length > (ctx.raw.balance?.battle?.maxEnemies ?? 3)) ctx.error(`optionalEncounters[${i}] の敵数が上限を超えています`);
       });
+      for (const flag of entry.adventureRequires?.flags ?? []) {
+        if (!FLAG_PATTERN.test(flag)) ctx.error(`adventureRequires.flags "${flag}" は flag_001 の形式にしてください`);
+      }
     },
   },
   characters: {
@@ -464,6 +468,9 @@ export function validateGameData(raw) {
       for (const f of c.requires?.flags ?? []) {
         if (!setFlags.has(f)) warnings.push(`${node.id}: 接続 ${c.to} の解放フラグ ${f} を立てる手段がデータにありません`);
       }
+    }
+    for (const f of node.adventureRequires?.flags ?? []) {
+      if (!setFlags.has(f)) warnings.push(`${node.id}: 冒険先の解放フラグ ${f} を立てる手段がデータにありません`);
     }
   }
   return { errors, warnings };

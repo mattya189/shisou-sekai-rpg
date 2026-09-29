@@ -8,11 +8,11 @@
 保存先は `src/save/storageAdapters.js` のアダプタで差し替えられます（`getItem` / `setItem` / `removeItem` の3つを持つオブジェクト）。
 将来オンライン保存にする場合は、同じ形のアダプタを作って `src/main.js` で渡します。
 
-## 構造（saveVersion 1）
+## 構造（saveVersion 2）
 
 ```jsonc
 {
-  "saveVersion": 1,
+  "saveVersion": 2,
   "createdAt": "2026-09-27T00:00:00.000Z",
   "updatedAt": "2026-09-27T00:10:00.000Z",
   "nextUid": 3,                        // 装備個体などの通し番号
@@ -40,9 +40,12 @@
     "items": { "item_001": { "qualities": { "q1": true, "q2": true }, "sources": { "loc_001": true, "mon_001": true } } }
   },
   "exploration": {
-    "worldId": "world_001", "townId": "town_001", "locationId": null,
-    "discoveredNodes": ["town_001"],
-    "actionPoints": 6, "maxActionPoints": 6,
+    "worldId": "world_001", "townId": "town_001",
+    "adventureId": "loc_001",             // 選択中の冒険先（現在地ではない）
+    "locationId": null,                    // v1互換用。新進行では使わない
+    "discoveredNodes": ["town_001", "loc_001"],
+    "actionPoints": 247, "maxActionPoints": 300,
+    "staminaUpdatedAt": 1790630400000,     // 自然回復の基準時刻（Unix timeミリ秒）
     "time": { "day": 1, "period": "morning", "tick": 0 },
     "weather": { "region_001": "weather_002" }
   },
@@ -69,6 +72,8 @@
    - `saveVersion` が無いセーブは v0 扱い
    - ゲームより新しいバージョンのセーブは読み込まない（古いゲームで上書きして壊さないため）
 3. `normalizeSave`: 欠けている項目を `createEmptySave()` の初期値で補い、配列・オブジェクトの型が壊れた既知項目を安全な既定値へ戻す。**知らない項目は消さずに残す**
+
+`Session.continueGame()` は読込直後に `staminaUpdatedAt` からオフライン回復を反映します。v1→v2では、選択中の冒険先、最大300のスタミナ、回復基準時刻へ安全に移行します。
 
 退避したセーブはキー `shisou-sekai-rpg/save/broken-backup` に残ります。
 

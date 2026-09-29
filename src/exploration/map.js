@@ -1,15 +1,13 @@
 /**
- * 選択式フィールドの移動。街と地点はノード、connections でつながる。
- * 通常の移動は行動力を使わず、距離（distance）ぶんゲーム内時間が進む。
- * 接続に apCost を書くと、その移動だけ行動力を使う（危険な移動など）。
- * requires（flags / items）を満たさない接続は通れない。
+ * v2の正式進行は冒険先の直接選択。connections / moveTo は旧セーブ・旧テストとの
+ * 互換用に残し、新しいUIからは呼ばない。
  */
 import { GameError } from '../core/errors.js';
 import { countItem } from '../progression/inventory.js';
 import { advanceTime } from './time.js';
 
 export function currentNodeId(save) {
-  return save.exploration.locationId ?? save.exploration.townId;
+  return save.exploration.adventureId ?? save.exploration.locationId ?? save.exploration.townId;
 }
 
 export function isInTown(save) {
@@ -21,6 +19,33 @@ function requirementMet(save, requires) {
   if ((requires.flags ?? []).some((f) => !save.flags[f])) return false;
   if ((requires.items ?? []).some((id) => countItem(save, id) <= 0)) return false;
   return true;
+}
+
+/**
+ * 現在地とは無関係に、世界内の冒険先を列挙する。
+ * adventureRequires が無い場所は最初から選択できる。
+ */
+export function listAdventureDestinations(save, data, worldId = save.exploration.worldId) {
+  return data.list('locations')
+    .filter((loc) => loc.worldId === worldId)
+    .map((loc) => ({
+      id: loc.id,
+      node: loc,
+      locked: !requirementMet(save, loc.adventureRequires),
+      hint: loc.adventureLockedHint ?? null,
+      visited: save.exploration.discoveredNodes.includes(loc.id),
+    }));
+}
+
+/** 冒険先を選ぶだけ。スタミナ・ゲーム内時間・天候は変化しない。 */
+export function selectAdventure(save, data, locationId) {
+  if (save.exploration.pendingEvent) throw new GameError('pending_event', '先に現在の探索結果を確認してください');
+  const destination = listAdventureDestinations(save, data).find((entry) => entry.id === locationId);
+  if (!destination) throw new GameError('unknown_adventure', 'その冒険先は選べません');
+  if (destination.locked) throw new GameError('locked', destination.hint ? `まだ解放されていません。${destination.hint}` : 'まだ解放されていません');
+  save.exploration.adventureId = locationId;
+  if (!save.exploration.discoveredNodes.includes(locationId)) save.exploration.discoveredNodes.push(locationId);
+  return destination.node;
 }
 
 /**

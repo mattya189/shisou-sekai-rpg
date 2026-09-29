@@ -8,7 +8,7 @@
  * 詳しくは docs/save-data.md
  */
 
-export const CURRENT_SAVE_VERSION = 1;
+export const CURRENT_SAVE_VERSION = 2;
 
 export function createEmptySave() {
   return {
@@ -38,10 +38,14 @@ export function createEmptySave() {
     exploration: {
       worldId: null,
       townId: null,
+      /** 選択中の冒険先。現在地ではなく、探索コマンドの対象を表す。 */
+      adventureId: null,
       locationId: null,
       discoveredNodes: [],
-      actionPoints: 6,
-      maxActionPoints: 6,
+      actionPoints: 300,
+      maxActionPoints: 300,
+      /** 自然回復の基準時刻（Unix time、ミリ秒）。 */
+      staminaUpdatedAt: null,
       /** tick は時間帯の中の経過（balance.time.ticksPerPeriod で次の時間帯へ） */
       time: { day: 1, period: 'morning', tick: 0 },
       /** { region_001: 'sunny' } Phase 4 で使用 */

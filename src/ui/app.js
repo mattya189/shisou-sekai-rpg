@@ -4,7 +4,7 @@
  * 画面は src/ui/screens/ に置き、screens/index.js に登録する。
  * 画面モジュールの形:
  *   {
- *     nav: 'town' | 'party' | 'inventory' | 'codex' | null,  // 下部ナビのどれを選択状態にするか
+ *     nav: 'home' | 'adventure' | 'party' | 'inventory' | 'codex' | null,
  *     chrome: true,                                           // false なら上部バーと下部ナビを出さない
  *     render(ctx, params, state) { return HTMLElement },      // state は画面ごとの一時状態
  *   }
@@ -14,11 +14,11 @@ import { h } from './dom.js';
 import { periodName } from './format.js';
 import { GameError } from '../core/errors.js';
 import { weatherAt } from '../exploration/time.js';
-import { currentNodeId, isInTown } from '../exploration/map.js';
+import { staminaStatus, formatRecovery } from '../exploration/stamina.js';
 
 const NAV_ITEMS = [
-  // 1つ目は「今いる場所」。街にいれば街、外にいれば地点の画面
-  { id: 'here', label: '街', screen: 'here' },
+  { id: 'home', label: 'ホーム', screen: 'town' },
+  { id: 'adventure', label: '冒険', screen: 'travel' },
   { id: 'party', label: '編成', screen: 'party' },
   { id: 'inventory', label: '所持品', screen: 'inventory' },
   { id: 'codex', label: '図鑑', screen: 'codex' },
@@ -106,31 +106,27 @@ export function createApp(root, session, screens) {
   function renderTopbar() {
     const { data, save } = session;
     const ex = save.exploration;
-    const nodeId = currentNodeId(save);
+    const top = stack[stack.length - 1];
+    const nodeId = top?.name === 'location' ? (top.params.locationId ?? ex.adventureId) : ex.townId;
     const place = data.findNode(nodeId);
-    const weather = data.find('weathers', weatherAt(save, data, nodeId));
-    const pips = [];
-    for (let i = 0; i < ex.maxActionPoints; i++) {
-      pips.push(h('span', { class: `pip${i < ex.actionPoints ? ' on' : ''}` }));
-    }
+    const weather = data.has('locations', nodeId) ? data.find('weathers', weatherAt(save, data, nodeId)) : null;
+    const stamina = staminaStatus(save, data, session.now());
     return [
       h('span', { class: 'topbar-place' }, place?.name ?? '―'),
       h('span', { class: 'topbar-time' }, `${ex.time.day}日目 ${periodName(data, ex.time.period)}`, weather ? h('span', { class: 'topbar-weather' }, weather.name) : null),
       h(
         'span',
-        { class: 'topbar-ap', 'aria-label': `行動力 ${ex.actionPoints}/${ex.maxActionPoints}` },
-        h('span', { class: 'topbar-ap-label' }, '行動力'),
-        h('span', { class: 'pips' }, pips),
+        { class: 'topbar-ap', 'aria-label': `スタミナ ${stamina.current}/${stamina.max}` },
+        h('span', { class: 'topbar-ap-label' }, 'スタミナ'),
+        h('strong', { class: 'topbar-stamina-value' }, `${stamina.current}/${stamina.max}`),
+        h('span', { class: 'topbar-recovery' }, formatRecovery(stamina.nextRecoveryMs)),
       ),
     ];
   }
 
   function renderNav(active) {
-    const inTown = isInTown(session.save);
     return NAV_ITEMS.map((item) => {
-      const label = item.id === 'here' && (!inTown || session.save.dungeonRun) ? '現在地' : item.label;
-      const here = session.save.dungeonRun ? 'dungeon' : inTown ? 'town' : 'location';
-      const target = item.id === 'here' ? here : item.screen;
+      const target = item.id === 'home' && session.save.dungeonRun ? 'dungeon' : item.screen;
       return h(
         'button',
         {
@@ -139,10 +135,28 @@ export function createApp(root, session, screens) {
           'aria-current': item.id === active ? 'page' : undefined,
           onClick: () => (target ? go(target, {}, { reset: true }) : toast(`${item.label}は${item.planned}で使えるようになります`)),
         },
-        label,
+        item.label,
       );
     });
   }
+
+  setInterval(() => {
+    if (!session.save || root.classList.contains('no-chrome')) return;
+    const status = staminaStatus(session.save, session.data, session.now());
+    if (status.recovered > 0) {
+      session.commit();
+      if (stack.at(-1)?.name === 'location') {
+        render();
+        return;
+      }
+    }
+    const value = header.querySelector('.topbar-stamina-value');
+    const countdown = header.querySelector('.topbar-recovery');
+    const ap = header.querySelector('.topbar-ap');
+    if (value) value.textContent = `${status.current}/${status.max}`;
+    if (countdown) countdown.textContent = formatRecovery(status.nextRecoveryMs);
+    if (ap) ap.setAttribute('aria-label', `スタミナ ${status.current}/${status.max}`);
+  }, 1000);
 
   let toastTimer = null;
   function toast(message, kind = 'info') {

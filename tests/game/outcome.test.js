@@ -120,7 +120,7 @@ test('HPを反映しない設定（デバッグ戦闘用）', async () => {
 
 // ---------------------------------------------------------------- 宿屋・消耗品
 
-test('宿屋: 行動力とHPが全回復し、翌朝になり、宿代を払う', async () => {
+test('宿屋: スタミナとHPが全回復し、翌朝になり、宿代を払う', async () => {
   const { data, save } = await newGameFixture();
   save.exploration.actionPoints = 0;
   setCurrentHp(save, data, 'chr_001', 1);

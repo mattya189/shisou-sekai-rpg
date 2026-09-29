@@ -9,7 +9,7 @@ import { triggerEvent } from '../../events/events.js';
 import { advanceTime } from '../../exploration/time.js';
 
 export default {
-  nav: 'here',
+  nav: 'home',
   render(ctx, params, state) {
     const { data, save, session } = ctx;
     const again = () => {

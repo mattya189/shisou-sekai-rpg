@@ -69,7 +69,7 @@ try {
     await page.click('.shop-row >> nth=0 >> button >> nth=0');
     await page.click('text=街に戻る');
   });
-  await step('街の外へ → 草原入口', async () => {
+  await step('冒険へ → 草原入口を直接選択', async () => {
     await page.click('.facility-exit');
     await page.click('.travel-row >> nth=0');
     await page.waitForSelector('.location-screen');

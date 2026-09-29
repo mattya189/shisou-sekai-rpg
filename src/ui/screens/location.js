@@ -1,10 +1,11 @@
 import { h } from '../dom.js';
 import { partyHpStrip } from '../partyHp.js';
 import { startExploreCommand, clearExploreEvent, resolveExploreChoice, EXPLORE_ACTIONS } from '../../exploration/actions.js';
-import { currentNodeId, isInTown } from '../../exploration/map.js';
+import { currentNodeId } from '../../exploration/map.js';
 import { weatherAt } from '../../exploration/time.js';
 import { periodName } from '../format.js';
 import { dungeonAt, dungeonEntryStatus, enterDungeon } from '../../exploration/dungeon.js';
+import { staminaStatus, formatRecovery } from '../../exploration/stamina.js';
 
 function itemsText(data, items) {
   return items
@@ -26,7 +27,7 @@ function dungeonEntry(ctx, nodeId) {
     'div',
     { class: 'dungeon-entry' },
     h('p', { class: 'dungeon-entry-name' }, d.name, cleared ? h('span', { class: 'new-badge' }, `踏破${cleared}回`) : null),
-    h('p', { class: 'help' }, st.ok ? `連戦ダンジョン（${d.stages.length}戦）。入ると行動力を${data.balance.dungeon.enterAp}使います。` : st.reason),
+    h('p', { class: 'help' }, st.ok ? `連戦ダンジョン（${d.stages.length}戦）。入るとスタミナを${data.balance.dungeon.enterAp}使います。` : st.reason),
     h(
       'button',
       {
@@ -34,7 +35,7 @@ function dungeonEntry(ctx, nodeId) {
         class: 'btn btn-primary btn-block',
         disabled: !st.ok,
         onClick: () => {
-          if (ctx.act(() => enterDungeon(save, data, d.id, session.rng))) ctx.go('dungeon', {}, { reset: true });
+          if (ctx.act(() => enterDungeon(save, data, d.id, session.rng, session.now()))) ctx.go('dungeon', {}, { reset: true });
         },
       },
       `${d.name}に入る`,
@@ -69,7 +70,7 @@ function eventCard(ctx, loc) {
   const close = () => ctx.act(() => clearExploreEvent(save));
   const repeat = () => ctx.act(() => {
     clearExploreEvent(save);
-    return startExploreCommand(save, data, pending.actionId, ctx.session.rng);
+    return startExploreCommand(save, data, pending.actionId, ctx.session.rng, ctx.session.now());
   });
   let choices;
   if (o.kind === 'choice') {
@@ -116,14 +117,18 @@ function eventCard(ctx, loc) {
 }
 
 export default {
-  nav: 'here',
+  nav: 'adventure',
   render(ctx, params, state) {
     const { data, save, session } = ctx;
-    if (isInTown(save) || save.dungeonRun) {
-      queueMicrotask(() => ctx.go(save.dungeonRun ? 'dungeon' : 'town', {}, { reset: true }));
+    if (save.dungeonRun) {
+      queueMicrotask(() => ctx.go('dungeon', {}, { reset: true }));
       return h('section');
     }
-    const nodeId = currentNodeId(save);
+    const nodeId = params.locationId ?? save.exploration.adventureId ?? currentNodeId(save);
+    if (!data.has('locations', nodeId)) {
+      queueMicrotask(() => ctx.go('travel', {}, { reset: true }));
+      return h('section');
+    }
     const loc = data.get('locations', nodeId);
     const weather = data.find('weathers', weatherAt(save, data, nodeId));
     const region = data.find('regions', loc.region);
@@ -134,7 +139,7 @@ export default {
     const doAction = (actionId) => {
       if (state.processing || save.exploration.pendingEvent) return;
       state.processing = true;
-      const ok = ctx.act(() => startExploreCommand(save, data, actionId, session.rng));
+      const ok = ctx.act(() => startExploreCommand(save, data, actionId, session.rng, session.now()));
       state.processing = false;
       return ok;
     };
@@ -146,7 +151,7 @@ export default {
         'button',
         { type: 'button', class: `action-btn${id === 'explore' ? ' primary-command' : ''}`, disabled: ap < cost.ap || hasPending || state.processing, onClick: () => doAction(id) },
         h('span', { class: 'action-name' }, a.name),
-        h('span', { class: 'action-cost', 'aria-label': `行動力${cost.ap}` }, `行動力 ${cost.ap}`),
+        h('span', { class: 'action-cost', 'aria-label': `スタミナ${cost.ap}` }, `スタミナ ${cost.ap}`),
         h('span', { class: 'action-desc' }, a.description),
       );
     });
@@ -164,12 +169,12 @@ export default {
       loc.description ? h('p', { class: 'help' }, loc.description) : null,
       eventCard(ctx, loc),
       partyHpStrip(save, data),
-      h('div', { class: 'command-heading' }, h('strong', {}, '行動を選ぶ'), h('span', {}, `行動力 ${ap}/${save.exploration.maxActionPoints}`)),
+      h('div', { class: 'command-heading' }, h('strong', {}, '行動を選ぶ'), h('span', { class: 'stamina-inline' }, `スタミナ ${ap}/${save.exploration.maxActionPoints}　次 ${formatRecovery(staminaStatus(save, data, session.now()).nextRecoveryMs)}`)),
       actions.length ? h('div', { class: `action-grid${hasPending ? ' has-pending' : ''}` }, actions) : h('p', { class: 'help' }, 'ここでできることはまだない。'),
-      ap === 0 ? h('p', { class: 'notice' }, '行動力がありません。街の宿屋で休むと回復します。') : null,
+      ap === 0 ? h('p', { class: 'notice' }, 'スタミナがありません。30秒ごとに1回復します。') : null,
       hasPending ? null : optionalStrongEncounters(ctx, loc, state),
       hasPending ? null : dungeonEntry(ctx, nodeId),
-      h('button', { type: 'button', class: 'btn btn-block move-btn', disabled: hasPending, onClick: () => ctx.go('travel') }, '移動する'),
+      h('button', { type: 'button', class: 'btn btn-block move-btn', disabled: hasPending, onClick: () => ctx.go('travel', {}, { reset: true }) }, '冒険先一覧へ'),
     );
   },
 };

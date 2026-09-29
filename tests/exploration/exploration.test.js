@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRng } from '../../src/core/rng.js';
 import { advanceTime, advanceToNextMorning, weatherAt } from '../../src/exploration/time.js';
-import { listConnections, moveTo, currentNodeId } from '../../src/exploration/map.js';
+import { listAdventureDestinations, selectAdventure, currentNodeId } from '../../src/exploration/map.js';
 import { performExploreAction, startExploreCommand, clearExploreEvent, resolveExploreChoice, EXPLORE_ACTIONS } from '../../src/exploration/actions.js';
 import { rollEncounter, possibleMonsters } from '../../src/exploration/encounters.js';
 import { matchesWhen } from '../../src/exploration/when.js';
@@ -47,42 +47,49 @@ test('天候は地域ごとに抽選され、seedが同じなら同じ', async (
   assert.ok(a.data.has('weathers', weatherAt(a.save, a.data, 'loc_001')));
 });
 
-// ---------------------------------------------------------------- 移動
+// ---------------------------------------------------------------- 冒険先選択
 
-test('街から地点へ移動すると時間が進み、行動力は減らない', async () => {
+test('冒険先を選んでも時間とスタミナは減らない', async () => {
   const { data, save } = await newGameFixture();
   const ap = save.exploration.actionPoints;
-  moveTo(save, data, 'loc_001', createRng(1));
+  const time = structuredClone(save.exploration.time);
+  selectAdventure(save, data, 'loc_001');
   assert.equal(currentNodeId(save), 'loc_001');
-  assert.equal(save.exploration.time.tick, 1);
+  assert.deepEqual(save.exploration.time, time);
   assert.equal(save.exploration.actionPoints, ap);
   assert.ok(save.exploration.discoveredNodes.includes('loc_001'));
 });
 
-test('つながっていない場所へは行けない', async () => {
+test('接続関係に関係なく解放済みの冒険先を直接選べる', async () => {
   const { data, save } = await newGameFixture();
-  assert.throws(() => moveTo(save, data, 'loc_003', createRng(1)), /行けません/);
+  selectAdventure(save, data, 'loc_003');
+  assert.equal(save.exploration.adventureId, 'loc_003');
 });
 
-test('条件付きの道はフラグが立つまで通れない', async () => {
+test('条件付き冒険先はフラグが立つまで選べない', async () => {
   const { data, save } = await newGameFixture();
-  const rng = createRng(1);
-  for (const to of ['loc_001', 'loc_002', 'loc_003']) moveTo(save, data, to, rng);
-  const toRuins = listConnections(save, data).find((c) => c.to === 'loc_004');
+  const toRuins = listAdventureDestinations(save, data).find((c) => c.id === 'loc_004');
   assert.equal(toRuins.locked, true);
-  assert.throws(() => moveTo(save, data, 'loc_004', rng), /通れない/);
+  assert.throws(() => selectAdventure(save, data, 'loc_004'), /解放/);
   save.flags.flag_002 = true;
-  moveTo(save, data, 'loc_004', rng);
+  selectAdventure(save, data, 'loc_004');
   assert.equal(currentNodeId(save), 'loc_004');
 });
 
-test('地点から街へ戻れる', async () => {
+test('冒険先はユニットの現在地を変更しない', async () => {
   const { data, save } = await newGameFixture();
-  const rng = createRng(1);
-  moveTo(save, data, 'loc_001', rng);
-  moveTo(save, data, 'town_001', rng);
+  selectAdventure(save, data, 'loc_001');
   assert.equal(save.exploration.locationId, null);
-  assert.equal(currentNodeId(save), 'town_001');
+  assert.equal(save.exploration.townId, 'town_001');
+});
+
+test('任意強敵は冒険先を選ぶだけで直接挑戦用データを参照できる', async () => {
+  const { data, save } = await newGameFixture();
+  selectAdventure(save, data, 'loc_001');
+  const strong = data.get('locations', save.exploration.adventureId).optionalEncounters[0];
+  assert.equal(strong.id, 'strong_001');
+  assert.ok(strong.enemies.length > 0);
+  assert.equal(save.exploration.locationId, null);
 });
 
 // ---------------------------------------------------------------- 探索行動
@@ -90,8 +97,7 @@ test('地点から街へ戻れる', async () => {
 async function atLocation(locId, seed = 1) {
   const f = await newGameFixture(seed);
   const rng = createRng(seed);
-  const path = { loc_001: ['loc_001'], loc_002: ['loc_001', 'loc_002'], loc_003: ['loc_001', 'loc_002', 'loc_003'] }[locId];
-  for (const to of path) moveTo(f.save, f.data, to, rng);
+  selectAdventure(f.save, f.data, locId);
   return { ...f, rng };
 }
 
@@ -100,17 +106,17 @@ test('探索行動の定義と balance の設定が一致している', async ()
   assert.deepEqual(Object.keys(EXPLORE_ACTIONS).sort(), Object.keys(data.balance.exploration.actions).sort());
 });
 
-test('探索行動は行動力を消費し、時間が進む', async () => {
+test('探索行動はスタミナを消費し、時間が進む', async () => {
   const { data, save, rng } = await atLocation('loc_001');
   const tick = save.exploration.time.tick;
   performExploreAction(save, data, 'gather', rng);
-  assert.equal(save.exploration.actionPoints, 5);
+  assert.equal(save.exploration.actionPoints, data.balance.actionPoints.initial - 1);
   assert.equal(save.exploration.time.tick, tick + 1);
   performExploreAction(save, data, 'investigate', rng);
-  assert.equal(save.exploration.actionPoints, 3);
+  assert.equal(save.exploration.actionPoints, data.balance.actionPoints.initial - 3);
 });
 
-test('コマンド式探索は1回の入力につき1回だけ行動力を消費する', async () => {
+test('コマンド式探索は1回の入力につき1回だけスタミナを消費する', async () => {
   const { data, save, rng } = await atLocation('loc_001');
   const before = save.exploration.actionPoints;
   const first = startExploreCommand(save, data, 'searchMonsters', rng);
@@ -159,16 +165,16 @@ test('データ定義の小イベント選択肢は追加APなしで報酬を1�
   assert.equal(countItem(save, 'item_001', 'q1'), beforeItems + 1);
 });
 
-test('行動力が足りなければ行動できない', async () => {
+test('スタミナが足りなければ行動できない', async () => {
   const { data, save, rng } = await atLocation('loc_001');
   save.exploration.actionPoints = 1;
-  assert.throws(() => performExploreAction(save, data, 'investigate', rng), /行動力が足りません/);
+  assert.throws(() => performExploreAction(save, data, 'investigate', rng), /スタミナが足りません/);
   assert.equal(save.exploration.actionPoints, 1);
 });
 
-test('街の中では探索できない', async () => {
+test('冒険先を選んでいなければ探索できない', async () => {
   const { data, save } = await newGameFixture();
-  assert.throws(() => performExploreAction(save, data, 'gather', createRng(1)), /街の中/);
+  assert.throws(() => performExploreAction(save, data, 'gather', createRng(1)), /冒険先を選んで/);
 });
 
 test('採取すると品質つきでアイテムが増え、入手場所が記録される', async () => {
@@ -213,7 +219,7 @@ test('丘を調べ続けると遺跡への道が開く', async () => {
     performExploreAction(save, data, 'investigate', rng);
   }
   assert.equal(save.flags.flag_002, true);
-  assert.equal(listConnections(save, data).find((c) => c.to === 'loc_004').locked, false);
+  assert.equal(listAdventureDestinations(save, data).find((c) => c.id === 'loc_004').locked, false);
 });
 
 // ---------------------------------------------------------------- エンカウント・条件

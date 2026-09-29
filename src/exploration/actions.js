@@ -1,6 +1,6 @@
 /**
  * 地点での探索行動。地点データの actions に書いた行動だけが使える。
- * 行動力と進む時間は balance.exploration.actions で調整する。
+ * スタミナと進む時間は balance.exploration.actions で調整する。
  *
  * 新しい行動を追加するときは:
  *   1. EXPLORE_ACTIONS に1件追加（run が結果を返す）
@@ -21,7 +21,8 @@ import { aliveMembers } from '../progression/hp.js';
 import { rollEncounter } from './encounters.js';
 import { matchesWhen } from './when.js';
 import { advanceTime, situationAt } from './time.js';
-import { currentNodeId, isInTown } from './map.js';
+import { currentNodeId } from './map.js';
+import { spendStamina, syncStamina } from './stamina.js';
 
 function encounter(c, encounterTableId = c.node.encounterTableId) {
   if (!encounterTableId) return null;
@@ -84,7 +85,7 @@ function locationExploreEvent(c) {
 export const EXPLORE_ACTIONS = {
   explore: {
     name: '探索する',
-    description: '辺りを歩き回る。モンスターに出会ったり、何かを拾ったりする。',
+    description: 'この冒険先を探索する。敵や宝、出来事が見つかる。',
     mayBattle: true,
     run(c) {
       const event = locationExploreEvent(c);
@@ -141,19 +142,18 @@ export const EXPLORE_ACTIONS = {
 };
 
 /**
- * 行動を実行する（行動力消費・時間経過・入手の反映まで）。
+ * 行動を実行する（スタミナ消費・時間経過・入手の反映まで）。
  * 戦闘になった場合は outcome.kind === 'encounter' を返すので、画面側で戦闘を始める。
  */
-export function performExploreAction(save, data, actionId, rng) {
-  if (isInTown(save)) throw new GameError('in_town', '街の中では探索できません');
+export function performExploreAction(save, data, actionId, rng, now = Date.now()) {
   const nodeId = currentNodeId(save);
+  if (!data.has('locations', nodeId)) throw new GameError('no_adventure', '先に冒険先を選んでください');
   const node = data.get('locations', nodeId);
   const action = EXPLORE_ACTIONS[actionId];
   if (!action || !(node.actions ?? []).includes(actionId)) throw new GameError('no_action', 'ここではその行動はできません');
   const cost = data.balance.exploration.actions[actionId];
-  if (save.exploration.actionPoints < cost.ap) {
-    throw new GameError('not_enough_ap', `行動力が足りません（必要 ${cost.ap}）。街の宿屋で休むと回復します`);
-  }
+  syncStamina(save, data, now);
+  if (save.exploration.actionPoints < cost.ap) throw new GameError('not_enough_ap', `スタミナが足りません（必要 ${cost.ap}）`);
   if (action.mayBattle && aliveMembers(save, data).length === 0) {
     throw new GameError('party_down', 'パーティが全員倒れています。街の宿屋で休んでください');
   }
@@ -162,7 +162,7 @@ export function performExploreAction(save, data, actionId, rng) {
   const weather = data.find('weathers', situation.weatherId);
   const outcome = action.run({ save, data, rng, node, situation, weather });
 
-  save.exploration.actionPoints -= cost.ap;
+  spendStamina(save, data, cost.ap, now);
   for (const it of outcome.items ?? []) addItem(save, data, it.itemId, it.qty, it.quality, nodeId);
   for (const c of outcome.currencies ?? []) addCurrency(save, data, c.currencyId, c.qty);
   if (outcome.kind === 'secret') save.flags[outcome.flag] = true;
@@ -172,11 +172,11 @@ export function performExploreAction(save, data, actionId, rng) {
 
 /**
  * コマンド式探索の開始。未解決カードがある間は次の行動を受け付けないため、
- * ダブルタップでも行動力・報酬が二重反映されない。
+ * ダブルタップでもスタミナ・報酬が二重反映されない。
  */
-export function startExploreCommand(save, data, actionId, rng) {
+export function startExploreCommand(save, data, actionId, rng, now = Date.now()) {
   if (save.exploration.pendingEvent) throw new GameError('pending_event', '先に現在の探索結果を確認してください');
-  const result = performExploreAction(save, data, actionId, rng);
+  const result = performExploreAction(save, data, actionId, rng, now);
   save.exploration.pendingEvent = structuredClone(result);
   return result;
 }

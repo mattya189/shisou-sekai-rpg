@@ -45,7 +45,7 @@ src/
   save/             セーブの形・マイグレーション・保存先
   progression/      ユニット入手・レベル・ランク（ランクアップ）・特技セット・編成・装備（強化）・アイテム・品質・HP・消耗品・図鑑記録
   battle/           戦闘エンジン・発動条件・効果・状態異常・パッシブ
-  exploration/      地点移動・探索行動・時間・天候・エンカウント・出現条件・連戦ダンジョン
+  exploration/      冒険先選択・スタミナ・探索行動・時間・天候・エンカウント・連戦ダンジョン
   town/             ショップ・製作
   events/           イベント（住民・酒場・街探索）
   codex/            図鑑（段階解放・入手方法の逆引き）
@@ -69,7 +69,7 @@ AGENTS.md           AIエージェント（Codex等）向けの作業ルール
 | [docs/README.md](docs/README.md) | ゲーム概要とPhaseの進み具合 |
 | [docs/architecture.md](docs/architecture.md) | 構成・主要システム・データの流れ |
 | [docs/battle-system.md](docs/battle-system.md) | 攻撃回数型戦闘の仕様 |
-| [docs/exploration-system.md](docs/exploration-system.md) | フィールド・行動力・時間・天候・エンカウント |
+| [docs/exploration-system.md](docs/exploration-system.md) | 冒険先・スタミナ・時間・天候・エンカウント |
 | [docs/content-guide.md](docs/content-guide.md) | 新しいコンテンツの追加方法 |
 | [docs/monster-development-guide.md](docs/monster-development-guide.md) | モンスター追加の標準手順・短縮依頼テンプレート |
 | [docs/save-data.md](docs/save-data.md) | セーブデータの構造とバージョン管理 |

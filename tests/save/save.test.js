@@ -53,7 +53,7 @@ test('欠けている項目は初期値で補完され、未知の項目は残�
   const partial = { saveVersion: 1, units: { mon_001: { defId: 'mon_001', level: 5 } }, futureField: { x: 1 } };
   const s = normalizeSave(partial);
   assert.deepEqual(s.inventory.items, {});
-  assert.equal(s.exploration.actionPoints, 6);
+  assert.equal(s.exploration.actionPoints, 300);
   assert.equal(s.units.mon_001.level, 5);
   assert.equal(s.units.mon_001.rank, 1);
   assert.deepEqual(s.units.mon_001.equippedSkills, []);

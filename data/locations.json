@@ -202,6 +202,8 @@
     "name": "（仮）遺跡の入口",
     "kind": "dungeonEntrance",
     "description": "（仮）テキスト。奥に遺跡（ダンジョン）がある。",
+    "adventureRequires": { "flags": ["flag_002"] },
+    "adventureLockedHint": "丘を詳しく調べると解放される",
     "connections": [
       {
         "to": "loc_003",

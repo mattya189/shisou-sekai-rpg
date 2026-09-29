@@ -134,7 +134,7 @@ const SECTIONS = [
   function recovery(ctx) {
     const { save } = ctx;
     return section(
-      '行動力・HP',
+      'スタミナ・HP',
       row(
         h(
           'button',
@@ -144,9 +144,9 @@ const SECTIONS = [
             onClick: () =>
               ctx.act(() => {
                 save.exploration.actionPoints = save.exploration.maxActionPoints;
-              }, '行動力を回復しました'),
+              }, 'スタミナを回復しました'),
           },
-          '行動力を全回復',
+          'スタミナを全回復',
         ),
         h('button', { type: 'button', class: 'btn btn-small', onClick: () => ctx.act(() => healAllUnits(save), 'HPを全回復しました') }, 'HPを全回復'),
       ),

@@ -134,8 +134,9 @@
     }
   ],
   "actionPoints": {
-    "initial": 6,
-    "cap": 10
+    "initial": 300,
+    "cap": 300,
+    "recoverySeconds": 30
   },
   "exploration": {
     "actions": {

@@ -1,6 +1,5 @@
 import { h } from '../dom.js';
 import { SaveLoadError } from '../../save/saveRepository.js';
-import { isInTown } from '../../exploration/map.js';
 
 export default {
   nav: null,
@@ -12,7 +11,7 @@ export default {
     const cont = () => {
       try {
         const save = session.continueGame();
-        ctx.go(save.dungeonRun ? 'dungeon' : isInTown(save) ? 'town' : 'location', {}, { reset: true });
+        ctx.go(save.dungeonRun ? 'dungeon' : save.exploration.adventureId ? 'location' : 'town', {}, { reset: true });
       } catch (e) {
         if (!(e instanceof SaveLoadError)) throw e;
         state.error = e.message;

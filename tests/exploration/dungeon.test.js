@@ -25,13 +25,13 @@ function fightStage(data, save, rng, seed) {
   return { b, progress: afterDungeonBattle(save, data, b), params };
 }
 
-test('鍵がないと入れない。鍵があれば行動力2で入れる', async () => {
+test('鍵がないと入れない。鍵があればスタミナ2で入れる', async () => {
   const { data, save, rng } = await atEntrance();
   assert.equal(dungeonEntryStatus(save, data, 'dgn_001').ok, false);
   assert.throws(() => enterDungeon(save, data, 'dgn_001', rng), /鍵/);
   addItem(save, data, 'item_010', 1);
   enterDungeon(save, data, 'dgn_001', rng);
-  assert.equal(save.exploration.actionPoints, 4);
+  assert.equal(save.exploration.actionPoints, data.balance.actionPoints.initial - data.balance.dungeon.enterAp);
   assert.deepEqual(save.dungeonRun, { dungeonId: 'dgn_001', stage: 0, mp: {} });
 });
 

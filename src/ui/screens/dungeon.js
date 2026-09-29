@@ -9,7 +9,7 @@ import { partyMembers } from '../../progression/party.js';
 import { unitStats } from '../../progression/stats.js';
 
 export default {
-  nav: 'here',
+  nav: 'adventure',
   render(ctx, params, state) {
     const { data, save, session } = ctx;
     const run = save.dungeonRun;
@@ -21,7 +21,7 @@ export default {
         { class: 'dungeon-screen' },
         h('div', { class: 'location-hero' }, h('h1', { class: 'location-name' }, d?.name ?? 'ダンジョン')),
         h('p', { class: 'notice' }, params.cleared ? '最深部の敵を倒し、ダンジョンを踏破した！' : 'ダンジョンから出た。'),
-        h('button', { type: 'button', class: 'btn btn-primary btn-block', onClick: () => ctx.go(save.exploration.locationId ? 'location' : 'town', {}, { reset: true }) }, '外へ'),
+        h('button', { type: 'button', class: 'btn btn-primary btn-block', onClick: () => ctx.go(save.exploration.adventureId ? 'location' : 'travel', {}, { reset: true }) }, '冒険先へ戻る'),
       );
     }
 

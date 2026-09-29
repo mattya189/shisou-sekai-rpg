@@ -14,7 +14,7 @@ const TABS = [
 ];
 
 export default {
-  nav: 'here',
+  nav: 'home',
   render(ctx, params, state) {
     const { data, save, session } = ctx;
     const shopId = params.shopId;

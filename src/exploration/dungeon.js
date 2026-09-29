@@ -1,7 +1,7 @@
 /**
  * 連戦ダンジョン（dungeons.json）。
  *
- *   入口の地点で「入る」→ 行動力 balance.dungeon.enterAp を使う
+ *   冒険先の入口で「入る」→ スタミナ balance.dungeon.enterAp を使う
  *   stages を順番に戦う（encounterTableId なら抽選、bossId ならボス）
  *   HPもMPも戦闘ごとに回復しない（MPは dungeonRun.mp に保存して次の戦闘へ持ち越す）
  *   戦闘の合間に撤退できる。最後のステージに勝つと踏破
@@ -16,6 +16,7 @@ import { battleResult } from '../battle/engine.js';
 import { rollEncounter } from './encounters.js';
 import { currentNodeId } from './map.js';
 import { advanceTime, situationAt } from './time.js';
+import { spendStamina, syncStamina } from './stamina.js';
 
 export function dungeonAt(data, nodeId) {
   const node = data.findNode(nodeId);
@@ -23,24 +24,25 @@ export function dungeonAt(data, nodeId) {
 }
 
 /** 入れるかどうかと理由 */
-export function dungeonEntryStatus(save, data, dungeonId) {
+export function dungeonEntryStatus(save, data, dungeonId, now = Date.now()) {
   const d = data.get('dungeons', dungeonId);
   const missing = (d.requires?.items ?? []).filter((id) => countItem(save, id) <= 0);
   const missingFlags = (d.requires?.flags ?? []).filter((f) => !save.flags[f]);
   const ap = data.balance.dungeon.enterAp;
+  syncStamina(save, data, now);
   if (missing.length || missingFlags.length) return { ok: false, reason: d.lockedHint ?? 'まだ入れない' };
-  if (save.exploration.actionPoints < ap) return { ok: false, reason: `行動力が足りません（必要 ${ap}）` };
+  if (save.exploration.actionPoints < ap) return { ok: false, reason: `スタミナが足りません（必要 ${ap}）` };
   if (aliveMembers(save, data).length === 0) return { ok: false, reason: 'パーティが全員倒れています' };
   return { ok: true, reason: null };
 }
 
-export function enterDungeon(save, data, dungeonId, rng) {
+export function enterDungeon(save, data, dungeonId, rng, now = Date.now()) {
   if (save.dungeonRun) throw new GameError('in_dungeon', 'すでにダンジョンの中です');
   const d = data.get('dungeons', dungeonId);
   if (currentNodeId(save) !== d.entranceNodeId) throw new GameError('not_here', 'ここからは入れません');
-  const st = dungeonEntryStatus(save, data, dungeonId);
+  const st = dungeonEntryStatus(save, data, dungeonId, now);
   if (!st.ok) throw new GameError('cannot_enter', st.reason);
-  save.exploration.actionPoints -= data.balance.dungeon.enterAp;
+  spendStamina(save, data, data.balance.dungeon.enterAp, now);
   save.dungeonRun = { dungeonId, stage: 0, mp: {} };
   advanceTime(save, data, 1, rng);
   return save.dungeonRun;

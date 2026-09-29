@@ -2,7 +2,7 @@ import { h } from '../dom.js';
 import { openFacility } from '../facilities.js';
 
 export default {
-  nav: 'here',
+  nav: 'home',
   render(ctx) {
     const { data, save } = ctx;
     const town = data.get('towns', save.exploration.townId);

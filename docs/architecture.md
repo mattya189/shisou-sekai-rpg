@@ -14,7 +14,7 @@ ui/  debug/            画面。session と各ロジックの関数を呼ぶ
   ↓
 game/                  セッション・新規ゲーム作成・戦闘結果の反映・加入判定・宿屋（複数の仕組みをまとめる処理）
   ↓
-exploration/ town/ events/ codex/  地点移動・探索行動・時間・天候・エンカウント・ダンジョン / ショップ・製作 / イベント / 図鑑
+exploration/ town/ events/ codex/  冒険先選択・スタミナ・探索行動・時間・天候・エンカウント・ダンジョン / ショップ・製作 / イベント / 図鑑
 progression/  battle/  ルール（入手・育成・編成・装備・アイテム・HP / 戦闘）
   ↓
 save/  core/           セーブの形と読み書き / データ読み込み・検証・乱数
@@ -41,7 +41,7 @@ save/  core/           セーブの形と読み書き / データ読み込み・
 | `src/battle/combatant.js` | 戦闘ユニットの作成、状態異常とパッシブを反映した実効値 |
 | `src/battle/setup.js` | セーブの編成から味方の参加者を作る |
 | `src/ui/battleLog.js` | 戦闘ログの文章化 |
-| `src/exploration/map.js` `actions.js` `time.js` `encounters.js` `when.js` | 移動、探索行動レジストリ、時間と天候、エンカウント抽選、出現条件 |
+| `src/exploration/map.js` `stamina.js` `actions.js` `time.js` `encounters.js` `when.js` | 冒険先選択、時間回復スタミナ、探索行動レジストリ、時間と天候、エンカウント抽選、出現条件 |
 | `src/game/battleOutcome.js` | 戦闘結果をセーブに反映（HP・経験値・ゴールド・ドロップ・加入・全滅） |
 | `src/game/recruit.js` `inn.js` | 加入判定、宿屋 |
 | `src/progression/hp.js` `quality.js` `consumables.js` | フィールドの現在HP、品質抽選、消耗品の使用レジストリ |

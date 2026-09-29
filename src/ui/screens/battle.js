@@ -501,7 +501,7 @@ export default {
               ? h('button', { type: 'button', class: 'btn', onClick: () => ctx.go('inventory', { tab: 'equipment' }) }, '装備確認')
               : null,
             isFieldResult && !sm.returnedToTown
-              ? h('button', { type: 'button', class: 'btn', onClick: () => ctx.go('travel', {}, { reset: true }) }, '戻る')
+              ? h('button', { type: 'button', class: 'btn', onClick: () => ctx.go('travel', {}, { reset: true }) }, '冒険先一覧へ')
               : h('button', { type: 'button', class: 'btn btn-primary', onClick: leave }, leaveLabel),
           ),
         ),

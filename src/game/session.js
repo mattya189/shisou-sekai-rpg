@@ -4,17 +4,19 @@
  */
 import { createRng } from '../core/rng.js';
 import { createNewGame } from './newGame.js';
+import { syncStamina } from '../exploration/stamina.js';
 
 export class Session {
   /**
    * @param {import('../core/gameData.js').GameData} data
    * @param {import('../save/saveRepository.js').SaveRepository} repo
-   * @param {{ seed?: number }} [opts]
+   * @param {{ seed?: number, now?: () => number }} [opts]
    */
   constructor(data, repo, opts = {}) {
     this.data = data;
     this.repo = repo;
     this.rng = createRng(opts.seed);
+    this.now = opts.now ?? (() => Date.now());
     /** @type {any} */
     this.save = null;
     this.listeners = new Set();
@@ -26,11 +28,13 @@ export class Session {
 
   continueGame() {
     this.save = this.repo.load();
+    const result = syncStamina(this.save, this.data, this.now());
+    if (result.changed) this.commit();
     return this.save;
   }
 
   startNewGame() {
-    this.save = createNewGame(this.data, this.rng);
+    this.save = createNewGame(this.data, this.rng, { now: this.now() });
     this.commit();
     return this.save;
   }
