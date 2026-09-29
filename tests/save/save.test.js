@@ -22,6 +22,11 @@ test('新規ゲームは balance.newGame どおりに始まる', async () => {
 
 test('保存して読み込むと同じ内容に戻る', async () => {
   const { save } = await newGameFixture();
+  save.exploration.pendingEvent = {
+    actionId: 'explore',
+    nodeId: 'loc_001',
+    outcome: { kind: 'encounter', enemies: [{ defId: 'mon_001', level: 1 }] },
+  };
   const repo = new SaveRepository(createMemoryStorage(), { now: () => '2026-01-01T00:00:00.000Z' });
   assert.equal(repo.hasSave(), false);
   repo.save(save);
@@ -63,7 +68,7 @@ test('JSONとして読めても型が壊れたセーブは安全な既定値へ�
     units: { mon_001: 'broken' },
     party: 'broken',
     inventory: { items: [], equipment: null, currencies: 'broken' },
-    exploration: { discoveredNodes: {}, time: [], weather: null },
+    exploration: { discoveredNodes: {}, time: [], weather: null, pendingEvent: 'broken' },
     flags: [],
     dungeonRun: 'broken',
   };
@@ -73,6 +78,7 @@ test('JSONとして読めても型が壊れたセーブは安全な既定値へ�
   assert.deepEqual(s.exploration.discoveredNodes, []);
   assert.deepEqual(s.exploration.time, { day: 1, period: 'morning', tick: 0 });
   assert.deepEqual(s.exploration.weather, {});
+  assert.equal(s.exploration.pendingEvent, null);
   assert.deepEqual(s.flags, {});
   assert.equal(s.dungeonRun, null);
   assert.equal(s.units.mon_001.defId, 'mon_001');

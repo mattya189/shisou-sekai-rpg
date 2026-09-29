@@ -46,6 +46,8 @@ export function createEmptySave() {
       time: { day: 1, period: 'morning', tick: 0 },
       /** { region_001: 'sunny' } Phase 4 で使用 */
       weather: {},
+      /** コマンド式探索で表示中のイベント。解決前の連打・リロードによる二重反映を防ぐ。 */
+      pendingEvent: null,
     },
     recruit: {
       /** { mon_001: 3 } 加入失敗の蓄積回数 */
@@ -125,6 +127,9 @@ export function normalizeSave(save) {
   if (out.dungeonRun !== null && !isPlainObject(out.dungeonRun)) out.dungeonRun = null;
   if (isPlainObject(out.dungeonRun)) {
     out.dungeonRun = fillDefaults(out.dungeonRun, { dungeonId: null, stage: 0, mp: {} });
+  }
+  if (out.exploration.pendingEvent !== null && !isPlainObject(out.exploration.pendingEvent)) {
+    out.exploration.pendingEvent = null;
   }
   return out;
 }

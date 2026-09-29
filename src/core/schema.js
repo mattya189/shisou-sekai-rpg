@@ -156,6 +156,12 @@ export const CATEGORY_SCHEMAS = {
       ['encounterTableId', 'encounters'],
       ['gathering[].itemId', 'items'],
       ['gathering[].when.weathers[]', 'weathers'],
+      ['explorationEvents[].rewards.items[].itemId', 'items'],
+      ['explorationEvents[].rewards.currencies[].currencyId', 'currencies'],
+      ['explorationEvents[].encounterTableId', 'encounters'],
+      ['explorationEvents[].choices[].encounterTableId', 'encounters'],
+      ['explorationEvents[].choices[].rewards.items[].itemId', 'items'],
+      ['explorationEvents[].choices[].rewards.currencies[].currencyId', 'currencies'],
       ['secrets[].rewards.items[].itemId', 'items'],
       ['secrets[].rewards.currencies[].currencyId', 'currencies'],
       ['dungeonId', 'dungeons'],
@@ -171,6 +177,35 @@ export const CATEGORY_SCHEMAS = {
       const needsTable = (entry.actions ?? []).some((a) => a === 'explore' || a === 'searchMonsters');
       if (needsTable && !entry.encounterTableId) ctx.error('探索・モンスター捜索ができる地点には encounterTableId が必要です');
       (entry.gathering ?? []).forEach((g, i) => checkWhen(g.when, `gathering[${i}].when`, ctx));
+      const eventTypes = new Set(['encounter', 'gather', 'treasure', 'nothing', 'message', 'choice']);
+      (entry.explorationEvents ?? []).forEach((event, i) => {
+        if (!event.id || !event.type || !(event.weight > 0) || !event.message) {
+          ctx.error(`explorationEvents[${i}] には id / type / 正のweight / message が必要です`);
+        }
+        if (event.type === 'strongHint') {
+          if (!(entry.optionalEncounters ?? []).some((enc) => enc.id === event.optionalEncounterId)) {
+            ctx.error(`explorationEvents[${i}].optionalEncounterId "${event.optionalEncounterId}" はこの地点の optionalEncounters にありません`);
+          }
+        } else if (!eventTypes.has(event.type)) {
+          ctx.error(`explorationEvents[${i}].type "${event.type}" は未登録です`);
+        }
+        if (event.times != null && (!Number.isInteger(event.times) || event.times < 1 || event.times > 5)) {
+          ctx.error(`explorationEvents[${i}].times は1〜5の整数にしてください`);
+        }
+        if (event.type === 'choice') {
+          if (!event.choices?.length) ctx.error(`explorationEvents[${i}].choices は1件以上必要です`);
+          const choiceIds = new Set();
+          for (const [j, choice] of (event.choices ?? []).entries()) {
+            if (!choice.id || !choice.label || !choice.message) ctx.error(`explorationEvents[${i}].choices[${j}] には id / label / message が必要です`);
+            if (choiceIds.has(choice.id)) ctx.error(`explorationEvents[${i}].choices の id "${choice.id}" が重複しています`);
+            choiceIds.add(choice.id);
+            if (choice.optionalEncounterId && !(entry.optionalEncounters ?? []).some((enc) => enc.id === choice.optionalEncounterId)) {
+              ctx.error(`explorationEvents[${i}].choices[${j}].optionalEncounterId "${choice.optionalEncounterId}" はこの地点にありません`);
+            }
+          }
+        }
+        checkWhen(event.when, `explorationEvents[${i}].when`, ctx);
+      });
       (entry.secrets ?? []).forEach((sc, i) => {
         if (!FLAG_PATTERN.test(sc.flag ?? '')) ctx.error(`secrets[${i}].flag は flag_001 の形式にしてください`);
         checkWhen(sc.when, `secrets[${i}].when`, ctx);

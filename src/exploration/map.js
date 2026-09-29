@@ -43,6 +43,7 @@ export function listConnections(save, data) {
 }
 
 export function moveTo(save, data, toId, rng) {
+  if (save.exploration.pendingEvent) throw new GameError('pending_event', '先に現在の探索結果を確認してください');
   const conn = listConnections(save, data).find((c) => c.to === toId);
   if (!conn) throw new GameError('not_connected', 'そこへは行けません');
   if (conn.locked) throw new GameError('locked', conn.hint ? `まだ通れない。${conn.hint}` : 'まだ通れません');
@@ -65,4 +66,5 @@ export function moveTo(save, data, toId, rng) {
 /** 全滅などで最後の街へ戻す */
 export function returnToTown(save) {
   save.exploration.locationId = null;
+  save.exploration.pendingEvent = null;
 }

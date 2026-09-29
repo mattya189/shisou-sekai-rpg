@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRng } from '../../src/core/rng.js';
 import { advanceTime, advanceToNextMorning, weatherAt } from '../../src/exploration/time.js';
 import { listConnections, moveTo, currentNodeId } from '../../src/exploration/map.js';
-import { performExploreAction, EXPLORE_ACTIONS } from '../../src/exploration/actions.js';
+import { performExploreAction, startExploreCommand, clearExploreEvent, resolveExploreChoice, EXPLORE_ACTIONS } from '../../src/exploration/actions.js';
 import { rollEncounter, possibleMonsters } from '../../src/exploration/encounters.js';
 import { matchesWhen } from '../../src/exploration/when.js';
 import { rollQuality } from '../../src/progression/quality.js';
@@ -108,6 +108,55 @@ test('探索行動は行動力を消費し、時間が進む', async () => {
   assert.equal(save.exploration.time.tick, tick + 1);
   performExploreAction(save, data, 'investigate', rng);
   assert.equal(save.exploration.actionPoints, 3);
+});
+
+test('コマンド式探索は1回の入力につき1回だけ行動力を消費する', async () => {
+  const { data, save, rng } = await atLocation('loc_001');
+  const before = save.exploration.actionPoints;
+  const first = startExploreCommand(save, data, 'searchMonsters', rng);
+  assert.equal(first.outcome.kind, 'encounter');
+  assert.equal(save.exploration.actionPoints, before - data.balance.exploration.actions.searchMonsters.ap);
+  const after = save.exploration.actionPoints;
+  assert.throws(() => startExploreCommand(save, data, 'searchMonsters', rng), /現在の探索結果/);
+  assert.equal(save.exploration.actionPoints, after);
+  clearExploreEvent(save);
+  assert.equal(save.exploration.pendingEvent, null);
+});
+
+test('探索イベントはseed固定時に同じ結果になり、未解決イベントを保存できる', async () => {
+  const a = await atLocation('loc_001', 77);
+  const b = await atLocation('loc_001', 77);
+  const ra = startExploreCommand(a.save, a.data, 'explore', a.rng);
+  const rb = startExploreCommand(b.save, b.data, 'explore', b.rng);
+  assert.deepEqual(ra.outcome, rb.outcome);
+  assert.deepEqual(a.save.exploration.pendingEvent, ra);
+});
+
+test('地点の探索イベント表は将来の追加をデータだけで行える', async () => {
+  const data = await loadRealData();
+  for (const loc of data.list('locations')) {
+    assert.ok(loc.explorationEvents?.length > 0);
+    assert.ok(loc.explorationEvents.every((event) => event.id && event.type && event.weight > 0 && event.message));
+  }
+});
+
+test('データ定義の小イベント選択肢は追加APなしで報酬を1回だけ反映する', async () => {
+  const { data, save } = await atLocation('loc_002');
+  const beforeAp = save.exploration.actionPoints;
+  const beforeItems = countItem(save, 'item_001', 'q1');
+  save.exploration.pendingEvent = {
+    actionId: 'explore',
+    nodeId: 'loc_002',
+    outcome: {
+      kind: 'choice',
+      choices: [{ id: 'take', label: '拾う', message: '拾った。', rewards: { items: [{ itemId: 'item_001', quality: 'q1', qty: 1 }] } }],
+    },
+  };
+  resolveExploreChoice(save, data, 'take');
+  assert.equal(save.exploration.actionPoints, beforeAp);
+  assert.equal(countItem(save, 'item_001', 'q1'), beforeItems + 1);
+  assert.throws(() => resolveExploreChoice(save, data, 'take'), /選べる探索イベント/);
+  assert.equal(countItem(save, 'item_001', 'q1'), beforeItems + 1);
 });
 
 test('行動力が足りなければ行動できない', async () => {

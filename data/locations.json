@@ -18,6 +18,12 @@
     "region": "region_001",
     "encounterTableId": "enc_001",
     "encounterRate": 0.5,
+    "explorationEvents": [
+      { "id": "loc_001_encounter", "type": "encounter", "weight": 5, "message": "草むらが揺れ、モンスターが姿を現した！" },
+      { "id": "loc_001_gather", "type": "gather", "weight": 3, "message": "道ばたに使えそうな素材を見つけた。" },
+      { "id": "loc_001_quiet", "type": "nothing", "weight": 2, "message": "風が草を揺らしている。今は何も起きないようだ。" },
+      { "id": "loc_001_danger", "type": "strongHint", "weight": 1, "optionalEncounterId": "strong_001", "message": "遠くから、通常の魔物とは違う強い気配を感じる……。" }
+    ],
     "actions": [
       "explore",
       "gather",
@@ -72,6 +78,16 @@
     "region": "region_001",
     "encounterTableId": "enc_002",
     "encounterRate": 0.55,
+    "explorationEvents": [
+      { "id": "loc_002_encounter", "type": "encounter", "weight": 5, "message": "水音に混じって、モンスターの気配が近づいてきた！" },
+      { "id": "loc_002_gather", "type": "gather", "weight": 3, "message": "川辺で素材になりそうなものを拾った。" },
+      { "id": "loc_002_treasure", "type": "treasure", "weight": 1, "times": 2, "qualityBonus": 1, "message": "流れ着いた小さな包みを見つけた。" },
+      { "id": "loc_002_choice", "type": "choice", "weight": 1, "message": "浅瀬に何かが光っている。どうする？", "choices": [
+        { "id": "pick_up", "label": "拾い上げる", "message": "濡れた素材を拾い上げた。", "rewards": { "items": [{ "itemId": "item_001", "qty": 1, "quality": "q1" }] } },
+        { "id": "leave", "label": "立ち去る", "message": "流れを乱さず、その場を離れた。" }
+      ] },
+      { "id": "loc_002_quiet", "type": "nothing", "weight": 2, "message": "川面を眺めたが、特に変わったことはなかった。" }
+    ],
     "actions": [
       "explore",
       "gather",
@@ -143,6 +159,11 @@
     "region": "region_001",
     "encounterTableId": "enc_003",
     "encounterRate": 0.6,
+    "explorationEvents": [
+      { "id": "loc_003_encounter", "type": "encounter", "weight": 6, "message": "丘の陰からモンスターが飛び出してきた！" },
+      { "id": "loc_003_gather", "type": "gather", "weight": 3, "message": "斜面に生えた素材を採取した。" },
+      { "id": "loc_003_quiet", "type": "nothing", "weight": 2, "message": "高い場所から周囲を見渡した。異常はない。" }
+    ],
     "actions": [
       "explore",
       "gather",
@@ -190,6 +211,11 @@
     "region": "region_001",
     "encounterTableId": "enc_004",
     "encounterRate": 0.7,
+    "explorationEvents": [
+      { "id": "loc_004_encounter", "type": "encounter", "weight": 7, "message": "崩れた石壁の奥からモンスターが現れた！" },
+      { "id": "loc_004_treasure", "type": "treasure", "weight": 2, "times": 2, "qualityBonus": 1, "message": "瓦礫の隙間に古い小箱を見つけた。" },
+      { "id": "loc_004_quiet", "type": "nothing", "weight": 1, "message": "遺跡の奥から冷たい風が吹いてくる。" }
+    ],
     "actions": [
       "explore",
       "searchMonsters",

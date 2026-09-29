@@ -1,6 +1,6 @@
 import { h } from '../dom.js';
 import { partyHpStrip } from '../partyHp.js';
-import { performExploreAction, EXPLORE_ACTIONS } from '../../exploration/actions.js';
+import { startExploreCommand, clearExploreEvent, resolveExploreChoice, EXPLORE_ACTIONS } from '../../exploration/actions.js';
 import { currentNodeId, isInTown } from '../../exploration/map.js';
 import { weatherAt } from '../../exploration/time.js';
 import { periodName } from '../format.js';
@@ -57,6 +57,64 @@ function optionalStrongEncounters(ctx, loc, state) {
   )));
 }
 
+function eventCard(ctx, loc) {
+  const { data, save } = ctx;
+  const pending = save.exploration.pendingEvent;
+  if (!pending || pending.nodeId !== loc.id) return null;
+  const o = pending.outcome;
+  const lines = [h('p', { class: 'event-message' }, o.message ?? '何かが起きた。')];
+  if (o.items?.length) lines.push(h('p', { class: 'result-items' }, `${itemsText(data, o.items)} を手に入れた`));
+  if (pending.time?.periodsPassed > 0) lines.push(h('p', { class: 'muted small' }, `${periodName(data, save.exploration.time.period)}になった。`));
+
+  const close = () => ctx.act(() => clearExploreEvent(save));
+  const repeat = () => ctx.act(() => {
+    clearExploreEvent(save);
+    return startExploreCommand(save, data, pending.actionId, ctx.session.rng);
+  });
+  let choices;
+  if (o.kind === 'choice') {
+    choices = o.choices.map((choice) => h(
+      'button',
+      { type: 'button', class: 'btn', onClick: () => ctx.act(() => resolveExploreChoice(save, data, choice.id)) },
+      choice.label,
+    ));
+  } else if (o.kind === 'encounter') {
+    const enemyText = o.enemies.map((enemy) => `${data.get('monsters', enemy.defId).name} Lv.${enemy.level}`).join('、');
+    if (o.observed) lines.push(h('p', { class: 'event-detail' }, enemyText));
+    const fight = () => {
+      const enemies = structuredClone(o.enemies);
+      if (!ctx.act(() => clearExploreEvent(save))) return;
+      ctx.go('battle', { enemies, mode: 'field', source: 'field', returnLocationId: loc.id });
+    };
+    choices = [
+      h('button', { type: 'button', class: 'btn btn-primary', onClick: fight }, '戦う'),
+      h('button', { type: 'button', class: 'btn', disabled: Boolean(o.observed), onClick: () => ctx.act(() => { save.exploration.pendingEvent.outcome.observed = true; }) }, o.observed ? '確認済み' : '様子を見る'),
+      h('button', { type: 'button', class: 'btn', onClick: close }, '逃げる'),
+    ];
+  } else if (o.kind === 'strongHint') {
+    const strong = (loc.optionalEncounters ?? []).find((entry) => entry.id === o.optionalEncounterId);
+    choices = strong ? [
+      h('button', { type: 'button', class: 'btn btn-danger', onClick: () => {
+        if (!ctx.act(() => clearExploreEvent(save))) return;
+        ctx.go('battle', { enemies: strong.enemies, mode: 'field', source: 'optionalStrong', optionalEncounterId: strong.id, returnLocationId: loc.id });
+      } }, '挑戦する'),
+      h('button', { type: 'button', class: 'btn', onClick: close }, '今はやめる'),
+    ] : [h('button', { type: 'button', class: 'btn btn-primary', onClick: close }, '進む')];
+  } else {
+    choices = [
+      h('button', { type: 'button', class: 'btn btn-primary', onClick: repeat }, 'もう一度探索'),
+      h('button', { type: 'button', class: 'btn', onClick: close }, '閉じる'),
+    ];
+  }
+  return h(
+    'div',
+    { class: `exploration-event event-${o.eventType ?? o.kind}`, 'aria-live': 'polite' },
+    h('p', { class: 'event-kicker' }, o.kind === 'encounter' ? 'ENCOUNTER' : o.kind === 'strongHint' ? 'DANGER' : '探索結果'),
+    ...lines,
+    h('div', { class: 'event-choices' }, choices),
+  );
+}
+
 export default {
   nav: 'here',
   render(ctx, params, state) {
@@ -72,34 +130,21 @@ export default {
     const costs = data.balance.exploration.actions;
     const ap = save.exploration.actionPoints;
 
+    const hasPending = Boolean(save.exploration.pendingEvent);
     const doAction = (actionId) => {
-      let r;
-      const ok = ctx.act(() => {
-        r = performExploreAction(save, data, actionId, session.rng);
-        state.last = r;
-      });
-      if (!ok) return;
-      if (r.outcome.kind === 'encounter') {
-        ctx.go('battle', { enemies: r.outcome.enemies, mode: 'field', source: 'field' });
-      }
+      if (state.processing || save.exploration.pendingEvent) return;
+      state.processing = true;
+      const ok = ctx.act(() => startExploreCommand(save, data, actionId, session.rng));
+      state.processing = false;
+      return ok;
     };
-
-    let resultCard = null;
-    const last = state.last;
-    if (last && last.outcome.kind !== 'encounter') {
-      const o = last.outcome;
-      const lines = [h('p', { class: 'result-msg' }, o.message)];
-      if (o.items?.length) lines.push(h('p', { class: 'result-items' }, `${itemsText(data, o.items)} を手に入れた`));
-      if (last.time.periodsPassed > 0) lines.push(h('p', { class: 'muted small' }, `${periodName(data, save.exploration.time.period)}になった。`));
-      resultCard = h('div', { class: `explore-result${o.kind === 'secret' ? ' secret' : ''}`, 'aria-live': 'polite' }, lines);
-    }
 
     const actions = (loc.actions ?? []).map((id) => {
       const a = EXPLORE_ACTIONS[id];
       const cost = costs[id];
       return h(
         'button',
-        { type: 'button', class: 'action-btn', disabled: ap < cost.ap, onClick: () => doAction(id) },
+        { type: 'button', class: `action-btn${id === 'explore' ? ' primary-command' : ''}`, disabled: ap < cost.ap || hasPending || state.processing, onClick: () => doAction(id) },
         h('span', { class: 'action-name' }, a.name),
         h('span', { class: 'action-cost', 'aria-label': `行動力${cost.ap}` }, `行動力 ${cost.ap}`),
         h('span', { class: 'action-desc' }, a.description),
@@ -117,13 +162,14 @@ export default {
         h('p', { class: 'location-cond' }, `${periodName(data, save.exploration.time.period)}　${weather?.name ?? ''}`, weather?.description ? h('span', { class: 'muted' }, `　${weather.description.replace(/^（仮）/, '')}`) : null),
       ),
       loc.description ? h('p', { class: 'help' }, loc.description) : null,
-      resultCard,
+      eventCard(ctx, loc),
       partyHpStrip(save, data),
-      actions.length ? h('div', { class: 'action-grid' }, actions) : h('p', { class: 'help' }, 'ここでできることはまだない。'),
+      h('div', { class: 'command-heading' }, h('strong', {}, '行動を選ぶ'), h('span', {}, `行動力 ${ap}/${save.exploration.maxActionPoints}`)),
+      actions.length ? h('div', { class: `action-grid${hasPending ? ' has-pending' : ''}` }, actions) : h('p', { class: 'help' }, 'ここでできることはまだない。'),
       ap === 0 ? h('p', { class: 'notice' }, '行動力がありません。街の宿屋で休むと回復します。') : null,
-      optionalStrongEncounters(ctx, loc, state),
-      dungeonEntry(ctx, nodeId),
-      h('button', { type: 'button', class: 'btn btn-block move-btn', onClick: () => ctx.go('travel') }, '移動する'),
+      hasPending ? null : optionalStrongEncounters(ctx, loc, state),
+      hasPending ? null : dungeonEntry(ctx, nodeId),
+      h('button', { type: 'button', class: 'btn btn-block move-btn', disabled: hasPending, onClick: () => ctx.go('travel') }, '移動する'),
     );
   },
 };

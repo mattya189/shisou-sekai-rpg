@@ -52,7 +52,7 @@ export default {
   nav: 'inventory',
   render(ctx, params, state) {
     const { data, save } = ctx;
-    state.tab ??= 'material';
+    state.tab ??= params.tab ?? 'material';
     state.open ??= {};
 
     const currencies = h(

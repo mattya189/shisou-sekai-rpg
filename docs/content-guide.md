@@ -325,6 +325,16 @@
   "actions": ["explore", "gather", "searchMonsters", "investigate"],
   "encounterTableId": "enc_005",
   "encounterRate": 0.5,
+  "explorationEvents": [
+    { "id": "loc_005_encounter", "type": "encounter", "weight": 5, "message": "モンスターが現れた！" },
+    { "id": "loc_005_gather", "type": "gather", "weight": 3, "message": "素材を見つけた。" },
+    { "id": "loc_005_treasure", "type": "treasure", "weight": 1, "times": 2, "qualityBonus": 1, "message": "小箱を見つけた。" },
+    { "id": "loc_005_choice", "type": "choice", "weight": 1, "message": "何かが光っている。", "choices": [
+      { "id": "take", "label": "拾う", "message": "素材を拾った。", "rewards": { "items": [{ "itemId": "item_001", "qty": 1 }] } },
+      { "id": "leave", "label": "立ち去る", "message": "その場を離れた。" }
+    ] },
+    { "id": "loc_005_quiet", "type": "nothing", "weight": 2, "message": "今は何も起きないようだ。" }
+  ],
   "qualityBonus": 0,
   "gathering": [
     { "itemId": "item_001", "weight": 5, "qty": [1, 2] },
@@ -352,10 +362,17 @@
 | `actions` | この地点でできる探索行動（`balance.exploration.actions` のキー） |
 | `encounterTableId` | エンカウントテーブル。「探索する」「モンスターを探す」がある地点では必須 |
 | `encounterRate` | 「探索する」でエンカウントする確率（天候の倍率がかかる） |
+| `explorationEvents` | 「探索する」のイベント表。`weight` で抽選し、`type` は `encounter` / `gather` / `treasure` / `nothing` / `message` / `choice` / `strongHint`。省略時だけ従来の `encounterRate` を使う |
 | `qualityBonus` | この地点の採取物の品質補正（任意） |
 | `gathering` | 採取テーブル。`weight` は出やすさ、`when` で時間帯・天候・フラグ条件 |
 | `secrets` | 「詳しく調べる」で見つかる隠し要素。見つけると `flag` が立つ（1回だけ）。`rewards` は任意 |
 | `connections` | 行き先。`distance` は進む時間、`apCost` で行動力消費、`requires`（flags / items）で解放条件 |
+
+`strongHint` は同じ地点の `optionalEncounters` のIDを `optionalEncounterId` に書きます。`message` はイベントカードの短い状況文です。`gather` / `treasure` は既存の `gathering` から抽選し、`times`（1〜5）と `qualityBonus` を任意指定できます。固定報酬型の `message` は `rewards.items` / `rewards.currencies` を持てます。
+
+`choice` の各選択肢には `id` / `label` / `message` を書き、任意で固定 `rewards`、別の `encounterTableId`、または同地点の `optionalEncounterId` を指定できます。選択肢の解決には追加の行動力を使いません。低い `weight` と `when` を組み合わせれば、レアイベントや時間・天候限定イベントもデータだけで追加できます。
+
+通常より強い敵グループを混ぜたい場合は、専用のエンカウント表を作り、`encounter` イベントの `encounterTableId` で指定します。省略時は地点本体の表を使います。
 
 ## 地域・天候を追加する（`regions.json` / `weathers.json`）
 

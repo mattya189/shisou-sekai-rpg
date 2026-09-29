@@ -33,7 +33,7 @@ await mkdir(shots, { recursive: true });
 const errors = [];
 const steps = [];
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+const page = await browser.newPage({ viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true });
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 page.on('pageerror', (e) => errors.push(String(e)));
 
@@ -76,15 +76,20 @@ try {
   });
   await step('採取する', async () => {
     await page.click('.action-btn:has-text("採取する")');
-    await page.waitForSelector('.explore-result');
+    await page.waitForSelector('.exploration-event');
+    await page.click('.event-choices .btn:has-text("閉じる")');
   });
-  await step('モンスターを探す → 戦闘（×4）→ 結果', async () => {
+  await step('モンスターを探す → 遭遇選択 → 戦闘 → 結果', async () => {
     await page.click('.action-btn:has-text("モンスターを探す")');
+    await page.waitForSelector('.event-encounter');
+    await page.click('.event-choices .btn:has-text("様子を見る")');
+    await page.waitForSelector('.event-detail');
+    await page.click('.event-choices .btn:has-text("戦う")');
     await page.waitForSelector('.battle-screen');
-    await page.click('.speed-btn:text("×4")');
+    await page.click('.speed-btn:text("×3")');
     await page.waitForSelector('.battle-result:not([hidden])', { timeout: 120000 });
     await page.waitForSelector('.battle-report tbody tr');
-    await page.click('.result-panel .btn-primary');
+    await page.click('.result-panel .btn-primary:has-text("探索を続ける")');
     await page.waitForSelector('.location-screen, .town-screen');
   });
   await step('編成 → 特技の優先順位を変える', async () => {

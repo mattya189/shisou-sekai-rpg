@@ -12,6 +12,7 @@
  *   { kind: 'items', items: [{ itemId, quality, qty }], message }
  *   { kind: 'secret', flag, message, items, currencies }
  *   { kind: 'nothing', message }
+ *   { kind: 'strongHint', optionalEncounterId, message }
  */
 import { GameError } from '../core/errors.js';
 import { addItem, addCurrency } from '../progression/inventory.js';
@@ -22,9 +23,9 @@ import { matchesWhen } from './when.js';
 import { advanceTime, situationAt } from './time.js';
 import { currentNodeId, isInTown } from './map.js';
 
-function encounter(c) {
-  if (!c.node.encounterTableId) return null;
-  const enemies = rollEncounter(c.data, c.node.encounterTableId, c.situation, c.rng);
+function encounter(c, encounterTableId = c.node.encounterTableId) {
+  if (!encounterTableId) return null;
+  const enemies = rollEncounter(c.data, encounterTableId, c.situation, c.rng);
   return enemies ? { kind: 'encounter', enemies } : null;
 }
 
@@ -44,12 +45,50 @@ function gatherItems(c, times, extraBonus = 0) {
   return items;
 }
 
+/**
+ * 地点の explorationEvents から「探索する」の結果を選ぶ。
+ * 未定義の地点は従来の encounterRate による抽選へフォールバックする。
+ */
+function locationExploreEvent(c) {
+  const table = (c.node.explorationEvents ?? []).filter((event) => matchesWhen(event.when, c.situation));
+  if (!table.length) return null;
+  const event = c.rng.weighted(table);
+  const common = { eventId: event.id, eventType: event.type, message: event.message };
+  if (event.type === 'encounter') {
+    const rolled = encounter(c, event.encounterTableId);
+    return rolled ? { ...rolled, ...common } : { kind: 'nothing', ...common };
+  }
+  if (event.type === 'gather' || event.type === 'treasure') {
+    const items = gatherItems(c, event.times ?? (event.type === 'treasure' ? 2 : 1), event.qualityBonus ?? 0);
+    return items.length ? { kind: 'items', items, ...common } : { kind: 'nothing', ...common };
+  }
+  if (event.type === 'strongHint') {
+    const strong = (c.node.optionalEncounters ?? []).find((entry) => entry.id === event.optionalEncounterId);
+    return strong ? { kind: 'strongHint', optionalEncounterId: strong.id, ...common } : { kind: 'nothing', ...common };
+  }
+  if (event.type === 'choice') {
+    const choices = event.choices.map((choice) => {
+      const rolled = choice.encounterTableId ? encounter(c, choice.encounterTableId) : null;
+      return { ...structuredClone(choice), enemies: rolled?.enemies };
+    });
+    return { kind: 'choice', choices, ...common };
+  }
+  return {
+    kind: event.rewards ? 'items' : 'nothing',
+    items: (event.rewards?.items ?? []).map((it) => ({ itemId: it.itemId, quality: it.quality ?? 'q1', qty: it.qty ?? 1 })),
+    currencies: event.rewards?.currencies ?? [],
+    ...common,
+  };
+}
+
 export const EXPLORE_ACTIONS = {
   explore: {
     name: '探索する',
     description: '辺りを歩き回る。モンスターに出会ったり、何かを拾ったりする。',
     mayBattle: true,
     run(c) {
+      const event = locationExploreEvent(c);
+      if (event) return event;
       const rate = Math.min(0.95, (c.node.encounterRate ?? 0.5) * (c.weather?.encounterRate ?? 1));
       if (c.rng.chance(rate)) {
         const e = encounter(c);
@@ -129,4 +168,37 @@ export function performExploreAction(save, data, actionId, rng) {
   if (outcome.kind === 'secret') save.flags[outcome.flag] = true;
   const time = advanceTime(save, data, cost.time, rng);
   return { actionId, nodeId, outcome, time };
+}
+
+/**
+ * コマンド式探索の開始。未解決カードがある間は次の行動を受け付けないため、
+ * ダブルタップでも行動力・報酬が二重反映されない。
+ */
+export function startExploreCommand(save, data, actionId, rng) {
+  if (save.exploration.pendingEvent) throw new GameError('pending_event', '先に現在の探索結果を確認してください');
+  const result = performExploreAction(save, data, actionId, rng);
+  save.exploration.pendingEvent = structuredClone(result);
+  return result;
+}
+
+export function clearExploreEvent(save) {
+  save.exploration.pendingEvent = null;
+}
+
+/** データ定義された小イベントの選択肢を、追加APなしで1回だけ解決する。 */
+export function resolveExploreChoice(save, data, choiceId) {
+  const pending = save.exploration.pendingEvent;
+  if (pending?.outcome?.kind !== 'choice') throw new GameError('no_pending_choice', '選べる探索イベントがありません');
+  const choice = pending.outcome.choices.find((entry) => entry.id === choiceId);
+  if (!choice) throw new GameError('unknown_choice', 'その選択肢はありません');
+  const items = (choice.rewards?.items ?? []).map((it) => ({ itemId: it.itemId, quality: it.quality ?? 'q1', qty: it.qty ?? 1 }));
+  const currencies = choice.rewards?.currencies ?? [];
+  for (const it of items) addItem(save, data, it.itemId, it.qty, it.quality, pending.nodeId);
+  for (const currency of currencies) addCurrency(save, data, currency.currencyId, currency.qty);
+  let outcome;
+  if (choice.enemies?.length) outcome = { kind: 'encounter', enemies: choice.enemies, message: choice.message };
+  else if (choice.optionalEncounterId) outcome = { kind: 'strongHint', optionalEncounterId: choice.optionalEncounterId, message: choice.message };
+  else outcome = { kind: items.length || currencies.length ? 'items' : 'nothing', items, currencies, message: choice.message };
+  pending.outcome = outcome;
+  return outcome;
 }

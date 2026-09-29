@@ -21,6 +21,7 @@ import { alliesFromParty } from '../../battle/setup.js';
 import { markMonster } from '../../progression/codex.js';
 import { applyBattleOutcome } from '../../game/battleOutcome.js';
 import { afterDungeonBattle, dungeonMp } from '../../exploration/dungeon.js';
+import { aliveMembers } from '../../progression/hp.js';
 
 const LOG_LINES = 4;
 const FLASH_MS = 900;
@@ -457,6 +458,7 @@ export default {
       };
       const isDebug = params.source === 'debug';
       const leaveLabel = isDebug ? '戻る' : sm.returnedToTown ? '街へ' : params.source === 'dungeon' ? (dg?.ended ? '外へ' : '先へ進む') : '探索に戻る';
+      const isFieldResult = params.source === 'field' || params.source === 'optionalStrong';
       const report = buildBattleReport(battle);
       const reportTable = h(
         'div',
@@ -487,9 +489,20 @@ export default {
           ctx.debug ? h('p', { class: 'muted small' }, `seed ${r.seed}（同じseedで同じ展開を再現できます）`) : null,
           h(
             'div',
-            { class: `result-actions${isDebug ? '' : ' single'}` },
+            { class: `result-actions${isDebug || isFieldResult ? '' : ' single'}` },
             isDebug ? h('button', { type: 'button', class: 'btn', onClick: () => ctx.go('battle', { ...params, seed: undefined }, { replace: true }) }, 'もう一度') : null,
-            h('button', { type: 'button', class: 'btn btn-primary', onClick: leave }, leaveLabel),
+            isFieldResult && !sm.returnedToTown
+              ? h('button', { type: 'button', class: 'btn btn-primary', onClick: () => ctx.go('location', {}, { reset: true }) }, '探索を続ける')
+              : null,
+            isFieldResult && !sm.returnedToTown
+              ? h('button', { type: 'button', class: 'btn', disabled: aliveMembers(save, data).length === 0, onClick: () => ctx.go('battle', { ...params, enemies: structuredClone(params.enemies), seed: undefined }, { replace: true }) }, '再戦')
+              : null,
+            isFieldResult && !sm.returnedToTown
+              ? h('button', { type: 'button', class: 'btn', onClick: () => ctx.go('inventory', { tab: 'equipment' }) }, '装備確認')
+              : null,
+            isFieldResult && !sm.returnedToTown
+              ? h('button', { type: 'button', class: 'btn', onClick: () => ctx.go('travel', {}, { reset: true }) }, '戻る')
+              : h('button', { type: 'button', class: 'btn btn-primary', onClick: leave }, leaveLabel),
           ),
         ),
       );
