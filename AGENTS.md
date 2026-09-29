@@ -2,6 +2,7 @@
 
 作業を始める前に `docs/HANDOFF.md`（引き継ぎ書）、`docs/architecture.md`、`docs/content-guide.md` を読んでください。
 モンスター追加時は、共通仕様と標準手順をまとめた `docs/monster-development-guide.md` も必ず確認してください。
+装備追加時は `docs/EQUIPMENT_SPEC.md` を参照し、既存の登録方式を再利用してください。単純な装備追加で戦闘エンジン等を変更しないでください。
 
 ## 必ず守ること
 
