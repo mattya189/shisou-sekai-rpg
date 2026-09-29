@@ -19,5 +19,6 @@ import dungeon from './dungeon.js';
 import codex from './codex.js';
 import monsterEntry from './monsterEntry.js';
 import itemEntry from './itemEntry.js';
+import abilityEntry from './abilityEntry.js';
 
-export const SCREENS = { title, town, party, unitPicker, unitDetail, inventory, battle, location, travel, inn, shop, workshop, talk, equipPicker, dungeon, codex, monsterEntry, itemEntry };
+export const SCREENS = { title, town, party, unitPicker, unitDetail, inventory, battle, location, travel, inn, shop, workshop, talk, equipPicker, dungeon, codex, monsterEntry, itemEntry, abilityEntry };

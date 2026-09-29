@@ -24,18 +24,24 @@ export function monsterStages(data, monsterId) {
   return [...data.balance.codex.monsterStages, ...(m.codexStages ?? [])];
 }
 
+/** 出現場所などの重い逆引きをせず、既存の図鑑段階と解放項目だけを判定する。 */
+export function monsterUnlockState(save, data, monsterId) {
+  const record = save.codex.monsters[monsterId] ?? null;
+  const reveals = new Set();
+  const stages = monsterStages(data, monsterId).map((st) => {
+    const done = CODEX_REQUIREMENTS[st.requires.type]?.(st.requires, record, save) ?? false;
+    if (done) for (const reveal of st.reveals) reveals.add(reveal);
+    return { id: st.id, name: st.name, done };
+  });
+  return { record, reveals, stages };
+}
+
 /**
  * @returns {{ monster: any, known: boolean, stages: { id: string, name: string, done: boolean }[], reveals: Set<string>, record: any }}
  */
 export function monsterEntry(save, data, monsterId) {
   const monster = data.get('monsters', monsterId);
-  const record = save.codex.monsters[monsterId] ?? null;
-  const reveals = new Set();
-  const stages = monsterStages(data, monsterId).map((st) => {
-    const done = CODEX_REQUIREMENTS[st.requires.type]?.(st.requires, record, save) ?? false;
-    if (done) for (const r of st.reveals) reveals.add(r);
-    return { id: st.id, name: st.name, done };
-  });
+  const { record, reveals, stages } = monsterUnlockState(save, data, monsterId);
   return { monster, known: reveals.has('basic'), stages, reveals, record, habitats: reveals.has('habitat') ? monsterHabitats(data, monsterId) : [] };
 }
 

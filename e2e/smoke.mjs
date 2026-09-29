@@ -107,6 +107,17 @@ try {
     await page.click('.codex-cell:not(.unknown) >> nth=0');
     await page.waitForSelector('.stage-track');
   });
+  await step('モンスター能力詳細 → 特技図鑑の検索と詳細', async () => {
+    await page.click('.ability-row >> nth=0');
+    await page.waitForSelector('.ability-detail-screen .ability-effect-list');
+    await page.click('.ability-detail-screen .back-link');
+    await page.click('.back-link:has-text("図鑑に戻る")');
+    await page.click('[role="tab"]:has-text("特技")');
+    await page.fill('.codex-search', '強打');
+    await page.waitForSelector('.ability-catalog-list .ability-row');
+    await page.click('.ability-catalog-list .ability-row >> nth=0');
+    await page.waitForSelector('.ability-detail-screen .ability-user-list');
+  });
   await step('再読み込みしても続きから遊べる', async () => {
     await page.reload();
     await page.click('text=続きから');

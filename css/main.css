@@ -1129,6 +1129,56 @@ button.unit-row:active { background: var(--raised); }
 .source-list li.found { color: var(--text); }
 .source-list .badge { background: var(--raised); color: var(--text); }
 
+.codex-search {
+  width: 100%;
+  min-height: 48px;
+  margin: 0 0 10px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 16px;
+}
+.codex-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.codex-filter { display: flex; flex-direction: column; min-width: 0; gap: 3px; color: var(--muted); font-size: 12px; }
+.codex-filter select { width: 100%; min-width: 0; min-height: 44px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
+.ability-result-count { margin: 8px 0 4px; }
+.ability-list, .ability-user-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ability-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+.ability-row-body { display: flex; flex-direction: column; min-width: 0; line-height: 1.45; overflow-wrap: anywhere; }
+.ability-kind { min-width: 58px; padding: 2px 7px; border-radius: 999px; background: var(--raised); color: var(--text); font-size: 11px; text-align: center; white-space: nowrap; }
+.ability-kind-passive { background: #3e6258; }
+.ability-kind-ultimate { background: #70414f; color: #ffe7be; }
+.ability-kind-combo { background: #4e4c78; color: #e9e8ff; }
+.ability-row-arrow { color: var(--mist); font-size: 24px; line-height: 1; }
+.ability-users-preview { color: var(--mist); font-size: 11px; overflow-wrap: anywhere; }
+.ability-kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0 0 12px; }
+.ability-kv div { min-width: 0; padding: 9px 10px; border-radius: var(--radius-sm); background: var(--surface); }
+.ability-kv dt { color: var(--muted); font-size: 12px; }
+.ability-kv dd { margin: 2px 0 0; overflow-wrap: anywhere; font-weight: 700; }
+.ability-description { margin: 0; padding: 12px; border-left: 3px solid var(--mist); background: var(--surface); }
+.ability-effect-list { display: grid; gap: 7px; margin: 0; padding-left: 1.4em; }
+.ability-related-list { display: grid; gap: 8px; }
+.ability-related-card { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+.ability-related-card .badge { display: inline-block; margin-left: 8px; background: var(--raised); color: var(--text); white-space: normal; }
+.ability-related-card p { margin: 5px 0 0; color: var(--muted); font-size: 14px; }
+.ability-user-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 48px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); text-align: left; cursor: pointer; }
+.ability-user-link:disabled { opacity: .55; cursor: default; }
+.ability-user-name { min-width: 0; overflow-wrap: anywhere; font-weight: 700; }
+
 /* ---------- 小さい画面（Phase 9） ---------- */
 
 @media (max-width: 380px) {
@@ -1139,6 +1189,9 @@ button.unit-row:active { background: var(--raised); }
   .screen { padding-left: 12px; padding-right: 12px; }
   .town-hero, .location-hero { margin-left: -12px; margin-right: -12px; }
   .codex-grid { gap: 6px; }
+  .codex-filters, .ability-kv { grid-template-columns: 1fr; }
+  .ability-row { gap: 7px; padding-left: 8px; padding-right: 8px; }
+  .ability-kind { min-width: 52px; padding-left: 5px; padding-right: 5px; }
   .action-grid { gap: 8px; }
   .action-btn { min-height: 88px; padding: 10px; }
   .action-desc { font-size: 11px; line-height: 1.35; }

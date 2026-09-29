@@ -5,7 +5,7 @@ import { h } from '../dom.js';
 import { sectionTitle, kindBadge } from '../components.js';
 import { unitImageSrc } from '../placeholder.js';
 import { monsterEntry } from '../../codex/codex.js';
-import { describeCondition } from '../../battle/conditions.js';
+import { ABILITY_KIND_LABEL, skillKind, skillTriggerText } from '../../codex/abilities.js';
 import { recruitChance } from '../../game/recruit.js';
 
 function speciesNames(data, def) {
@@ -25,6 +25,17 @@ function whenText(data, when) {
 }
 
 const locked = (label) => h('p', { class: 'codex-locked' }, `？？？（${label}で解放）`);
+
+function abilityButton(ctx, type, ability, meta) {
+  const kind = type === 'passive' ? 'passive' : skillKind(ability);
+  return h(
+    'button',
+    { type: 'button', class: 'ability-row', onClick: () => ctx.go('abilityEntry', { type, abilityId: ability.id }) },
+    h('span', { class: `ability-kind ability-kind-${kind}` }, ABILITY_KIND_LABEL[kind]),
+    h('span', { class: 'ability-row-body' }, h('strong', {}, ability.name), h('span', { class: 'muted small' }, meta)),
+    h('span', { class: 'ability-row-arrow', 'aria-hidden': 'true' }, '›'),
+  );
+}
 
 export default {
   nav: 'codex',
@@ -102,10 +113,10 @@ export default {
       sections.push(
         h(
           'ul',
-          { class: 'plain-list' },
+          { class: 'ability-list' },
           m.learnset.map((l) => {
             const sk = data.get('skills', l.skillId);
-            return h('li', {}, `☆${l.rank ?? 1} Lv.${l.level} ${sk.name}`, h('span', { class: 'muted' }, `　${describeCondition(sk.trigger, data)}`));
+            return h('li', {}, abilityButton(ctx, 'skill', sk, `☆${l.rank ?? 1}・Lv.${l.level}　${skillTriggerText(sk, data)}`));
           }),
         ),
       );
@@ -114,7 +125,7 @@ export default {
     sections.push(sectionTitle('固有パッシブ'));
     if (r.has('passives')) {
       const ps = (m.passives ?? []).map((pid) => data.find('passives', pid)).filter(Boolean);
-      sections.push(ps.length ? h('ul', { class: 'plain-list' }, ps.map((p) => h('li', {}, h('strong', {}, p.name), h('span', { class: 'muted' }, `　${p.description}`)))) : h('p', { class: 'muted' }, 'なし'));
+      sections.push(ps.length ? h('ul', { class: 'ability-list' }, ps.map((p) => h('li', {}, abilityButton(ctx, 'passive', p, p.description)))) : h('p', { class: 'muted' }, 'なし'));
     } else sections.push(locked(firstLocked('passives')));
 
     sections.push(sectionTitle('仲間にするには'));
