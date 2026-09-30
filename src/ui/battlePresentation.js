@@ -5,6 +5,36 @@
 
 const RESULT_KINDS = new Set(['damage', 'heal', 'miss', 'markerChanged', 'statusApplied', 'statusRefreshed']);
 
+/**
+ * ユニットが実際に保持するマーカーを、戦闘カード用の表示モデルへ変換する。
+ * 値は戦闘状態をそのまま読み、表示層で増減や上限を計算しない。
+ */
+export function markerPresentation(unit, data, visibleLimit = 2) {
+  const markers = Object.entries(unit?.markers ?? {})
+    .map(([markerId, state]) => {
+      const definition = data.find('markers', markerId);
+      const allowed = !definition?.allowedSpeciesIds?.length
+        || definition.allowedSpeciesIds.some((speciesId) => unit.speciesIds?.includes(speciesId));
+      const value = Number(state?.stacks ?? 0);
+      const max = Number.isFinite(definition?.maxStacks) ? definition.maxStacks : null;
+      return {
+        id: markerId,
+        name: definition?.name ?? markerId,
+        value,
+        max,
+        isMax: max != null && value >= max,
+        allowed,
+      };
+    })
+    .filter((marker) => marker.allowed && marker.value > 0)
+    .sort((a, b) => Number(b.isMax) - Number(a.isMax) || (b.max ? b.value / b.max : b.value) - (a.max ? a.value / a.max : a.value) || a.id.localeCompare(b.id));
+
+  return {
+    visible: markers.slice(0, visibleLimit),
+    hidden: markers.slice(visibleLimit),
+  };
+}
+
 export function skillPresentation(skill, event) {
   const configured = skill?.presentation ?? {};
   const ultimate = configured.tier === 'ultimate' || skill?.name?.startsWith('奥義：');

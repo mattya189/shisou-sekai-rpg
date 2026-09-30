@@ -14,7 +14,7 @@
 import { h } from '../dom.js';
 import { unitImageSrc } from '../placeholder.js';
 import { describeEvent } from '../battleLog.js';
-import { buildBattleReport, effectPresentation, presentationCues, presentationDelayMs } from '../battlePresentation.js';
+import { buildBattleReport, effectPresentation, markerPresentation, presentationCues, presentationDelayMs } from '../battlePresentation.js';
 import { createBattleAudio, shouldPlayCue } from '../battleAudio.js';
 import { createBattle, advance, battleResult, sideOf, effectiveInterval } from '../../battle/engine.js';
 import { alliesFromParty } from '../../battle/setup.js';
@@ -67,29 +67,39 @@ export default {
 
     // ---- 部品を作る ----
     const cards = new Map();
-    const statusChips = (u) => [
-      ...u.statuses.map((s) => {
+    const statusChips = (u) => u.statuses.map((s) => {
         const name = data.find('statuses', s.statusId)?.name.replace(/^（仮）/, '') ?? s.statusId;
         const remaining = s.remainingTurns != null ? `${s.remainingTurns}T` : s.expiresAt != null ? `${Math.max(0, Math.ceil((s.expiresAt - battle.timeMs) / 1000))}秒` : '';
         return h('span', { class: 'status-chip status-effect' }, `${name}${remaining ? ` ${remaining}` : ''}`);
-      }),
-      ...Object.entries(u.markers ?? {})
-        .filter(([markerId, state]) => {
-          const marker = data.find('markers', markerId);
-          const allowed = !marker?.allowedSpeciesIds?.length || marker.allowedSpeciesIds.some((speciesId) => u.speciesIds?.includes(speciesId));
-          return state.stacks > 0 && allowed;
-        })
-        .map(([markerId, state]) => {
-          const marker = data.find('markers', markerId);
-          const value = marker?.showMax ? `${state.stacks}/${marker.maxStacks}` : state.stacks;
-          return h('span', { class: 'status-chip' }, `${marker?.name ?? markerId} ${value}`);
-        }),
-    ];
+      });
+
+    const markerChips = (u) => {
+      const { visible, hidden } = markerPresentation(u, data);
+      const chips = visible.map((marker) => h(
+        'span',
+        {
+          class: `marker-chip${marker.isMax ? ' is-max' : ''}`,
+          title: `${marker.name} ${marker.value}${marker.max != null ? `/${marker.max}` : ''}`,
+        },
+        h('span', { class: 'marker-name' }, marker.name),
+        h('strong', { class: 'marker-value' }, marker.max != null ? `${marker.value}/${marker.max}` : marker.value),
+        marker.isMax ? h('span', { class: 'marker-max' }, 'MAX') : null,
+      ));
+      if (hidden.length) {
+        chips.push(h('span', {
+          class: 'marker-more',
+          title: hidden.map((marker) => `${marker.name} ${marker.value}${marker.max != null ? `/${marker.max}` : ''}`).join('、'),
+          'aria-label': `ほかのスタック${hidden.length}件`,
+        }, `+${hidden.length}`));
+      }
+      return chips;
+    };
 
     const enemyCard = (u) => {
       const hp = bar('hp');
       const brk = u.boss?.break ? bar('break') : null;
       const status = h('span', { class: 'status-row' });
+      const markers = h('span', { class: 'marker-row', 'aria-label': '固有スタック' });
       const count = h('span', { class: 'attack-count enemy-count' });
       const alert = h('span', { class: 'boss-alert', 'aria-live': 'polite' });
       const el = h(
@@ -100,11 +110,12 @@ export default {
         h('span', { class: 'enemy-name' }, u.name),
         count,
         hp.el,
+        markers,
         brk ? h('span', { class: 'break-row' }, h('span', { class: 'meter-label' }, 'BRK'), brk.el) : null,
         alert,
         status,
       );
-      cards.set(u.id, { el, hp, brk, alert, status, count });
+      cards.set(u.id, { el, hp, brk, alert, status, markers, count });
       return el;
     };
 
@@ -117,6 +128,7 @@ export default {
       const count = h('span', { class: 'attack-count' });
       const flash = h('span', { class: 'skill-flash', 'aria-live': 'polite' });
       const status = h('span', { class: 'status-row' });
+      const markers = h('span', { class: 'marker-row', 'aria-label': '固有スタック' });
       const el = h(
         'div',
         { class: 'ally-card' },
@@ -129,10 +141,11 @@ export default {
         h('div', { class: 'meter' }, h('span', { class: 'meter-label' }, 'HP'), hp.el, hpText),
         h('div', { class: 'meter' }, h('span', { class: 'meter-label' }, 'MP'), mp.el, mpText),
         h('div', { class: 'meter' }, count, next.el),
+        markers,
         flash,
         status,
       );
-      cards.set(u.id, { el, hp, mp, next, hpText, mpText, count, flash, status });
+      cards.set(u.id, { el, hp, mp, next, hpText, mpText, count, flash, status, markers });
       return el;
     };
 
@@ -354,6 +367,7 @@ export default {
         const c = cards.get(u.id);
         c.el.classList.toggle('down', !u.alive);
         c.hp.fill.style.width = `${(u.hp / u.maxHp) * 100}%`;
+        c.markers.replaceChildren(...markerChips(u));
         c.status.replaceChildren(...statusChips(u));
         if (u.side !== 'ally') {
           c.count.textContent = `HP ${u.hp}/${u.maxHp}・攻${u.attackCount}`;

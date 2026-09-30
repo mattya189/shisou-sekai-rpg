@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBattleReport, effectPresentation, presentationCues, presentationDelayMs, skillPresentation } from '../../src/ui/battlePresentation.js';
+import { readFile } from 'node:fs/promises';
+import { buildBattleReport, effectPresentation, markerPresentation, presentationCues, presentationDelayMs, skillPresentation } from '../../src/ui/battlePresentation.js';
 import { shouldPlayCue, soundSpecForCue } from '../../src/ui/battleAudio.js';
 import { advance, battleResult, createBattle, runToEnd } from '../../src/battle/engine.js';
 import { loadBattleData } from '../helpers.js';
@@ -8,6 +9,35 @@ import { loadBattleData } from '../helpers.js';
 test('戦闘画面モジュールを読み込める', async () => {
   const screen = await import('../../src/ui/screens/battle.js');
   assert.equal(typeof screen.default.render, 'function');
+});
+
+test('小型画面でも敵4体は2列、味方4体は2列で表示する', async () => {
+  const css = await readFile(new URL('../../css/main.css', import.meta.url), 'utf8');
+  assert.match(css, /\.enemy-row\.units-4\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s);
+  assert.match(css, /\.ally-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s);
+  assert.ok([...css.matchAll(/\.enemy-row\.units-4\s*\{[^}]*grid-template-columns:\s*repeat\(2,/gs)].length >= 2);
+});
+
+test('敵・味方・自己保持を問わず実戦状態のマーカーを優先表示し、複数時は省スペース化する', () => {
+  const definitions = new Map([
+    ['marker_a', { id: 'marker_a', name: '恋', maxStacks: 100 }],
+    ['marker_b', { id: 'marker_b', name: '愛', maxStacks: 10 }],
+    ['marker_c', { id: 'marker_c', name: '侵色', maxStacks: 100 }],
+    ['marker_d', { id: 'marker_d', name: '犬の好意', maxStacks: 10, allowedSpeciesIds: ['species_dog'] }],
+  ]);
+  const data = { find: (category, id) => category === 'markers' ? definitions.get(id) ?? null : null };
+  const unit = {
+    speciesIds: ['species_other'],
+    markers: {
+      marker_a: { stacks: 80 }, marker_b: { stacks: 10 }, marker_c: { stacks: 25 }, marker_d: { stacks: 9 },
+    },
+  };
+  const presentation = markerPresentation(unit, data, 2);
+  assert.deepEqual(presentation.visible.map((marker) => [marker.name, marker.value, marker.max, marker.isMax]), [
+    ['愛', 10, 10, true],
+    ['恋', 80, 100, false],
+  ]);
+  assert.deepEqual(presentation.hidden.map((marker) => marker.name), ['侵色']);
 });
 
 test('4体の味方を個別集計し、行動結果から戦績を作る', () => {
