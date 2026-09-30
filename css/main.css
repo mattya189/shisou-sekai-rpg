@@ -615,7 +615,7 @@ button.unit-row:active { background: var(--raised); }
 .enemy-row.units-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
 .enemy-row.units-3 .enemy-card:last-child { grid-column: 1 / -1; width: calc(50% - 3px); justify-self: center; }
 .enemy-row.units-4 .enemy-card { gap: 2px; padding: 4px; border-radius: var(--radius-sm); }
-.enemy-row.units-4 .portrait { width: 48px; height: 48px; }
+.enemy-row.units-4 .portrait { width: 64px; height: 64px; }
 .enemy-row.units-4 .enemy-name { font-size: 11px; line-height: 1.25; }
 .enemy-row.units-4 .enemy-count { font-size: 9px; }
 .enemy-row.units-4 .bar { height: 6px; }
@@ -669,7 +669,7 @@ button.unit-row:active { background: var(--raised); }
 .ally-grid.units-4 { gap: 5px; }
 .ally-grid.units-4 .ally-card { gap: 1px; padding: 4px 5px 5px; border-radius: var(--radius-sm); }
 .ally-grid.units-4 .ally-head { gap: 5px; }
-.ally-grid.units-4 .portrait { width: 32px; height: 32px; }
+.ally-grid.units-4 .portrait { width: 44px; height: 44px; }
 .ally-grid.units-4 .ally-name { font-size: 11px; }
 .ally-grid.units-4 .meter { gap: 3px; font-size: 10px; line-height: 1.2; }
 .ally-grid.units-4 .meter-label { width: 16px; }
@@ -895,12 +895,12 @@ button.unit-row:active { background: var(--raised); }
   .enemy-row { grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); }
   .enemy-row.units-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; }
   .enemy-row.units-4 .enemy-card { padding: 3px 2px; }
-  .enemy-row.units-4 .portrait { width: 38px; height: 38px; }
+  .enemy-row.units-4 .portrait { width: 50px; height: 50px; }
   .enemy-row.units-4 .enemy-name { font-size: 9px; }
   .ally-card { padding: 6px 7px 8px; }
   .ally-grid.units-4 { gap: 3px; }
   .ally-grid.units-4 .ally-card { padding: 3px 4px 4px; }
-  .ally-grid.units-4 .portrait { width: 28px; height: 28px; }
+  .ally-grid.units-4 .portrait { width: 38px; height: 38px; }
   .ally-grid.units-4 .ally-name { font-size: 10px; }
   .ally-grid.units-4 .meter { font-size: 9px; }
   .meter .num { min-width: 48px; }
@@ -923,15 +923,15 @@ button.unit-row:active { background: var(--raised); }
   .battle-screen { gap: 3px; }
   .battle-stage { gap: 3px; padding: 4px; }
   .battle-log {
-    min-height: calc(3 * 1.3em + 10px);
-    max-height: calc(3 * 1.3em + 10px);
+    min-height: calc(2 * 1.3em + 10px);
+    max-height: calc(2 * 1.3em + 10px);
     padding: 4px 7px;
     font-size: 11px;
     line-height: 1.3;
   }
   .battle-audio-bar { min-height: 28px; padding-block: 2px; }
-  .enemy-row.units-4 .portrait { width: 34px; height: 34px; }
-  .ally-grid.units-4 .portrait { width: 26px; height: 26px; }
+  .enemy-row.units-4 .portrait { width: 48px; height: 48px; }
+  .ally-grid.units-4 .portrait { width: 38px; height: 38px; }
   .ally-grid.units-4 .ally-card { padding-block: 3px; }
   .ally-grid.units-4 .skill-flash { min-height: 1em; line-height: 1; }
   .ally-grid.units-4 .status-row,

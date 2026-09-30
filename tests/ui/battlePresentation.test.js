@@ -16,6 +16,8 @@ test('小型画面でも敵4体は2列、味方4体は2列で表示する', asyn
   assert.match(css, /\.enemy-row\.units-4\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s);
   assert.match(css, /\.ally-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s);
   assert.ok([...css.matchAll(/\.enemy-row\.units-4\s*\{[^}]*grid-template-columns:\s*repeat\(2,/gs)].length >= 2);
+  assert.match(css, /@media \(max-height: 700px\)[\s\S]*?\.enemy-row\.units-4 \.portrait\s*\{\s*width:\s*48px;\s*height:\s*48px;/);
+  assert.match(css, /@media \(max-height: 700px\)[\s\S]*?\.ally-grid\.units-4 \.portrait\s*\{\s*width:\s*38px;\s*height:\s*38px;/);
 });
 
 test('敵・味方・自己保持を問わず実戦状態のマーカーを優先表示し、複数時は省スペース化する', () => {
