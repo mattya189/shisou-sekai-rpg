@@ -8,11 +8,11 @@
 保存先は `src/save/storageAdapters.js` のアダプタで差し替えられます（`getItem` / `setItem` / `removeItem` の3つを持つオブジェクト）。
 将来オンライン保存にする場合は、同じ形のアダプタを作って `src/main.js` で渡します。
 
-## 構造（saveVersion 2）
+## 構造（saveVersion 3）
 
 ```jsonc
 {
-  "saveVersion": 2,
+  "saveVersion": 3,
   "createdAt": "2026-09-27T00:00:00.000Z",
   "updatedAt": "2026-09-27T00:10:00.000Z",
   "nextUid": 3,                        // 装備個体などの通し番号
@@ -27,7 +27,7 @@
       "equipment": ["eq_1", null]      // 装備個体のuid
     }
   },
-  "party": ["chr_001", "chr_002", "mon_001", null],
+  "party": ["chr_001", "chr_002", "mon_001"],   // 3枠（戦闘は3対3）
   "inventory": {
     "items": { "item_001": { "q1": 3, "q2": 1 } },   // 品質別の数量
     "equipment": {
@@ -73,7 +73,7 @@
    - ゲームより新しいバージョンのセーブは読み込まない（古いゲームで上書きして壊さないため）
 3. `normalizeSave`: 欠けている項目を `createEmptySave()` の初期値で補い、配列・オブジェクトの型が壊れた既知項目を安全な既定値へ戻す。**知らない項目は消さずに残す**
 
-`Session.continueGame()` は読込直後に `staminaUpdatedAt` からオフライン回復を反映します。v1→v2では、選択中の冒険先、最大300のスタミナ、回復基準時刻へ安全に移行します。
+`Session.continueGame()` は読込直後に `staminaUpdatedAt` からオフライン回復を反映します。v1→v2では、選択中の冒険先、最大300のスタミナ、回復基準時刻へ安全に移行します。v2→v3では4枠の編成を3枠へ詰め、入りきらないユニットは控えへ戻します（所持ユニットは消えません）。
 
 退避したセーブはキー `shisou-sekai-rpg/save/broken-backup` に残ります。
 

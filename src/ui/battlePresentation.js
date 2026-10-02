@@ -3,6 +3,8 @@
  * 戦闘エンジンや乱数へは一切作用しない。
  */
 
+import { involvesAttackCount } from '../battle/forecast.js';
+
 const RESULT_KINDS = new Set(['damage', 'heal', 'miss', 'markerChanged', 'statusApplied', 'statusRefreshed']);
 
 /**
@@ -62,7 +64,20 @@ export function presentationCues(event, battle, data) {
   if (event.type !== 'action') return [];
   const skill = data.find('skills', event.skillId);
   const presentation = skillPresentation(skill, event);
-  const cues = [{ ...presentation, presentationType: presentation.type, type: 'action', targetId: event.actorId, countsAsAttack: event.countsAsAttack, attackCount: event.attackCount }];
+  // 攻撃者から対象への軌跡用。結果に現れた相手（自分以外）を順番どおりに集める。
+  const targetIds = [...new Set((event.results ?? [])
+    .filter((r) => ['damage', 'heal', 'miss'].includes(r.kind) && r.targetId && r.targetId !== event.actorId)
+    .map((r) => r.targetId))];
+  const cues = [{ ...presentation, presentationType: presentation.type, type: 'action', targetId: event.actorId, countsAsAttack: event.countsAsAttack, attackCount: event.attackCount, targetIds }];
+  // 攻撃回数条件で発動した特技は「攻撃○回目」を先に見せてから技名へつなぐ。
+  if (event.skillId && event.kind === 'skill' && !event.charged && involvesAttackCount(skill?.trigger)) {
+    cues.push({
+      type: 'countTrigger',
+      targetId: event.actorId,
+      attackCount: event.attackCount,
+      label: event.countsAsAttack ? `攻撃${event.attackCount}回目` : `攻撃回数${event.attackCount}`,
+    });
+  }
   if (event.skillId) cues.push({ ...presentation, presentationType: presentation.type, type: 'banner', targetId: event.actorId });
 
   for (const result of event.results ?? []) {
@@ -74,6 +89,8 @@ export function presentationCues(event, battle, data) {
       tier: presentation.tier,
       presentationType: presentation.type,
       elementId: result.element ?? skill?.element ?? null,
+      // クリティカルは現在のエンジンには存在しない。将来 result.critical が出たときだけ強調する受け口。
+      ...(result.critical ? { critical: true } : {}),
     });
     else if (result.kind === 'heal' && result.amount > 0) cues.push({ type: 'heal', targetId: result.targetId, amount: result.amount });
     else if (result.kind === 'miss') cues.push({ type: 'miss', targetId: result.targetId });

@@ -73,7 +73,7 @@ test('JSONとして読めても型が壊れたセーブは安全な既定値へ�
     dungeonRun: 'broken',
   };
   const s = normalizeSave(broken);
-  assert.deepEqual(s.party, [null, null, null, null]);
+  assert.deepEqual(s.party, [null, null, null]);
   assert.deepEqual(s.inventory, { items: {}, equipment: {}, currencies: {} });
   assert.deepEqual(s.exploration.discoveredNodes, []);
   assert.deepEqual(s.exploration.time, { day: 1, period: 'morning', tick: 0 });

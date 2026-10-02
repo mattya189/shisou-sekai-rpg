@@ -48,6 +48,8 @@ export function createCombatant(data, spec, { id, side }) {
     name: def.name,
     image: def.image ?? null,
     level: unitLike.level,
+    /** 表示用（詳細パネル）。戦闘計算はランク反映済みの stats を使う */
+    rank: unitLike.rank,
     element: def.element ?? null,
     elementMultipliers: def.elementMultipliers ?? {},
     /** 表示名ではなくデータIDで判定する種族タグ */

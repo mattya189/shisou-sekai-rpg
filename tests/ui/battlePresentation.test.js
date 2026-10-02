@@ -11,13 +11,17 @@ test('戦闘画面モジュールを読み込める', async () => {
   assert.equal(typeof screen.default.render, 'function');
 });
 
-test('小型画面でも敵4体は2列、味方4体は2列で表示する', async () => {
+test('戦闘画面のCSSはスクロールなしの3段構成・安全領域・44px以上の操作を前提にする', async () => {
   const css = await readFile(new URL('../../css/main.css', import.meta.url), 'utf8');
-  assert.match(css, /\.enemy-row\.units-4\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s);
-  assert.match(css, /\.ally-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/s);
-  assert.ok([...css.matchAll(/\.enemy-row\.units-4\s*\{[^}]*grid-template-columns:\s*repeat\(2,/gs)].length >= 2);
-  assert.match(css, /@media \(max-height: 700px\)[\s\S]*?\.enemy-row\.units-4 \.portrait\s*\{\s*width:\s*48px;\s*height:\s*48px;/);
-  assert.match(css, /@media \(max-height: 700px\)[\s\S]*?\.ally-grid\.units-4 \.portrait\s*\{\s*width:\s*38px;\s*height:\s*38px;/);
+  assert.match(css, /\.battle-screen\s*\{[^}]*position:\s*fixed;[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto;[^}]*overflow:\s*hidden;/s);
+  assert.match(css, /\.battle-screen\s*\{[^}]*padding:\s*var\(--safe-top\)[^;]*var\(--safe-bottom\)/s);
+  for (const selector of ['\\.bt-btn', '\\.pause-btn', '\\.speed-btn', '\\.bsheet-close']) {
+    assert.match(css, new RegExp(`${selector}[^{]*\\{[^}]*min-height:\\s*44px`, 's'), selector);
+  }
+  // 立ち絵は縦横比を保って全身を表示する
+  assert.match(css, /\.bu-img\s*\{[^}]*object-fit:\s*contain;/s);
+  // パネル本文だけがスクロールする
+  assert.match(css, /\.bsheet-body\s*\{[^}]*overflow-y:\s*auto;[^}]*overscroll-behavior:\s*contain;/s);
 });
 
 test('敵・味方・自己保持を問わず実戦状態のマーカーを優先表示し、複数時は省スペース化する', () => {
@@ -42,7 +46,7 @@ test('敵・味方・自己保持を問わず実戦状態のマーカーを優�
   assert.deepEqual(presentation.hidden.map((marker) => marker.name), ['侵色']);
 });
 
-test('4体の味方を個別集計し、行動結果から戦績を作る', () => {
+test('複数の味方を個別集計し、行動結果から戦績を作る', () => {
   const units = [1, 2, 3, 4].map((n) => ({ id: `a${n}`, name: `味方${n}`, side: 'ally' }));
   units.push({ id: 'e1', name: '敵', side: 'enemy' });
   const battle = {

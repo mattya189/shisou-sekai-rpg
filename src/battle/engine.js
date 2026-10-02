@@ -101,6 +101,17 @@ export function advance(battle, data, dtMs) {
   return battle.log.length - before;
 }
 
+/**
+ * 次に処理される出来事の発生時刻（なければ null）。戦闘状態は変更しない。
+ * 画面は「次の出来事の時刻まで advance する」ことで、1つの出来事ごとに演出とHP表示をそろえられる。
+ * advance は刻み方に結果が左右されないため、この使い方でも戦闘結果は変わらない。
+ */
+export function nextEventTime(battle) {
+  if (battle.outcome) return null;
+  const ev = nextEvent(battle);
+  return ev ? ev.time : null;
+}
+
 /** 決着まで進める */
 export function runToEnd(battle, data) {
   advance(battle, data, data.balance.battle.timeLimitMs);

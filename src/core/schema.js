@@ -390,6 +390,9 @@ export const CATEGORY_SCHEMAS = {
       if (entry.defeatFlag && !FLAG_PATTERN.test(entry.defeatFlag)) ctx.error('defeatFlag は flag_001 の形式にしてください');
       if (entry.charge && !(entry.charge.everyNAttacks >= 1 && entry.charge.chargeMs >= 0)) ctx.error('charge には everyNAttacks と chargeMs が必要です');
       for (const p of entry.parts ?? []) if (!(p.hpPct > 0)) ctx.error(`parts の ${p.key} の hpPct は正の数にしてください`);
+      // 部位も戦場に並ぶ敵ユニットなので、本体と合わせて敵の上限（3対3）に収める。
+      const maxEnemies = ctx.raw.balance?.battle?.maxEnemies ?? 3;
+      if ((entry.parts?.length ?? 0) + 1 > maxEnemies) ctx.error(`部位${entry.parts.length}個＋本体で敵の上限${maxEnemies}体を超えています`);
     },
   },
 };
@@ -485,7 +488,8 @@ function validateBalance(raw, exists) {
   };
   need(Array.isArray(b.ranks) && b.ranks.length > 0 && b.ranks[0].rank === 1, 'ranks は rank 1 から始めてください');
   need(Array.isArray(b.qualities) && b.qualities.length > 0, 'qualities がありません');
-  need(b.party?.size === 4, 'party.size は4にしてください');
+  need(b.party?.size === 3, 'party.size は3にしてください（戦闘は3対3）');
+  need(b.battle?.maxEnemies === 3, 'battle.maxEnemies は3にしてください（戦闘は3対3）');
   need(b.skills?.maxLearned === 10, 'skills.maxLearned は10にしてください');
   need(b.skills?.maxEquipped === 5, 'skills.maxEquipped は5にしてください');
   need(b.passives?.maxPerUnit === 2, 'passives.maxPerUnit は2にしてください');

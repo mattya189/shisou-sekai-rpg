@@ -13,6 +13,7 @@
     "validate": "node scripts/validate-data.mjs",
     "check": "node scripts/validate-data.mjs && node --test \"tests/**/*.test.js\"",
     "sim": "node scripts/balance-sim.mjs",
-    "e2e": "node e2e/smoke.mjs"
+    "e2e": "node e2e/smoke.mjs",
+    "e2e:battle": "node e2e/battle-ui.mjs"
   }
 }

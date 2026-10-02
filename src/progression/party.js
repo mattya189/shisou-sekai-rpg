@@ -1,5 +1,5 @@
 /**
- * パーティ編成。4枠に人間キャラクターとモンスターを自由に混ぜられる。
+ * パーティ編成。3枠（balance.party.size）に人間キャラクターとモンスターを自由に混ぜられる。
  * save.party はユニットIDまたは null の配列。
  */
 import { GameError } from '../core/errors.js';

@@ -35,7 +35,7 @@ test('ゲームの固定上限を超えるユニットデータを拒否する',
   assert.ok(errors.some((e) => e.includes('固有パッシブが 3 個')));
 });
 
-test('4体編成・特技5枠・装備2枠・品質5段階の固定値を検証する', async () => {
+test('3体編成・特技5枠・装備2枠・品質5段階の固定値を検証する', async () => {
   const data = await loadModifiedData((raw) => {
     raw.balance.party.size = 5;
     raw.balance.skills.maxEquipped = 6;
@@ -43,16 +43,17 @@ test('4体編成・特技5枠・装備2枠・品質5段階の固定値を検証�
     raw.balance.qualities.pop();
   });
   const { errors } = data.validate();
-  assert.ok(errors.some((e) => e.includes('party.size は4')));
+  assert.ok(errors.some((e) => e.includes('party.size は3')));
   assert.ok(errors.some((e) => e.includes('skills.maxEquipped は5')));
   assert.ok(errors.some((e) => e.includes('equipment.slots は2')));
   assert.ok(errors.some((e) => e.includes('qualities は5段階')));
 });
 
-test('戦闘表示は4対4と読みやすい3段階速度を前提にする', async () => {
+test('戦闘は3対3と読みやすい3段階速度を前提にする', async () => {
   const data = await loadRealData();
-  assert.equal(data.balance.party.size, 4);
-  assert.equal(data.balance.battle.maxEnemies, 4);
+  assert.equal(data.balance.party.size, 3);
+  assert.equal(data.balance.battle.maxEnemies, 3);
+  assert.equal(data.balance.newGame.party.length, 3);
   assert.deepEqual(data.balance.battle.speeds, [1, 2, 3]);
 });
 

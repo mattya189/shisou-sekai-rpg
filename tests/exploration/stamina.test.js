@@ -58,7 +58,7 @@ test('旧v1セーブは既存データを保ったまま最大300へ移行でき
     }),
   });
   const loaded = new SaveRepository(storage, { key: 'old' }).load();
-  assert.equal(loaded.saveVersion, 2);
+  assert.equal(loaded.saveVersion, 3);
   assert.equal(loaded.exploration.actionPoints, 300);
   assert.equal(loaded.exploration.maxActionPoints, 300);
   assert.equal(loaded.exploration.adventureId, 'loc_002');

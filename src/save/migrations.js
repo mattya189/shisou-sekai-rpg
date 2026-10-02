@@ -13,6 +13,9 @@
  */
 import { CURRENT_SAVE_VERSION } from './saveSchema.js';
 
+/** v3時点の編成枠数。balance を参照せず、マイグレーションの結果を固定する。 */
+const PARTY_SIZE_V3 = 3;
+
 export const MIGRATIONS = [
   {
     from: 1,
@@ -28,6 +31,18 @@ export const MIGRATIONS = [
       exploration.adventureId = exploration.adventureId ?? exploration.locationId ?? null;
       exploration.staminaUpdatedAt = null;
       // locationId は旧セーブ互換のため残すが、v2以降のUIは現在地として使わない。
+      return save;
+    },
+  },
+  {
+    from: 2,
+    to: 3,
+    description: '戦闘を3対3へ変更。4枠の編成を3枠へ詰め、入りきらないユニットは控えへ戻す（ユニット自体は消さない）',
+    migrate(save) {
+      const party = Array.isArray(save.party) ? save.party : [];
+      const members = party.filter((id) => typeof id === 'string' && id);
+      const kept = members.slice(0, PARTY_SIZE_V3);
+      save.party = [...kept, ...Array(PARTY_SIZE_V3 - kept.length).fill(null)];
       return save;
     },
   },

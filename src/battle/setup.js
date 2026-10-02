@@ -10,7 +10,9 @@ import { currentHp } from '../progression/hp.js';
  * mp を渡すと、そのMPから始まる（連戦ダンジョンの持ち越し）。
  */
 export function alliesFromParty(save, data, { mp } = {}) {
-  return partyMembers(save).map((unitId) => {
+  // 戦闘は3対3。旧形式の編成が残っていても枠数を超えて出撃させない。
+  const size = data?.balance?.party?.size ?? Infinity;
+  return partyMembers(save).slice(0, size).map((unitId) => {
     const u = save.units[unitId];
     return {
       unitId,
