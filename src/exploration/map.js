@@ -21,13 +21,55 @@ function requirementMet(save, requires) {
   return true;
 }
 
+function zoneRequirementMet(save, zone) {
+  const unlock = zone.unlock;
+  if (!unlock) return true;
+  if (unlock.type === 'future') return false;
+  if ((unlock.flags ?? []).some((flag) => !save.flags[flag])) return false;
+  if ((unlock.items ?? []).some((id) => countItem(save, id) <= 0)) return false;
+  if (unlock.zoneId && !save.exploration.clearedZones?.[unlock.zoneId]) return false;
+  if (unlock.type === 'progress' && !save.flags[unlock.progressFlag]) return false;
+  return true;
+}
+
+export function listWorldZones(save, data, worldId) {
+  const world = data.get('worlds', worldId);
+  return (world.zoneIds ?? [])
+    .map((id) => data.get('zones', id))
+    .sort((a, b) => a.tier - b.tier)
+    .map((zone) => ({
+      id: zone.id,
+      zone,
+      locked: !zoneRequirementMet(save, zone),
+      hint: zone.unlock?.hint ?? null,
+    }));
+}
+
+export function selectedZoneId(save, data, worldId = save.exploration.worldId) {
+  const selected = data.find('zones', save.exploration.zoneId);
+  if (selected?.worldId === worldId) return selected.id;
+  const current = data.find('locations', save.exploration.adventureId);
+  if (current?.worldId === worldId && current.zoneId) return current.zoneId;
+  return data.find('worlds', worldId)?.zoneIds?.[0] ?? null;
+}
+
+export function selectZone(save, data, worldId, zoneId) {
+  if (save.exploration.pendingEvent) throw new GameError('pending_event', '先に現在の探索結果を確認してください');
+  const entry = listWorldZones(save, data, worldId).find((candidate) => candidate.id === zoneId);
+  if (!entry) throw new GameError('unknown_zone', 'その地帯は選べません');
+  if (entry.locked) throw new GameError('locked', entry.hint ? `未解放です。${entry.hint}` : '未解放です');
+  save.exploration.worldId = worldId;
+  save.exploration.zoneId = zoneId;
+  return entry.zone;
+}
+
 /**
  * 現在地とは無関係に、世界内の冒険先を列挙する。
  * adventureRequires が無い場所は最初から選択できる。
  */
-export function listAdventureDestinations(save, data, worldId = save.exploration.worldId) {
+export function listAdventureDestinations(save, data, worldId = save.exploration.worldId, zoneId = selectedZoneId(save, data, worldId)) {
   return data.list('locations')
-    .filter((loc) => loc.worldId === worldId)
+    .filter((loc) => loc.worldId === worldId && loc.zoneId === zoneId)
     .map((loc) => ({
       id: loc.id,
       node: loc,
@@ -44,6 +86,8 @@ export function selectAdventure(save, data, locationId) {
   if (!destination) throw new GameError('unknown_adventure', 'その冒険先は選べません');
   if (destination.locked) throw new GameError('locked', destination.hint ? `まだ解放されていません。${destination.hint}` : 'まだ解放されていません');
   save.exploration.adventureId = locationId;
+  save.exploration.worldId = destination.node.worldId;
+  save.exploration.zoneId = destination.node.zoneId;
   if (!save.exploration.discoveredNodes.includes(locationId)) save.exploration.discoveredNodes.push(locationId);
   return destination.node;
 }

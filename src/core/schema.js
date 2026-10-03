@@ -123,7 +123,6 @@ export const CATEGORY_SCHEMAS = {
         if (!e.enemies?.length || e.enemies.length > max) ctx.error(`entries[${i}].enemies は1〜${max}体にしてください`);
         for (const en of e.enemies ?? []) {
           const [lo, hi] = en.level ?? [];
-          if (en.rank != null && (!Number.isInteger(en.rank) || en.rank < 1 || en.rank > (ctx.raw.balance?.ranks?.length ?? 5))) ctx.error(`entries[${i}] の ${en.defId} の rank が範囲外です`);
           if (!(Number.isInteger(lo) && Number.isInteger(hi) && lo >= 1 && lo <= hi)) ctx.error(`entries[${i}] の ${en.defId} の level は [最小, 最大] で指定してください`);
         }
         checkWhen(e.when, `entries[${i}].when`, ctx);
@@ -132,8 +131,39 @@ export const CATEGORY_SCHEMAS = {
   },
   worlds: {
     prefix: 'world_',
-    required: ['id', 'name', 'theme'],
-    refs: [['startTownId', 'towns']],
+    required: ['id', 'name', 'theme', 'zoneIds'],
+    refs: [['startTownId', 'towns'], ['zoneIds[]', 'zones']],
+    check(entry, ctx) {
+      if (entry.scale != null || entry.sizeCategory != null) ctx.error('世界規模分類は廃止されています。scale / sizeCategory を設定しないでください');
+      if (entry.zoneIds?.length !== 5) ctx.error('zoneIds は通常地帯から神域まで5件指定してください');
+      const zones = (ctx.raw.zones ?? []).filter((zone) => zone.worldId === entry.id).sort((a, b) => a.tier - b.tier);
+      if (zones.length !== 5 || zones.some((zone, index) => zone.tier !== index + 1)) ctx.error('地帯は tier 1〜5を1件ずつ定義してください');
+      if (entry.zoneIds?.some((id, index) => zones[index]?.id !== id)) ctx.error('zoneIds は tier 1〜5の順で指定してください');
+    },
+  },
+  zones: {
+    prefix: 'zone_',
+    required: ['id', 'worldId', 'tier', 'key', 'name', 'locationIds', 'encounterTableIds', 'rewards'],
+    refs: [
+      ['worldId', 'worlds'], ['locationIds[]', 'locations'], ['encounterTableIds[]', 'encounters'],
+      ['rewards.dropItemIds[]', 'items'], ['rewards.materialItemIds[]', 'items'], ['rewards.equipmentIds[]', 'equipment'],
+      ['unlock.items[]', 'items'],
+    ],
+    check(entry, ctx) {
+      const keys = ['normal', 'alert', 'danger', 'ruin', 'sanctuary'];
+      if (!Number.isInteger(entry.tier) || entry.tier < 1 || entry.tier > 5) ctx.error('tier は1〜5の整数にしてください');
+      if (keys[entry.tier - 1] !== entry.key) ctx.error(`tier ${entry.tier} の key は "${keys[entry.tier - 1]}" にしてください`);
+      if (entry.tier === 1 && entry.unlock) ctx.error('通常地帯は最初から解放するため unlock を設定しないでください');
+      if (entry.unlock && !['future', 'flags', 'items', 'zoneClear', 'progress'].includes(entry.unlock.type)) ctx.error(`unlock.type "${entry.unlock.type}" は未登録です`);
+      for (const flag of entry.unlock?.flags ?? []) if (!FLAG_PATTERN.test(flag)) ctx.error(`unlock.flags "${flag}" は flag_001 の形式にしてください`);
+      for (const key of ['qualityBonus', 'expMultiplier', 'currencyMultiplier', 'recruitRateBonus']) {
+        if (typeof entry.rewards?.[key] !== 'number') ctx.error(`rewards.${key} は数値で指定してください`);
+      }
+      for (const locationId of entry.locationIds ?? []) {
+        const loc = (ctx.raw.locations ?? []).find((candidate) => candidate.id === locationId);
+        if (loc && (loc.worldId !== entry.worldId || loc.zoneId !== entry.id)) ctx.error(`locationIds の ${locationId} は同じ世界・地帯を参照する必要があります`);
+      }
+    },
   },
   towns: {
     prefix: 'town_',
@@ -148,9 +178,10 @@ export const CATEGORY_SCHEMAS = {
   },
   locations: {
     prefix: 'loc_',
-    required: ['id', 'name', 'worldId', 'kind', 'region'],
+    required: ['id', 'name', 'worldId', 'zoneId', 'kind', 'region'],
     refs: [
       ['worldId', 'worlds'],
+      ['zoneId', 'zones'],
       ['region', 'regions'],
       ['connections[].to', '@node'],
       ['connections[].requires.items[]', 'items'],
@@ -264,7 +295,6 @@ export const CATEGORY_SCHEMAS = {
       ['effects[].condition.markerId', 'markers'],
       ['completionEffects[].statusId', 'statuses'],
       ['completionEffects[].markerId', 'markers'],
-      ['completionEffects[].selfMarkerId', 'markers'], ['effects[].selfMarkerId', 'markers'],
       ['trigger.statusId', 'statuses'],
       ['trigger.markerId', 'markers'],
       ['trigger.of[].statusId', 'statuses'],
@@ -282,12 +312,10 @@ export const CATEGORY_SCHEMAS = {
       if (!Array.isArray(entry.effects) || (!entry.comboFrom && entry.effects.length === 0)) ctx.error('effects を1つ以上指定してください');
       (entry.effects ?? []).forEach((e, i) => validateEffect(e, `effects[${i}]`).forEach((m) => ctx.error(m)));
       (entry.completionEffects ?? []).forEach((e, i) => validateEffect(e, `completionEffects[${i}]`).forEach((m) => ctx.error(m)));
-      if (entry.comboTiming != null && entry.comboTiming !== 'afterSkill') ctx.error('comboTiming は afterSkill を指定してください');
-      if (entry.comboCondition && !(typeof entry.comboCondition.resultKey === 'string' && entry.comboCondition.minConsumed >= 0)) ctx.error('comboCondition は resultKey / minConsumed が必要です');
       if (entry.comboFrom && !(entry.completionEffects?.length > 0)) ctx.error('コンボ特技には completionEffects が必要です');
       if (entry.oncePerBattle != null && typeof entry.oncePerBattle !== 'boolean') ctx.error('oncePerBattle は真偽値で指定してください');
       if (entry.intrinsic != null && typeof entry.intrinsic !== 'boolean') ctx.error('intrinsic は真偽値で指定してください');
-      if (entry.targetSelector && !['enemyMarkerOldest', 'enemyMarkerMost'].includes(entry.targetSelector.type)) ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
+      if (entry.targetSelector && entry.targetSelector.type !== 'enemyMarkerOldest') ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
     },
   },
   passives: {
@@ -394,9 +422,6 @@ export const CATEGORY_SCHEMAS = {
       if (entry.defeatFlag && !FLAG_PATTERN.test(entry.defeatFlag)) ctx.error('defeatFlag は flag_001 の形式にしてください');
       if (entry.charge && !(entry.charge.everyNAttacks >= 1 && entry.charge.chargeMs >= 0)) ctx.error('charge には everyNAttacks と chargeMs が必要です');
       for (const p of entry.parts ?? []) if (!(p.hpPct > 0)) ctx.error(`parts の ${p.key} の hpPct は正の数にしてください`);
-      // 部位も戦場に並ぶ敵ユニットなので、本体と合わせて敵の上限（3対3）に収める。
-      const maxEnemies = ctx.raw.balance?.battle?.maxEnemies ?? 3;
-      if ((entry.parts?.length ?? 0) + 1 > maxEnemies) ctx.error(`部位${entry.parts.length}個＋本体で敵の上限${maxEnemies}体を超えています`);
     },
   },
 };
@@ -492,8 +517,7 @@ function validateBalance(raw, exists) {
   };
   need(Array.isArray(b.ranks) && b.ranks.length > 0 && b.ranks[0].rank === 1, 'ranks は rank 1 から始めてください');
   need(Array.isArray(b.qualities) && b.qualities.length > 0, 'qualities がありません');
-  need(b.party?.size === 3, 'party.size は3にしてください（戦闘は3対3）');
-  need(b.battle?.maxEnemies === 3, 'battle.maxEnemies は3にしてください（戦闘は3対3）');
+  need(b.party?.size === 4, 'party.size は4にしてください');
   need(b.skills?.maxLearned === 10, 'skills.maxLearned は10にしてください');
   need(b.skills?.maxEquipped === 5, 'skills.maxEquipped は5にしてください');
   need(b.passives?.maxPerUnit === 2, 'passives.maxPerUnit は2にしてください');

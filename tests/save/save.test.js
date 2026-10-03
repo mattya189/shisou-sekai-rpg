@@ -12,6 +12,7 @@ test('新規ゲームは balance.newGame どおりに始まる', async () => {
   assert.equal(save.saveVersion, CURRENT_SAVE_VERSION);
   assert.deepEqual(save.party, ng.party);
   assert.equal(save.exploration.townId, ng.townId);
+  assert.equal(save.exploration.zoneId, 'zone_001');
   assert.equal(save.exploration.actionPoints, data.balance.actionPoints.initial);
   for (const u of ng.units) assert.ok(save.units[u.defId]);
   assert.equal(save.inventory.currencies.cur_001, 500);
@@ -54,6 +55,8 @@ test('欠けている項目は初期値で補完され、未知の項目は残�
   const s = normalizeSave(partial);
   assert.deepEqual(s.inventory.items, {});
   assert.equal(s.exploration.actionPoints, 300);
+  assert.equal(s.exploration.zoneId, null);
+  assert.deepEqual(s.exploration.clearedZones, {});
   assert.equal(s.units.mon_001.level, 5);
   assert.equal(s.units.mon_001.rank, 1);
   assert.deepEqual(s.units.mon_001.equippedSkills, []);
@@ -73,7 +76,7 @@ test('JSONとして読めても型が壊れたセーブは安全な既定値へ�
     dungeonRun: 'broken',
   };
   const s = normalizeSave(broken);
-  assert.deepEqual(s.party, [null, null, null]);
+  assert.deepEqual(s.party, [null, null, null, null]);
   assert.deepEqual(s.inventory, { items: {}, equipment: {}, currencies: {} });
   assert.deepEqual(s.exploration.discoveredNodes, []);
   assert.deepEqual(s.exploration.time, { day: 1, period: 'morning', tick: 0 });

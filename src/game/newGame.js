@@ -13,6 +13,7 @@ export function createNewGame(data, rng, { now = Date.now() } = {}) {
   const save = createEmptySave();
   save.party = Array(b.party.size).fill(null);
   save.exploration.worldId = ng.worldId;
+  save.exploration.zoneId = ng.zoneId ?? data.get('worlds', ng.worldId).zoneIds?.[0] ?? null;
   save.exploration.townId = ng.townId;
   save.exploration.discoveredNodes = [ng.townId];
   save.exploration.actionPoints = b.actionPoints.initial;

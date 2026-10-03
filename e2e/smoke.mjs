@@ -33,7 +33,7 @@ await mkdir(shots, { recursive: true });
 const errors = [];
 const steps = [];
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true });
+const page = await browser.newPage({ viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true });
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 page.on('pageerror', (e) => errors.push(String(e)));
 
@@ -69,8 +69,10 @@ try {
     await page.click('.shop-row >> nth=0 >> button >> nth=0');
     await page.click('text=街に戻る');
   });
-  await step('冒険へ → 草原入口を直接選択', async () => {
+  await step('冒険へ → 染まり野原 → 通常地帯 → 草原入口', async () => {
     await page.click('.facility-exit');
+    await page.click('.world-row:has-text("染まり野原")');
+    await page.click('.zone-row:has-text("通常地帯")');
     await page.click('.travel-row >> nth=0');
     await page.waitForSelector('.location-screen');
   });

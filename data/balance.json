@@ -72,7 +72,7 @@
     }
   ],
   "party": {
-    "size": 3
+    "size": 4
   },
   "skills": {
     "maxLearned": 10,
@@ -94,7 +94,7 @@
     "defenseConstant": 50,
     "damageVariance": 0.05,
     "timeLimitMs": 300000,
-    "maxEnemies": 3,
+    "maxEnemies": 4,
     "speeds": [
       1,
       2,
@@ -197,6 +197,7 @@
   "goldCurrencyId": "cur_001",
   "newGame": {
     "worldId": "world_001",
+    "zoneId": "zone_001",
     "townId": "town_001",
     "currencies": [
       {
@@ -221,7 +222,8 @@
     "party": [
       "chr_001",
       "chr_002",
-      "mon_001"
+      "mon_001",
+      null
     ],
     "items": [
       {

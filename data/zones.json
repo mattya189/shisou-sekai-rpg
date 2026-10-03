@@ -1,0 +1,73 @@
+[
+  {
+    "id": "zone_001",
+    "worldId": "world_001",
+    "tier": 1,
+    "key": "normal",
+    "name": "通常地帯",
+    "description": "染まり野原を初めて訪れた冒険者向けの基本地帯。収集・素材・装備・育成の入口。",
+    "locationIds": ["loc_001", "loc_002", "loc_003", "loc_004"],
+    "encounterTableIds": ["enc_001", "enc_002", "enc_003", "enc_004"],
+    "strongEncounterIds": ["strong_001"],
+    "rewards": {
+      "dropItemIds": ["item_001", "item_002", "item_003", "item_004", "item_005", "item_006"],
+      "equipmentIds": ["equip_001", "equip_002", "equip_003", "equip_004"],
+      "materialItemIds": ["item_001", "item_002", "item_003", "item_004", "item_005", "item_006"],
+      "qualityBonus": 0,
+      "expMultiplier": 1,
+      "currencyMultiplier": 1,
+      "recruitRateBonus": 0
+    },
+    "explorationEventIds": ["loc_001_encounter", "loc_001_gather", "loc_001_quiet", "loc_001_danger"]
+  },
+  {
+    "id": "zone_002",
+    "worldId": "world_001",
+    "tier": 2,
+    "key": "alert",
+    "name": "警戒地帯",
+    "description": "育成と編成を意識し始める地帯。強敵・良質なドロップ・希少モンスターを設定できる。",
+    "unlock": { "type": "future", "hint": "今後の更新で解放条件を追加予定" },
+    "locationIds": [],
+    "encounterTableIds": [],
+    "strongEncounterIds": [],
+    "rewards": { "dropItemIds": [], "equipmentIds": [], "materialItemIds": [], "qualityBonus": 1, "expMultiplier": 1, "currencyMultiplier": 1, "recruitRateBonus": 0 },
+    "explorationEventIds": []
+  },
+  {
+    "id": "zone_003",
+    "worldId": "world_001",
+    "tier": 3,
+    "key": "danger",
+    "name": "危険地帯",
+    "description": "4体編成・特技・装備・属性・固有能力への対策が重要になる高難度地帯。",
+    "unlock": { "type": "future", "hint": "今後の更新で解放条件を追加予定" },
+    "locationIds": [], "encounterTableIds": [], "strongEncounterIds": [],
+    "rewards": { "dropItemIds": [], "equipmentIds": [], "materialItemIds": [], "qualityBonus": 2, "expMultiplier": 1, "currencyMultiplier": 1, "recruitRateBonus": 0 },
+    "explorationEventIds": []
+  },
+  {
+    "id": "zone_004",
+    "worldId": "world_001",
+    "tier": 4,
+    "key": "ruin",
+    "name": "破滅地帯",
+    "description": "上位個体・希少種・強敵・特殊能力の組み合わせと、高品質装備の周回を想定した地帯。",
+    "unlock": { "type": "future", "hint": "今後の更新で解放条件を追加予定" },
+    "locationIds": [], "encounterTableIds": [], "strongEncounterIds": [],
+    "rewards": { "dropItemIds": [], "equipmentIds": [], "materialItemIds": [], "qualityBonus": 3, "expMultiplier": 1, "currencyMultiplier": 1, "recruitRateBonus": 0 },
+    "explorationEventIds": []
+  },
+  {
+    "id": "zone_005",
+    "worldId": "world_001",
+    "tier": 5,
+    "key": "sanctuary",
+    "name": "神域",
+    "description": "染まり野原固有の能力と戦い方を最も強く体験する、完成した4体編成向けの最高難度。",
+    "unlock": { "type": "future", "hint": "今後の更新で解放条件を追加予定" },
+    "locationIds": [], "encounterTableIds": [], "strongEncounterIds": [],
+    "rewards": { "dropItemIds": [], "equipmentIds": [], "materialItemIds": [], "qualityBonus": 4, "expMultiplier": 1, "currencyMultiplier": 1, "recruitRateBonus": 0 },
+    "explorationEventIds": []
+  }
+]

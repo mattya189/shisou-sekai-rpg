@@ -22,6 +22,9 @@
     "worlds": [
       "worlds.json"
     ],
+    "zones": [
+      "zones.json"
+    ],
     "towns": [
       "towns.json"
     ],

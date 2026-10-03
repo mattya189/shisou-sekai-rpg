@@ -8,7 +8,7 @@
  * 詳しくは docs/save-data.md
  */
 
-export const CURRENT_SAVE_VERSION = 3;
+export const CURRENT_SAVE_VERSION = 2;
 
 export function createEmptySave() {
   return {
@@ -20,7 +20,7 @@ export function createEmptySave() {
     /** 所持ユニット。キーはユニット定義ID（chr_001 / mon_001）。同種は1体のみ。 */
     units: {},
     /** 編成。ユニット定義IDまたは null。長さは balance.party.size */
-    party: [null, null, null],
+    party: [null, null, null, null],
     inventory: {
       /** { item_001: { q1: 32, q2: 18 } } */
       items: {},
@@ -37,6 +37,10 @@ export function createEmptySave() {
     },
     exploration: {
       worldId: null,
+      /** 選択中の地帯難易度。旧セーブでは冒険先または世界の第1地帯から補完する。 */
+      zoneId: null,
+      /** 地帯攻略記録。将来の下位地帯攻略による解放条件に利用する。 */
+      clearedZones: {},
       townId: null,
       /** 選択中の冒険先。現在地ではなく、探索コマンドの対象を表す。 */
       adventureId: null,

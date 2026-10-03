@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "changed": [
+    "AGENTS.md",
+    "css/main.css",
+    "data/balance.json",
+    "data/locations.json",
+    "data/manifest.json",
+    "data/worlds.json",
+    "docs/HANDOFF.md",
+    "docs/content-guide.md",
+    "docs/exploration-system.md",
+    "docs/save-data.md",
+    "e2e/smoke.mjs",
+    "src/core/schema.js",
+    "src/exploration/map.js",
+    "src/game/newGame.js",
+    "src/save/saveSchema.js",
+    "src/ui/screens/travel.js",
+    "tests/save/save.test.js"
+  ],
+  "added": [
+    "PATCH_MANIFEST.json",
+    "data/zones.json",
+    "tests/exploration/zones.test.js"
+  ],
+  "delete": []
+  ,
+  "compatibility": [
+    "README.md"
+  ]
+}

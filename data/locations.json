@@ -2,6 +2,7 @@
   {
     "id": "loc_001",
     "worldId": "world_001",
+    "zoneId": "zone_001",
     "name": "（仮）草原入口",
     "kind": "field",
     "description": "（仮）テキスト。",
@@ -62,6 +63,7 @@
   {
     "id": "loc_002",
     "worldId": "world_001",
+    "zoneId": "zone_001",
     "name": "（仮）川辺",
     "kind": "field",
     "description": "（仮）テキスト。",
@@ -137,6 +139,7 @@
   {
     "id": "loc_003",
     "worldId": "world_001",
+    "zoneId": "zone_001",
     "name": "（仮）丘",
     "kind": "field",
     "description": "（仮）テキスト。",
@@ -199,6 +202,7 @@
   {
     "id": "loc_004",
     "worldId": "world_001",
+    "zoneId": "zone_001",
     "name": "（仮）遺跡の入口",
     "kind": "dungeonEntrance",
     "description": "（仮）テキスト。奥に遺跡（ダンジョン）がある。",
