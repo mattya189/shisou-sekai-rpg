@@ -123,6 +123,7 @@ export const CATEGORY_SCHEMAS = {
         if (!e.enemies?.length || e.enemies.length > max) ctx.error(`entries[${i}].enemies は1〜${max}体にしてください`);
         for (const en of e.enemies ?? []) {
           const [lo, hi] = en.level ?? [];
+          if (en.rank != null && (!Number.isInteger(en.rank) || en.rank < 1 || en.rank > (ctx.raw.balance?.ranks?.length ?? 5))) ctx.error(`entries[${i}] の ${en.defId} の rank が範囲外です`);
           if (!(Number.isInteger(lo) && Number.isInteger(hi) && lo >= 1 && lo <= hi)) ctx.error(`entries[${i}] の ${en.defId} の level は [最小, 最大] で指定してください`);
         }
         checkWhen(e.when, `entries[${i}].when`, ctx);
@@ -295,6 +296,7 @@ export const CATEGORY_SCHEMAS = {
       ['effects[].condition.markerId', 'markers'],
       ['completionEffects[].statusId', 'statuses'],
       ['completionEffects[].markerId', 'markers'],
+      ['completionEffects[].selfMarkerId', 'markers'], ['effects[].selfMarkerId', 'markers'],
       ['trigger.statusId', 'statuses'],
       ['trigger.markerId', 'markers'],
       ['trigger.of[].statusId', 'statuses'],
@@ -312,10 +314,12 @@ export const CATEGORY_SCHEMAS = {
       if (!Array.isArray(entry.effects) || (!entry.comboFrom && entry.effects.length === 0)) ctx.error('effects を1つ以上指定してください');
       (entry.effects ?? []).forEach((e, i) => validateEffect(e, `effects[${i}]`).forEach((m) => ctx.error(m)));
       (entry.completionEffects ?? []).forEach((e, i) => validateEffect(e, `completionEffects[${i}]`).forEach((m) => ctx.error(m)));
+      if (entry.comboTiming != null && entry.comboTiming !== 'afterSkill') ctx.error('comboTiming は afterSkill を指定してください');
+      if (entry.comboCondition && !(typeof entry.comboCondition.resultKey === 'string' && entry.comboCondition.minConsumed >= 0)) ctx.error('comboCondition は resultKey / minConsumed が必要です');
       if (entry.comboFrom && !(entry.completionEffects?.length > 0)) ctx.error('コンボ特技には completionEffects が必要です');
       if (entry.oncePerBattle != null && typeof entry.oncePerBattle !== 'boolean') ctx.error('oncePerBattle は真偽値で指定してください');
       if (entry.intrinsic != null && typeof entry.intrinsic !== 'boolean') ctx.error('intrinsic は真偽値で指定してください');
-      if (entry.targetSelector && entry.targetSelector.type !== 'enemyMarkerOldest') ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
+      if (entry.targetSelector && !['enemyMarkerOldest', 'enemyMarkerMost'].includes(entry.targetSelector.type)) ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
     },
   },
   passives: {
@@ -422,6 +426,9 @@ export const CATEGORY_SCHEMAS = {
       if (entry.defeatFlag && !FLAG_PATTERN.test(entry.defeatFlag)) ctx.error('defeatFlag は flag_001 の形式にしてください');
       if (entry.charge && !(entry.charge.everyNAttacks >= 1 && entry.charge.chargeMs >= 0)) ctx.error('charge には everyNAttacks と chargeMs が必要です');
       for (const p of entry.parts ?? []) if (!(p.hpPct > 0)) ctx.error(`parts の ${p.key} の hpPct は正の数にしてください`);
+      // 部位も戦場に並ぶ敵ユニットなので、本体と合わせて敵の上限（3対3）に収める。
+      const maxEnemies = ctx.raw.balance?.battle?.maxEnemies ?? 3;
+      if ((entry.parts?.length ?? 0) + 1 > maxEnemies) ctx.error(`部位${entry.parts.length}個＋本体で敵の上限${maxEnemies}体を超えています`);
     },
   },
 };
@@ -517,7 +524,8 @@ function validateBalance(raw, exists) {
   };
   need(Array.isArray(b.ranks) && b.ranks.length > 0 && b.ranks[0].rank === 1, 'ranks は rank 1 から始めてください');
   need(Array.isArray(b.qualities) && b.qualities.length > 0, 'qualities がありません');
-  need(b.party?.size === 4, 'party.size は4にしてください');
+  need(b.party?.size === 3, 'party.size は3にしてください（戦闘は3対3）');
+  need(b.battle?.maxEnemies === 3, 'battle.maxEnemies は3にしてください（戦闘は3対3）');
   need(b.skills?.maxLearned === 10, 'skills.maxLearned は10にしてください');
   need(b.skills?.maxEquipped === 5, 'skills.maxEquipped は5にしてください');
   need(b.passives?.maxPerUnit === 2, 'passives.maxPerUnit は2にしてください');

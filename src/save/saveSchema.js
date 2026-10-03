@@ -8,7 +8,7 @@
  * 詳しくは docs/save-data.md
  */
 
-export const CURRENT_SAVE_VERSION = 2;
+export const CURRENT_SAVE_VERSION = 3;
 
 export function createEmptySave() {
   return {
@@ -20,7 +20,7 @@ export function createEmptySave() {
     /** 所持ユニット。キーはユニット定義ID（chr_001 / mon_001）。同種は1体のみ。 */
     units: {},
     /** 編成。ユニット定義IDまたは null。長さは balance.party.size */
-    party: [null, null, null, null],
+    party: [null, null, null],
     inventory: {
       /** { item_001: { q1: 32, q2: 18 } } */
       items: {},

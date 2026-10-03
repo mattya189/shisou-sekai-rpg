@@ -291,35 +291,7 @@
 }
 ```
 
-`theme` は街の画面に縦書きで大きく表示されます。1世界＝1つの環境・テーマです。小世界・中世界・大世界・超世界の規模分類は使いません。世界ごとに5地帯をtier順で必ず登録します。
-
-## 地帯難易度を追加する（`zones.json`）
-
-```json
-{
-  "id": "zone_006",
-  "worldId": "world_002",
-  "tier": 1,
-  "key": "normal",
-  "name": "通常地帯",
-  "description": "世界の基本難易度。",
-  "locationIds": ["loc_005"],
-  "encounterTableIds": ["enc_005"],
-  "strongEncounterIds": [],
-  "rewards": {
-    "dropItemIds": ["item_011"],
-    "equipmentIds": ["equip_005"],
-    "materialItemIds": ["item_011"],
-    "qualityBonus": 0,
-    "expMultiplier": 1,
-    "currencyMultiplier": 1,
-    "recruitRateBonus": 0
-  },
-  "explorationEventIds": []
-}
-```
-
-tierとkeyは順に `1 normal`（通常）、`2 alert`（警戒）、`3 danger`（危険）、`4 ruin`（破滅）、`5 sanctuary`（神域）です。上位地帯の `unlock` は `flags` / `items` / `zoneClear` / `progress` を拡張可能で、未決定なら `{ "type": "future", "hint": "..." }` とします。地帯ごとに敵表と報酬を明示し、単純な一律倍率だけで難易度を作らないでください。
+`theme` は街の画面に縦書きで大きく表示されます。世界規模分類は使わず、世界ごとに5地帯をtier順で登録します。地帯は `data/zones.json` に定義します。
 
 ## 街を追加する（`towns.json`）
 
@@ -389,7 +361,7 @@ tierとkeyは順に `1 normal`（通常）、`2 alert`（警戒）、`3 danger`�
 | 項目 | 意味 |
 |---|---|
 | `kind` | `field`（通常）/ `dungeonEntrance`（ダンジョン入口） |
-| `zoneId` | 所属する地帯難易度。世界の `zoneIds` のいずれか |
+| `zoneId` | 所属する地帯難易度 |
 | `region` | 地域。天候はこの地域のものを使う |
 | `actions` | この地点でできる探索行動（`balance.exploration.actions` のキー） |
 | `encounterTableId` | エンカウントテーブル。「探索する」「モンスターを探す」がある地点では必須 |
@@ -437,7 +409,7 @@ tierとkeyは順に `1 normal`（通常）、`2 alert`（警戒）、`3 danger`�
 ```
 
 - 1行が1つの敵グループ。条件（`when`）を満たす行から `weight` で抽選。
-- 敵は1〜4体（`balance.battle.maxEnemies`）。レベルは [最小, 最大]。
+- 敵は1〜3体（`balance.battle.maxEnemies`）。ボスは部位と本体の合計で3体以内。レベルは [最小, 最大]。
 - 希少種・変異種は `when` で出現条件を絞ると特別感が出ます。
 
 ## 図鑑の段階を変える（`balance.json` の `codex.monsterStages`）

@@ -72,7 +72,7 @@
     }
   ],
   "party": {
-    "size": 4
+    "size": 3
   },
   "skills": {
     "maxLearned": 10,
@@ -94,7 +94,7 @@
     "defenseConstant": 50,
     "damageVariance": 0.05,
     "timeLimitMs": 300000,
-    "maxEnemies": 4,
+    "maxEnemies": 3,
     "speeds": [
       1,
       2,
@@ -222,8 +222,7 @@
     "party": [
       "chr_001",
       "chr_002",
-      "mon_001",
-      null
+      "mon_001"
     ],
     "items": [
       {
