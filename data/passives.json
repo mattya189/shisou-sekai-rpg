@@ -53,5 +53,18 @@
     "effects": [
       { "type": "markerGainToRandomResource", "markerId": "marker_001", "per": 10, "resourceId": "prismCores", "items": ["red", "blue", "yellow", "green", "purple"], "max": 5 }
     ]
+  },
+  {
+    "id": "passive_010",
+    "name": "護彩吸収",
+    "description": "自身の特技が消費した侵色合計の50%（切り捨て）を護彩へ変換する。上限30。他者の消費や解除は対象外。",
+    "effects": [
+      {
+        "type": "consumedMarkerGainSelfMarker",
+        "markerId": "marker_001",
+        "selfMarkerId": "marker_003",
+        "ratio": 0.5
+      }
+    ]
   }
 ]

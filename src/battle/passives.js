@@ -16,6 +16,13 @@
 import { hasStatus } from './unitState.js';
 
 export const PASSIVE_EFFECTS = {
+  consumedMarkerGainSelfMarker: {
+    params: ['markerId', 'selfMarkerId', 'ratio'],
+    onMarkerConsumed(e, unit, api, ctx) {
+      if (ctx.actor !== unit || !ctx.skill || ctx.markerId !== e.markerId) return;
+      api.addMarker(unit, e.selfMarkerId, Math.floor(ctx.amount * e.ratio), ctx.results);
+    },
+  },
   statPerAttackCount: {
     params: ['stat', 'pctPerStack', 'maxStacks'],
     onAttackStart(e, unit, key) {

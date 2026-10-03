@@ -12,5 +12,12 @@
     "showMax": true,
     "allowedSpeciesIds": ["species_003"],
     "description": "犬族ユニットが個別に0～10で保持する種族共通マーカー。犬族だから自動増加するものではなく、対応する特技・パッシブの効果でのみ増減する。"
+  },
+  {
+    "id": "marker_003",
+    "name": "護彩",
+    "maxStacks": 30,
+    "showMax": true,
+    "description": "護彩吸収を持つ使用者が、自身の特技による侵色の実消費合計の50%（切り捨て）を蓄積する専用マーカー。"
   }
 ]

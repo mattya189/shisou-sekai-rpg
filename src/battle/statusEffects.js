@@ -13,7 +13,19 @@
  * { statusId, kind, params, expiresAt, nextTickAt, remainingTurns, turnTiming }
  */
 
+/** Shared classification for successful enemy-origin debuff events. */
+export function isDebuff(def) {
+  if (typeof def.debuff === 'boolean') return def.debuff;
+  const p = def.params ?? {};
+  return ['damageOverTime', 'attackDelay', 'skipAction'].includes(def.kind)
+    || (def.kind === 'statModifier' && p.pct < 0)
+    || (def.kind === 'flatStatModifier' && p.amount < 0)
+    || (def.kind === 'intervalPctModifier' && p.pct > 0)
+    || (def.kind === 'multiStatModifier' && (Object.values(p.statPct ?? {}).some((n) => n < 0) || p.intervalPct > 0));
+}
+
 export const STATUS_KINDS = {
+  nextAttackDamage: { params: ['pct'] },
   damageOverTime: {
     params: ['pctOfMaxHp'],
     ticks: true,
@@ -86,7 +98,7 @@ export function validateStatusDef(entry) {
     .map((p) => `状態異常 ${entry.kind} には params.${p} が必要です`);
   const hasMs = Number.isFinite(entry.durationMs) && entry.durationMs > 0;
   const hasTurns = Number.isInteger(entry.durationTurns) && entry.durationTurns > 0;
-  if (hasMs === hasTurns) errors.push('durationMs または durationTurns のどちらか一方を正の値で指定してください');
+  if (!(entry.kind === 'nextAttackDamage' && entry.untilAttack === true && !hasMs && !hasTurns) && hasMs === hasTurns) errors.push('durationMs または durationTurns のどちらか一方を正の値で指定してください');
   if (entry.turnTiming != null && !['actionStart', 'actionEnd'].includes(entry.turnTiming)) {
     errors.push('turnTiming は actionStart または actionEnd を指定してください');
   }

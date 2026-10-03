@@ -164,5 +164,27 @@
   {
     "id": "status_020", "name": "歪彩魔防低下・大", "kind": "statModifier", "durationTurns": 3, "turnTiming": "actionEnd",
     "params": { "stat": "mdef", "pct": -20 }, "description": "魔法防御が20%下がる。対象自身が3回行動すると終了。"
+  },
+  {
+    "id": "status_021",
+    "name": "魔力集中",
+    "kind": "statModifier",
+    "durationTurns": 3,
+    "turnTiming": "actionEnd",
+    "params": {
+      "stat": "matk",
+      "pct": 10
+    },
+    "description": "魔法攻撃力+10%。自身の次の3行動まで。"
+  },
+  {
+    "id": "status_022",
+    "name": "報復",
+    "kind": "nextAttackDamage",
+    "untilAttack": true,
+    "params": {
+      "pct": 15
+    },
+    "description": "次にダメージを与える攻撃全体のダメージ+15%。重複せず、その攻撃の終了後に解除。"
   }
 ]

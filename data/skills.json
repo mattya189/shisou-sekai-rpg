@@ -590,5 +590,259 @@
       { "type": "multiElementDamage", "target": "enemyAll", "power": 0.8, "elements": ["elem_002", "elem_003", "elem_008", "elem_006", "elem_009"], "damageType": "magic" },
       { "type": "addMarker", "target": "enemyAll", "markerId": "marker_001", "amount": 10 }
     ]
+  },
+  {
+    "id": "skill_045",
+    "name": "色喰らい",
+    "mpCost": 6,
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 4
+    },
+    "effects": [
+      {
+        "type": "consumeMarker",
+        "target": "enemySingle",
+        "markerId": "marker_001",
+        "maxPerTarget": 10,
+        "resultKey": "incolor"
+      },
+      {
+        "type": "resourceScaledDamage",
+        "target": "enemySingle",
+        "basePower": 1,
+        "powerPerStack": 0.05,
+        "damageType": "magic",
+        "resultKey": "incolor"
+      }
+    ],
+    "element": "elem_009",
+    "targetSelector": {
+      "type": "enemyMarkerMost",
+      "markerId": "marker_001"
+    }
+  },
+  {
+    "id": "skill_046",
+    "name": "魔力集中",
+    "mpCost": 0,
+    "trigger": {
+      "type": "always"
+    },
+    "effects": [
+      {
+        "type": "applyStatus",
+        "target": "self",
+        "statusId": "status_021"
+      }
+    ],
+    "common": true,
+    "countsAsAttack": false,
+    "immediateTrigger": {
+      "type": "normalAttack",
+      "chance": 0.1
+    }
+  },
+  {
+    "id": "skill_047",
+    "name": "暗黒弾",
+    "mpCost": 6,
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 3
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 1.2,
+        "damageType": "magic"
+      }
+    ],
+    "common": true,
+    "element": "elem_009"
+  },
+  {
+    "id": "skill_048",
+    "name": "拒絶の構え",
+    "mpCost": 0,
+    "trigger": {
+      "type": "always"
+    },
+    "effects": [
+      {
+        "type": "applyStatus",
+        "target": "self",
+        "statusId": "status_015"
+      }
+    ],
+    "common": true,
+    "countsAsAttack": false,
+    "immediateTrigger": {
+      "type": "enemyDebuff",
+      "chance": 0.2
+    }
+  },
+  {
+    "id": "skill_049",
+    "name": "染色捕食",
+    "mpCost": 14,
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 6
+    },
+    "effects": [
+      {
+        "type": "consumeMarker",
+        "target": "enemyAll",
+        "markerId": "marker_001",
+        "maxPerTarget": 5,
+        "resultKey": "incolor"
+      },
+      {
+        "type": "resourceScaledDamage",
+        "target": "enemyAll",
+        "basePower": 0.8,
+        "powerPerStack": 0.04,
+        "damageType": "magic",
+        "resultKey": "incolor"
+      }
+    ],
+    "element": "elem_009"
+  },
+  {
+    "id": "skill_050",
+    "name": "生命吸収",
+    "mpCost": 8,
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 5
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemySingle",
+        "power": 1.1,
+        "damageType": "magic"
+      },
+      {
+        "type": "healFromDamage",
+        "target": "self",
+        "ratio": 0.2
+      }
+    ],
+    "common": true,
+    "element": "elem_009"
+  },
+  {
+    "id": "skill_051",
+    "name": "暗黒波",
+    "mpCost": 14,
+    "trigger": {
+      "type": "attackCountMultiple",
+      "n": 8
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "enemyAll",
+        "power": 1.2,
+        "damageType": "magic"
+      }
+    ],
+    "common": true,
+    "element": "elem_009"
+  },
+  {
+    "id": "skill_052",
+    "name": "報復本能",
+    "mpCost": 0,
+    "trigger": {
+      "type": "always"
+    },
+    "effects": [
+      {
+        "type": "applyStatus",
+        "target": "self",
+        "statusId": "status_022"
+      }
+    ],
+    "common": true,
+    "countsAsAttack": false,
+    "immediateTrigger": {
+      "type": "enemyDebuff",
+      "chance": 1
+    },
+    "abilityKind": "passive"
+  },
+  {
+    "id": "skill_053",
+    "name": "護色反転",
+    "mpCost": 0,
+    "trigger": {
+      "type": "always"
+    },
+    "effects": [],
+    "comboFrom": "skill_049",
+    "comboTiming": "afterSkill",
+    "comboCondition": {
+      "resultKey": "incolor",
+      "minConsumed": 10
+    },
+    "completionEffects": [
+      {
+        "type": "resourceScaledDamage",
+        "target": "enemyAll",
+        "basePower": 0.7,
+        "powerPerStack": 0.02,
+        "damageType": "magic",
+        "selfMarkerId": "marker_003"
+      }
+    ],
+    "element": "elem_009"
+  },
+  {
+    "id": "skill_054",
+    "name": "奥義：万彩拒絶砲",
+    "mpCost": 0,
+    "trigger": {
+      "type": "all",
+      "of": [
+        {
+          "type": "attackCountMultiple",
+          "n": 2
+        },
+        {
+          "type": "selfMarkerAtLeast",
+          "markerId": "marker_003",
+          "stacks": 30
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "consumeMarker",
+        "target": "self",
+        "markerId": "marker_003",
+        "maxPerTarget": 30,
+        "resultKey": "guardColor"
+      },
+      {
+        "type": "resourceScaledDamage",
+        "target": "enemyAll",
+        "basePower": 1.8,
+        "powerPerStack": 0.07,
+        "damageType": "magic",
+        "resultKey": "guardColor"
+      },
+      {
+        "type": "addMarker",
+        "target": "enemyAll",
+        "markerId": "marker_001",
+        "amount": 3
+      }
+    ],
+    "oncePerBattle": true,
+    "element": "elem_009"
   }
 ]

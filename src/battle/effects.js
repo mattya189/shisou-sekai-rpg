@@ -20,6 +20,36 @@ import { validateCondition } from './conditions.js';
 export const TARGETS = ['enemySingle', 'enemyAll', 'self', 'allyLowestHp', 'allyAll', 'sourceAttacker'];
 
 export const EFFECTS = {
+  consumeMarker: {
+    params: ['target', 'markerId', 'maxPerTarget', 'resultKey'],
+    apply(e, api, act) {
+      let total = 0;
+      for (const target of api.targets(e.target, act)) {
+        const amount = Math.min(e.maxPerTarget, api.markerStacks(target, e.markerId));
+        total -= api.addMarker(target, e.markerId, -amount, act.results);
+      }
+      act.consumed ??= {};
+      act.consumed[e.resultKey] = total;
+      // Notify only the owner of this skill, once with the total (round after summing).
+      api.markerConsumed(act.actor, e.markerId, total, act);
+    },
+  },
+  resourceScaledDamage: {
+    params: ['target', 'basePower', 'powerPerStack'],
+    apply(e, api, act) {
+      const stacks = e.selfMarkerId ? api.markerStacks(act.actor, e.selfMarkerId) : act.consumed?.[e.resultKey] ?? 0;
+      for (const target of api.targets(e.target, act)) {
+        api.dealDamage(act.actor, target, e.basePower + stacks * e.powerPerStack, act.skill?.element ?? null, act.results, 1, e.damageType ?? 'magic');
+      }
+    },
+  },
+  healFromDamage: {
+    params: ['target', 'ratio'],
+    apply(e, api, act) {
+      const amount = act.results.slice(act.damageStart ?? 0).filter((r) => r.kind === 'damage').reduce((n, r) => n + r.amount, 0);
+      for (const target of api.targets(e.target, act)) api.heal(target, Math.floor(amount * e.ratio), 'skill', act.results);
+    },
+  },
   damage: {
     params: ['target', 'power'],
     apply(e, api, act) {
@@ -47,7 +77,7 @@ export const EFFECTS = {
   applyStatus: {
     params: ['target', 'statusId'],
     apply(e, api, act) {
-      for (const t of api.targets(e.target, act)) api.applyStatus(t, e.statusId, e.chance ?? 1, act.results);
+      for (const t of api.targets(e.target, act)) api.applyStatus(t, e.statusId, e.chance ?? 1, act.results, act);
     },
   },
   markerScaledDamage: {
@@ -120,7 +150,7 @@ export const EFFECTS = {
       for (const t of api.targets(e.target, act)) {
         const stacks = api.markerStacks(t, e.markerId);
         const band = [...e.bands].sort((a, b) => b.min - a.min).find((b) => stacks >= b.min);
-        if (band) api.applyStatus(t, band.statusId, 1, act.results);
+        if (band) api.applyStatus(t, band.statusId, 1, act.results, act);
       }
     },
   },
@@ -203,7 +233,7 @@ export const EFFECTS = {
   applyStatusBySpecies: {
     params: ['speciesId', 'statusId', 'scope'],
     apply(e, api, act) {
-      for (const t of api.unitsBySpecies(e.speciesId, e.scope, act.actor)) api.applyStatus(t, e.statusId, e.chance ?? 1, act.results);
+      for (const t of api.unitsBySpecies(e.speciesId, e.scope, act.actor)) api.applyStatus(t, e.statusId, e.chance ?? 1, act.results, act);
     },
   },
   speciesScaledDamage: {
@@ -255,6 +285,9 @@ export function validateEffect(effect, where) {
   }
   if (effect.type === 'conditionalEffects') errors.push(...validateCondition(effect.condition, `${where}.condition`));
   if (effect.type === 'randomPowerDamage' && !(effect.minPower <= effect.maxPower)) errors.push(`${where}: minPower は maxPower 以下にしてください`);
+  if (effect.type === 'consumeMarker' && !(Number.isInteger(effect.maxPerTarget) && effect.maxPerTarget >= 0)) errors.push(`${where}: maxPerTarget は非負整数にしてください`);
+  if (effect.type === 'resourceScaledDamage' && !effect.selfMarkerId && !effect.resultKey) errors.push(`${where}: selfMarkerId または resultKey が必要です`);
+  if (effect.type === 'healFromDamage' && !(effect.ratio >= 0 && effect.ratio <= 1)) errors.push(`${where}: ratio は0〜1で指定してください`);
   if (effect.type === 'addMarker' && effect.amount == null && !(Number.isInteger(effect.min) && Number.isInteger(effect.max) && effect.min <= effect.max)) {
     errors.push(`${where}: addMarker は amount または整数の min / max が必要です`);
   }

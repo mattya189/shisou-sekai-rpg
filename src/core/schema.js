@@ -123,6 +123,7 @@ export const CATEGORY_SCHEMAS = {
         if (!e.enemies?.length || e.enemies.length > max) ctx.error(`entries[${i}].enemies は1〜${max}体にしてください`);
         for (const en of e.enemies ?? []) {
           const [lo, hi] = en.level ?? [];
+          if (en.rank != null && (!Number.isInteger(en.rank) || en.rank < 1 || en.rank > (ctx.raw.balance?.ranks?.length ?? 5))) ctx.error(`entries[${i}] の ${en.defId} の rank が範囲外です`);
           if (!(Number.isInteger(lo) && Number.isInteger(hi) && lo >= 1 && lo <= hi)) ctx.error(`entries[${i}] の ${en.defId} の level は [最小, 最大] で指定してください`);
         }
         checkWhen(e.when, `entries[${i}].when`, ctx);
@@ -263,6 +264,7 @@ export const CATEGORY_SCHEMAS = {
       ['effects[].condition.markerId', 'markers'],
       ['completionEffects[].statusId', 'statuses'],
       ['completionEffects[].markerId', 'markers'],
+      ['completionEffects[].selfMarkerId', 'markers'], ['effects[].selfMarkerId', 'markers'],
       ['trigger.statusId', 'statuses'],
       ['trigger.markerId', 'markers'],
       ['trigger.of[].statusId', 'statuses'],
@@ -280,10 +282,12 @@ export const CATEGORY_SCHEMAS = {
       if (!Array.isArray(entry.effects) || (!entry.comboFrom && entry.effects.length === 0)) ctx.error('effects を1つ以上指定してください');
       (entry.effects ?? []).forEach((e, i) => validateEffect(e, `effects[${i}]`).forEach((m) => ctx.error(m)));
       (entry.completionEffects ?? []).forEach((e, i) => validateEffect(e, `completionEffects[${i}]`).forEach((m) => ctx.error(m)));
+      if (entry.comboTiming != null && entry.comboTiming !== 'afterSkill') ctx.error('comboTiming は afterSkill を指定してください');
+      if (entry.comboCondition && !(typeof entry.comboCondition.resultKey === 'string' && entry.comboCondition.minConsumed >= 0)) ctx.error('comboCondition は resultKey / minConsumed が必要です');
       if (entry.comboFrom && !(entry.completionEffects?.length > 0)) ctx.error('コンボ特技には completionEffects が必要です');
       if (entry.oncePerBattle != null && typeof entry.oncePerBattle !== 'boolean') ctx.error('oncePerBattle は真偽値で指定してください');
       if (entry.intrinsic != null && typeof entry.intrinsic !== 'boolean') ctx.error('intrinsic は真偽値で指定してください');
-      if (entry.targetSelector && entry.targetSelector.type !== 'enemyMarkerOldest') ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
+      if (entry.targetSelector && !['enemyMarkerOldest', 'enemyMarkerMost'].includes(entry.targetSelector.type)) ctx.error(`targetSelector.type "${entry.targetSelector.type}" は未登録です`);
     },
   },
   passives: {

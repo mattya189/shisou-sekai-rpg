@@ -22,7 +22,7 @@ import { createCombatant, createBossUnits, addBuffs, effectiveInterval, effectiv
 import { checkCondition } from './conditions.js';
 import { EFFECTS } from './effects.js';
 import { PASSIVE_EFFECTS } from './passives.js';
-import { STATUS_KINDS } from './statusEffects.js';
+import { STATUS_KINDS, isDebuff } from './statusEffects.js';
 import { computeDamage } from './damage.js';
 import { hpPct } from './unitState.js';
 import { EVENT_TRIGGERS } from './eventTriggers.js';
@@ -217,7 +217,29 @@ function finish(battle, outcome) {
 
 function makeApi(battle, data) {
   const t = () => battle.timeMs;
+  let attack = null;
   const api = {
+    beginAttack(actor) {
+      attack = { actor, boosts: actor.statuses.filter((s) => s.kind === 'nextAttackDamage'), hit: false };
+    },
+    endAttack(results) {
+      if (attack?.hit) for (const status of attack.boosts) {
+        attack.actor.statuses = attack.actor.statuses.filter((s) => s !== status);
+        results.push({ kind: 'statusRemoved', targetId: attack.actor.id, statusId: status.statusId });
+      }
+      attack = null;
+    },
+    flushDebuffs(act) {
+      for (const target of act.debuffTargets ?? []) triggerImmediateSkills(battle, data, {
+        type: 'enemyDebuff', target, source: act.actor, primaryTarget: act.actor,
+      });
+      act.debuffTargets?.clear();
+    },
+    markerConsumed(actor, markerId, amount, act) {
+      for (const p of actor.passives) PASSIVE_EFFECTS[p.effect.type]?.onMarkerConsumed?.(p.effect, actor, api, {
+        actor, markerId, amount, skill: act.skill, results: act.results,
+      });
+    },
     targets(type, act) {
       const allies = aliveOf(battle, act.actor.side);
       const foes = aliveOf(battle, act.actor.side === 'ally' ? 'enemy' : 'ally');
@@ -246,6 +268,10 @@ function makeApi(battle, data) {
       if (evasion > 0 && battle.rng.chance(Math.min(0.95, evasion / 100))) {
         results.push({ kind: 'miss', targetId: target.id });
         return false;
+      }
+      if (attack?.actor === attacker) {
+        power *= 1 + attack.boosts.reduce((n, s) => n + s.params.pct, 0) / 100;
+        attack.hit = true;
       }
       const amount = computeDamage({ attacker, target, power, element, rng: battle.rng, balance: data.balance, damageType, scalingStat });
       const beforePct = hpPct(target);
@@ -276,7 +302,7 @@ function makeApi(battle, data) {
       target.hp += actual;
       results?.push({ kind: 'heal', targetId: target.id, amount: actual, source });
     },
-    applyStatus(target, statusId, chance, results) {
+    applyStatus(target, statusId, chance, results, act = null) {
       if (!target.alive) return;
       const def = data.get('statuses', statusId);
       if (target.statusImmune.includes(statusId)) {
@@ -289,16 +315,21 @@ function makeApi(battle, data) {
         results.push({ kind: 'statusResisted', targetId: target.id, statusId });
         return;
       }
+      if (act && act.actor.side !== target.side && isDebuff(def)) {
+        act.debuffTargets ??= new Set();
+        act.debuffTargets.add(target);
+      }
       const existing = target.statuses.find((s) => s.statusId === statusId);
       if (existing) {
         if (def.durationTurns != null) existing.remainingTurns = def.durationTurns;
-        else existing.expiresAt = t() + def.durationMs;
+        else if (def.durationMs != null) existing.expiresAt = t() + def.durationMs;
         results.push({ kind: 'statusRefreshed', targetId: target.id, statusId });
         return;
       }
       const inst = {
         statusId,
         kind: def.kind,
+        untilAttack: def.untilAttack ?? false,
         params: { ...def.params },
         expiresAt: def.durationMs != null ? t() + def.durationMs : null,
         nextTickAt: null,
@@ -407,7 +438,7 @@ function makeApi(battle, data) {
       const completionEffects = [...effects];
       for (const skillId of actor.skills) {
         const combo = data.find('skills', skillId);
-        if (combo?.comboFrom === sourceSkill?.id) completionEffects.push(...(combo.completionEffects ?? []));
+        if (combo?.comboFrom === sourceSkill?.id && combo.comboTiming !== 'afterSkill') completionEffects.push(...(combo.completionEffects ?? []));
       }
       actor.pendingActionEffects.push({ turnsLeft: afterTurns, effects: completionEffects, sourceSkillId: sourceSkill?.id ?? null });
       results.push({ kind: 'effectsScheduled', targetId: actor.id, afterTurns, sourceSkillId: sourceSkill?.id ?? null });
@@ -447,7 +478,7 @@ function makeApi(battle, data) {
     queueAttackCombo(actor, sourceSkill, results = []) {
       for (const skillId of actor.skills) {
         const combo = data.find('skills', skillId);
-        if (combo?.comboFrom !== sourceSkill?.id) continue;
+        if (combo?.comboFrom !== sourceSkill?.id || combo.comboTiming === 'afterSkill') continue;
         actor.pendingAttackEffects.push({ effects: [...(combo.completionEffects ?? [])], sourceSkillId: sourceSkill.id, comboSkillId: combo.id });
         results.push({ kind: 'attackComboQueued', targetId: actor.id, sourceSkillId: sourceSkill.id, comboSkillId: combo.id });
       }
@@ -487,7 +518,10 @@ function triggerImmediateSkills(battle, data, triggerEvent) {
       battle.resolvingImmediate.push(keyOf(skillId));
       try {
         const actCtx = { actor, primaryTarget, skill, results, sourceAttacker: triggerEvent.source ?? null };
+        api.beginAttack(actor);
         for (const effect of skill.effects) EFFECTS[effect.type]?.apply(effect, api, actCtx);
+        api.endAttack(results);
+        api.flushDebuffs(actCtx);
       } finally {
         battle.resolvingImmediate = battle.resolvingImmediate.filter((k) => k !== keyOf(skillId));
       }
@@ -648,6 +682,10 @@ function act(battle, data, actor) {
     break;
   }
 
+  if (used?.targetSelector?.type === 'enemyMarkerMost') {
+    const markerId = used.targetSelector.markerId;
+    primaryTarget = [...foes].sort((a, b) => api.markerStacks(b, markerId) - api.markerStacks(a, markerId))[0] ?? primaryTarget;
+  }
   if (used?.targetSelector?.type === 'enemyMarkerOldest') {
     const markerId = used.targetSelector.markerId;
     const min = used.targetSelector.stacks ?? 1;
@@ -683,12 +721,16 @@ function act(battle, data, actor) {
   // 予約済み連携は「次の実際の攻撃」の直前に1回だけ解決する。
   if (countsAsAttack && actor.pendingAttackEffects.length) {
     for (const pending of [...actor.pendingAttackEffects]) {
+      api.beginAttack(actor);
       for (const effect of pending.effects) EFFECTS[effect.type]?.apply(effect, api, actCtx);
+      api.endAttack(results);
       actor.pendingAttackEffects = actor.pendingAttackEffects.filter((p) => p !== pending);
       results.push({ kind: 'attackComboTriggered', targetId: actor.id, comboSkillId: pending.comboSkillId, sourceSkillId: pending.sourceSkillId });
     }
   }
 
+  actCtx.damageStart = results.length;
+  api.beginAttack(actor);
   if (used) {
     if (actor.usesMp && !forced) actor.mp -= used.mpCost;
     for (const effect of used.effects) EFFECTS[effect.type]?.apply(effect, api, actCtx);
@@ -716,6 +758,23 @@ function act(battle, data, actor) {
       results.push({ kind: 'mpRecover', targetId: actor.id, amount: actual });
     }
   }
+
+  api.endAttack(results);
+  if (used) {
+    for (const skillId of actor.skills) {
+      const combo = data.find('skills', skillId);
+      if (combo?.comboFrom !== used.id || combo.comboTiming !== 'afterSkill') continue;
+      const condition = combo.comboCondition;
+      if (condition && (actCtx.consumed?.[condition.resultKey] ?? 0) < condition.minConsumed) continue;
+      const comboCtx = { ...actCtx, skill: combo };
+      api.beginAttack(actor);
+      for (const effect of combo.completionEffects) EFFECTS[effect.type]?.apply(effect, api, comboCtx);
+      api.endAttack(results);
+      results.push({ kind: 'attackComboTriggered', targetId: actor.id, comboSkillId: combo.id, sourceSkillId: used.id });
+    }
+  }
+  api.flushDebuffs(actCtx);
+  if (!used && actor.alive) triggerImmediateSkills(battle, data, { type: 'normalAttack', target: actor, primaryTarget });
 
   if (actor.alive) {
     const passiveApi = { heal: (target, amount, source) => api.heal(target, amount, source, results) };

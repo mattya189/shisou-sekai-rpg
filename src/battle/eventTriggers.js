@@ -3,6 +3,14 @@
  * 特定モンスター名ではなく、データの immediateTrigger.type で登録する。
  */
 export const EVENT_TRIGGERS = {
+  normalAttack: {
+    params: ['chance'],
+    matches(p, c) { return c.event.type === 'normalAttack' && c.event.target === c.actor && c.rng.chance(p.chance); },
+  },
+  enemyDebuff: {
+    params: ['chance'],
+    matches(p, c) { return c.event.type === 'enemyDebuff' && c.event.target === c.actor && c.event.source?.side !== c.actor.side && c.rng.chance(p.chance); },
+  },
   markerThresholdReached: {
     params: ['markerId', 'thresholds'],
     matches(p, c) {
@@ -37,7 +45,7 @@ export function validateEventTrigger(trigger, where = 'immediateTrigger') {
   const errors = def.params
     .filter((p) => trigger[p] === undefined)
     .map((p) => `${where}: 条件 ${trigger.type} にはパラメータ ${p} が必要です`);
-  if (trigger.type === 'damaged' && !(trigger.chance >= 0 && trigger.chance <= 1)) errors.push(`${where}.chance は0〜1で指定してください`);
+  if (['damaged', 'normalAttack', 'enemyDebuff'].includes(trigger.type) && !(trigger.chance >= 0 && trigger.chance <= 1)) errors.push(`${where}.chance は0〜1で指定してください`);
   if (trigger.type === 'hpThresholdCrossed' && !(trigger.pct > 0 && trigger.pct < 100)) errors.push(`${where}.pct は0より大きく100未満にしてください`);
   if (trigger.type === 'markerThresholdReached' && !(Array.isArray(trigger.thresholds) && trigger.thresholds.every((n) => Number.isInteger(n) && n > 0))) {
     errors.push(`${where}.thresholds は正の整数配列で指定してください`);

@@ -10,15 +10,15 @@ import { autoFillSkills } from './skillLoadout.js';
 import { addItem } from './inventory.js';
 import { markMonster } from './codex.js';
 
-export function createUnitState(data, defId, { level = 1, rank = 1 } = {}) {
-  const { kind } = data.getUnitDef(defId);
+export function createUnitState(data, defId, { level = 1, rank } = {}) {
+  const { kind, def } = data.getUnitDef(defId);
   const cap = data.balance.levelCap;
   const unit = {
     ...createUnitDefaults(),
     defId,
     kind,
     level: Math.min(Math.max(1, level), cap),
-    rank,
+    rank: rank ?? def.initialRank ?? 1,
     equipment: Array(data.balance.equipment.slots).fill(null),
   };
   autoFillSkills(data, unit);

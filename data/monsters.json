@@ -544,5 +544,127 @@
     "recruit": { "baseRate": 0.18, "failBonus": 0.06, "guaranteeAfter": 7, "level": 6, "duplicateTo": [{ "itemId": "item_009", "qty": 8 }] },
     "exp": 42,
     "gold": 28
+  },
+  {
+    "id": "mon_010",
+    "name": "拒彩獣 リフューラ",
+    "description": "自分の好きなものをバカにされたくないという思いを抱く色命族の幻獣。侵色を消費して護彩へ変換し、蓄積した彩を全体魔法へ解き放つ。",
+    "theme": "自分の好きなものをバカにされたくない",
+    "image": "img/monsters/mon_010.png",
+    "worldId": "world_001",
+    "rarity": "normal",
+    "initialRank": 2,
+    "strength": 3,
+    "battleType": "魔法攻撃型／侵色消費型／全体フィニッシャー",
+    "species": [
+      "色命族",
+      "幻獣族"
+    ],
+    "speciesIds": [
+      "species_001",
+      "species_005"
+    ],
+    "element": "elem_009",
+    "baseStats": {
+      "hp": 140,
+      "mp": 64,
+      "atk": 9,
+      "def": 11,
+      "matk": 24,
+      "mdef": 17,
+      "evasion": 0,
+      "attackIntervalMs": 2600
+    },
+    "growth": {
+      "hp": 13,
+      "mp": 4,
+      "atk": 0.7,
+      "def": 1,
+      "matk": 2.2,
+      "mdef": 1.5,
+      "evasion": 0
+    },
+    "elementMultipliers": {
+      "elem_007": 1.5,
+      "elem_009": 0.5
+    },
+    "learnset": [
+      {
+        "skillId": "skill_045",
+        "rank": 2,
+        "level": 1
+      },
+      {
+        "skillId": "skill_046",
+        "rank": 2,
+        "level": 5
+      },
+      {
+        "skillId": "skill_047",
+        "rank": 2,
+        "level": 10
+      },
+      {
+        "skillId": "skill_048",
+        "rank": 2,
+        "level": 20
+      },
+      {
+        "skillId": "skill_049",
+        "rank": 3,
+        "level": 1
+      },
+      {
+        "skillId": "skill_050",
+        "rank": 3,
+        "level": 10
+      },
+      {
+        "skillId": "skill_051",
+        "rank": 3,
+        "level": 20
+      },
+      {
+        "skillId": "skill_052",
+        "rank": 4,
+        "level": 1
+      },
+      {
+        "skillId": "skill_053",
+        "rank": 4,
+        "level": 30
+      },
+      {
+        "skillId": "skill_054",
+        "rank": 5,
+        "level": 1
+      }
+    ],
+    "passives": [
+      "passive_010"
+    ],
+    "drops": [
+      {
+        "itemId": "item_007",
+        "rate": 0.45,
+        "qty": [
+          1,
+          1
+        ]
+      }
+    ],
+    "recruit": {
+      "baseRate": 0.22,
+      "failBonus": 0.05,
+      "guaranteeAfter": 6,
+      "duplicateTo": [
+        {
+          "itemId": "item_009",
+          "qty": 5
+        }
+      ]
+    },
+    "exp": 30,
+    "gold": 20
   }
 ]

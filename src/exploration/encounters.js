@@ -10,7 +10,7 @@ export function rollEncounter(data, tableId, situation, rng) {
   const candidates = table.entries.filter((e) => matchesWhen(e.when, situation));
   const picked = rng.weighted(candidates);
   if (!picked) return null;
-  return picked.enemies.map((en) => ({ defId: en.defId, level: rng.int(en.level[0], en.level[1]) }));
+  return picked.enemies.map((en) => ({ defId: en.defId, level: rng.int(en.level[0], en.level[1]), ...(en.rank != null ? { rank: en.rank } : {}) }));
 }
 
 /** 今の状況で出現しうるモンスター（図鑑・デバッグ用） */

@@ -71,6 +71,7 @@ function attackMultiples(trigger) {
 
 export function skillKind(skill) {
   if (skill.comboFrom) return 'combo';
+  if (skill.abilityKind === 'passive') return 'passive';
   if (skill.name.startsWith('奥義：')) return 'ultimate';
   return 'skill';
 }
@@ -81,10 +82,12 @@ export function skillTriggerText(skill, data) {
     if (t.type === 'markerThresholdReached') {
       return `${nameOf(data, 'markers', t.markerId)}が${t.thresholds.join('・')}に到達したとき即時`;
     }
+    if (t.type === 'normalAttack') return `通常攻撃時${Math.round(t.chance * 100)}%で即時`;
+    if (t.type === 'enemyDebuff') return `敵由来のデバフ付与時${Math.round(t.chance * 100)}%（同一行動1回）`;
     if (t.type === 'damaged') return `ダメージを受けたとき${Math.round(t.chance * 100)}%で即時`;
     return '条件成立時に即時発動';
   }
-  if (skill.comboFrom) return `${nameOf(data, 'skills', skill.comboFrom)}から連携`;
+  if (skill.comboFrom) return `${nameOf(data, 'skills', skill.comboFrom)}から連携${skill.comboCondition ? `（実消費${skill.comboCondition.minConsumed}以上、処理終了後）` : ''}`;
   return describeCondition(skill.trigger, data);
 }
 
@@ -159,6 +162,7 @@ export function filterAbilityCatalog(catalog, { query = '', kind = 'all', elemen
 }
 
 function durationText(status) {
+  if (status.untilAttack) return '次にダメージを与える攻撃全体の終了まで';
   if (status.durationTurns != null) {
     const timing = status.turnTiming === 'actionStart' ? '行動開始時' : '行動終了時';
     return `対象自身の行動${status.durationTurns}回（${timing}に処理）`;
@@ -177,6 +181,9 @@ function damageText(effect, data, powerKey = 'power') {
 
 export function describeSkillEffect(effect, data) {
   switch (effect.type) {
+    case 'consumeMarker': return `${TARGET_LABEL[effect.target]}ごとに${nameOf(data, 'markers', effect.markerId)}を最大${effect.maxPerTarget}消費（実消費合計を参照）`;
+    case 'resourceScaledDamage': return `${TARGET_LABEL[effect.target]}へ${effect.damageType === 'magic' ? '魔法' : '物理'}攻撃 ${pct(effect.basePower)}＋${effect.selfMarkerId ? nameOf(data, 'markers', effect.selfMarkerId) : 'この特技の実消費合計'}1ごとに${pct(effect.powerPerStack)}`;
+    case 'healFromDamage': return `実際に与えたダメージの${pct(effect.ratio)}を${TARGET_LABEL[effect.target]}へ回復（最大HPまで）`;
     case 'damage': return damageText(effect, data);
     case 'heal': return `${TARGET_LABEL[effect.target]}を攻撃力依存${pct(effect.power)}で回復`;
     case 'healPctMax': return `${TARGET_LABEL[effect.target]}の最大HP${effect.pct}%を回復`;
@@ -209,6 +216,7 @@ export function describeSkillEffect(effect, data) {
 
 export function describePassiveEffect(effect, data) {
   switch (effect.type) {
+    case 'consumedMarkerGainSelfMarker': return `自身の特技による${nameOf(data, 'markers', effect.markerId)}実消費合計の${pct(effect.ratio)}（切り捨て）を${nameOf(data, 'markers', effect.selfMarkerId)}へ変換`;
     case 'statPerAttackCount': return `攻撃ごとに${STAT_LABEL[effect.stat] ?? effect.stat}+${effect.pctPerStack}%（最大${effect.maxStacks}回分）`;
     case 'normalAttackMpBonus': return `通常攻撃のMP回復を最大MPの${effect.pctOfMaxMp}%追加`;
     case 'healEveryNAttacks': return `${effect.n}回攻撃ごとに最大HPの${effect.pctOfMaxHp}%回復`;

@@ -61,6 +61,7 @@ export function statusPolarity(def) {
  * @returns {{ short: string, long: string }}
  */
 export function statusRemainingText(status, timeMs) {
+  if (status.untilAttack) return { short: '次の攻撃', long: '次にダメージを与える攻撃全体の終了まで' };
   if (status.remainingTurns != null) {
     const n = status.remainingTurns;
     const timing = status.turnTiming === 'actionStart' ? '行動開始時' : '行動終了時';
